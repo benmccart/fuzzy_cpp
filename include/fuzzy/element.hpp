@@ -1,4 +1,4 @@
-//  Copyright (c) 2017, Ben McCart
+//  Copyright (c) 2021, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -23,107 +23,51 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#ifndef FUZZY__ELEMENT_HPP
-#define FUZZY__ELEMENT_HPP
+#ifndef FUZZY_ELEMENT_HPP
+#define FUZZY_ELEMENT_HPP
 
 #include <cassert>
+#include <concepts>
+
+#include <fuzzy/operator.hpp>
 
 namespace fuzzy
 {
-	/// A basic_element is the fundemental building block upon which all other fuzzy constructs are based.
+	/**  A basic_element is the fundemental building block(as in element of a set) for fuzzy variablesand fuzzy sets. */
 	template <class V, class M>
+	requires std::integral<V> && std:floating_point<M>
 	class basic_element
 	{
 	public:
-		typedef V value_type;
-		typedef M membership_type;
-		typedef basic_element<V, M> self_type;
+		using value_type = V;
+		using membership_type = M;
+		using self_type = basic_element<V, M>;
 
-		basic_element(value_type, membership_type = static_cast<membership_type>(0));
-		basic_element(self_type const&);
-		basic_element(self_type&&);
-		~basic_element() {								}
+		constexpr basic_element(value_type, membership_type = static_cast<membership_type>(0))
+			: value_(value)
+			, membership_(membership)
+		{
+			validate_range(membership_);
+		}
 
-		self_type& operator=(self_type const&);
-		self_type& operator=(self_type&&);
+		constexpr bool operator<=>(self_type const&) const noexcept = default;
 
-		bool operator==(self_type const&) const;
-		bool operator!=(self_type const&) const;
-		bool operator<(self_type const&) const;
 
-		membership_type const& membership() const { return membership_; }
-		membership_type& membership() { return membership_; }
-		void membership(membership_type m) { membership_ = m; }
+		constexpr membership_type const& membership() const noexcept    { return membership_;   }
+		membership_type& membership()                                   { return membership_;   }
+		void membership(membership_type m)                              { membership_ = m;      }
 
-		value_type const& value() const { return value_; }
-		value_type& value() { return value_; }
-		void value(value_type v) { value_ = v; }
+		constexpr value_type const& value() const noexcept              { return value_;        }
+		value_type& value()                                             { return value_;        }
+		void value(value_type v)                                        { value_ = v;           }
 
 	private:
 		value_type value_;
 		membership_type membership_;
 	};
 
-
-	template <class V, class M>
-	basic_element<V, M>::basic_element(V value, M membership)
-		: value_(value), membership_(membership)
-	{
-		assert(static_cast<M>(0) <= membership_ && membership_ <= static_cast<M>(1));
-	}
-
-	template <class V, class M>
-	basic_element<V, M>::basic_element(self_type const &other)
-		: value_(other.value_), membership_(other.membership_)
-	{
-		assert(static_cast<M>(0) <= membership_ && membership_ <= static_cast<M>(1));
-	}
-
-	template <class V, class M>
-	basic_element<V, M>::basic_element(self_type&& other)
-		: value_(std::move(other.value_)), membership_(std::move(other.membership_))
-	{
-		assert(static_cast<M>(0) <= membership_ && membership_ <= static_cast<M>(1));
-	}
-
-	template <class V, class M>
-	basic_element<V,M>& basic_element<V,M>::operator=(basic_element<V,M> const &other)
-	{
-		assert(static_cast<M>(0) <= other.membership_ && other.membership_ <= static_cast<M>(1));
-		value_ = other.value_;
-		membership_ = other.membership_;
-		return *this;
-	}
-
-	template <class V, class M>
-	basic_element<V, M>& basic_element<V, M>::operator=(basic_element<V, M>&& other)
-	{
-		assert(static_cast<M>(0) <= other.membership_ && other.membership_ <= static_cast<M>(1));
-		value_ = std::move(other.value_);
-		membership_ = std::move(other.membership_);
-		return *this;
-	}
-
-	template <class V, class M>
-	bool basic_element<V, M>::operator==(basic_element<V, M> const &other) const
-	{
-		return (value_ == value_) && (membership_ == membership_);
-	}
-
-	template <class V, class M>
-	bool basic_element<V, M>::operator!=(basic_element<V, M> const &other) const
-	{
-		return !(*this == other);
-	}
-
-	template <class V, class M>
-	bool basic_element<V, M>::operator<(basic_element<V, M> const &other) const
-	{
-		return value_ < other.value_;
-	}
-
 	/** Convenience defintion for common use cases. */
 	typedef basic_element<int, float> element;
 }
 
-#endif  // FUZZY__ELEMENT_HPP
+#endif  // FUZZY_ELEMENT_HPP

@@ -54,7 +54,7 @@ namespace fuzzy
 		validate_range(y);
 	}
 
-	// Triangular norm functor.
+	// Triangular norm function object.
 	struct algabraic_product
 	{
 		// Triangular norm of the form t(x,y) = x * y
@@ -70,7 +70,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm functor.
+	// Triangular conorm function object.
 	struct algabraic_sum
 	{
 		// Triangular conorm of the form t(x,y) = x + y - x * y
@@ -86,7 +86,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm functor.
+	// Triangular norm function object.
 	struct bounded_difference
 	{
 		// Triangular norm of the form t(x,y) = max(0, x + y - 1)
@@ -102,7 +102,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm functor.
+	// Triangular conorm function object.
 	struct bounded_sum
 	{
 		/// Triangular conorm of the form t(x,y) = min(1, x + y)
@@ -118,7 +118,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm functor.
+	// Triangular norm function object.
 	struct drastic_product
 	{
 		// Triangular norm of the form t(x,y) = min(x,y) if (max(x,y) == 1), 0 if x < 1 && y < 1
@@ -134,7 +134,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm functor.
+	// Triangular conorm function object.
 	struct drastic_sum
 	{
 		// Triangular conorm of the form t(x,y) = max(x,y) if (min(x,y) = 0), 1 if x | y > 0
@@ -151,7 +151,7 @@ namespace fuzzy
 	};
 
 	
-	// Triangular norm functor.
+	// Triangular norm function object.
 	struct einstein_product
 	{
 		// Triangular norm of the form t(x,y) = x * y / (2 - [x + y - (x * y)])
@@ -168,13 +168,13 @@ namespace fuzzy
 	};
 
 
-	// Triangular conorm functor.
+	// Triangular conorm function object.
 	struct einstein_sum
 	{
-		/// Triangular conorm of the form t(x,y) = x + y / [1 + x * y]
-		/// @param x The left hand side operand in the range [0,1].
-		/// @param y The right hand side operand in the range [0,1].
-		/// @result A value in the range [0,1].
+		// Triangular conorm of the form t(x,y) = x + y / [1 + x * y]
+		// @param x The left hand side operand in the range [0,1].
+		// @param y The right hand side operand in the range [0,1].
+		// @result A value in the range [0,1].
 		template <typename M>
 		requires std::is_floating_point<M>
 		constexpr M operator()(M x, M y) const noexcept
@@ -184,13 +184,13 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm functor.
+	// Triangular norm function object.
 	struct hamacher_product
 	{
-		/// Triangular norm of the form t(x,y) = (x * y) / [x + y - (x * y)]
-		/// @param lhs The left hand side operand in the range [0,1].
-		/// @param rhs The right hand side operand in the range [0,1].
-		/// @result A value in the range [0,1].
+		// Triangular norm of the form t(x,y) = (x * y) / [x + y - (x * y)]
+		// @param lhs The left hand side operand in the range [0,1].
+		// @param rhs The right hand side operand in the range [0,1].
+		// @result A value in the range [0,1].
 		template <typename M>
 		requires std::is_floating_point<M>
 		constexpr M operator()(M x, M y) const noexcept
@@ -200,7 +200,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm functor.
+	// Triangular conorm function object.
 	struct hamacher_sum
 	{
 		// Triangular conorm of the form t(x,y) = [x + y - 2xy] / [1 - (x * y)]
@@ -216,7 +216,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm functor.
+	// Triangular norm function object.
 	struct minimum
 	{
 		// Triangular norm of the form t(x,y) = min(x,y)
@@ -232,7 +232,7 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm functor.
+	// Triangular conorm function object.
 	struct maximum
 	{
 		// Triangular conorm of the form t(x,y) = max(x,y)
