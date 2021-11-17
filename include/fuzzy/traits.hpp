@@ -29,94 +29,136 @@
 #include <fuzzy/fwd.hpp>
 
 
-namespace fuzzy { namespace traits
+namespace fuzzy 
 {
+	struct tag_tnorm {};
+	struct tag_tconorm {};
 
-	/** Default traits function for triangular norm classification. */
 	template <class T>
-	struct is_tnorm
+	concept has_tnorm_tag = requires (T)
 	{
-		static const bool value = false;
+		typename T::tnorm;
 	};
 
-	template <>
-	struct is_tnorm<fuzzy::algabraic_product>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tnorm<fuzzy::bounded_difference>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tnorm<fuzzy::drastic_product>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tnorm<fuzzy::einstein_product>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tnorm<fuzzy::hamacher_product>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tnorm<fuzzy::minimum>
-	{
-		static const bool value = true;
-	};
-
-	/** Default traits function for triangular conorm classification. */
 	template <class T>
-	struct is_tconorm
+	concept has_tconorm_tag = requires (T)
 	{
-		static const bool value = false;
+		typename T::tconorm;
+	};
+	
+	namespace traits
+	{
+		/** Default traits function for triangular norm classification. */
+		template <class T>
+		struct is_tnorm
+		{
+			static const bool value = false;
+		};
+
+		template <has_tnorm_tag T>
+		struct is_tnorm
+		{
+			static const bool value = true;
+		};
+
+		//template <>
+		//struct is_tnorm<fuzzy::algabraic_product>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tnorm<fuzzy::bounded_difference>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tnorm<fuzzy::drastic_product>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tnorm<fuzzy::einstein_product>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tnorm<fuzzy::hamacher_product>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tnorm<fuzzy::minimum>
+		//{
+		//	static const bool value = true;
+		//};
+
+		/** Default traits function for triangular conorm classification. */
+		template <class T>
+		struct is_tconorm
+		{
+			static const bool value = false;
+		};
+
+		template <has_tconorm_tag T>
+		struct is_cotnorm
+		{
+			static const bool value = true;
+		};
+
+		//template <>
+		//struct is_tconorm<fuzzy::algabraic_sum>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tconorm<fuzzy::bounded_sum>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tconorm<fuzzy::drastic_sum>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tconorm<fuzzy::einstein_sum>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tconorm<fuzzy::hamacher_sum>
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <>
+		//struct is_tconorm<fuzzy::maximum>
+		//{
+		//	static const bool value = true;
+		//};
+	}
+
+	template <class T, typename M>
+	concept TNorm = requires  std::floating_point<M> && fuzzy::traits::is_tnorm<T>::value && (T t, M m)
+	{
+		M mr = t(m, m);
 	};
 
-	template <>
-	struct is_tconorm<fuzzy::algabraic_sum>
-	{
-		static const bool value = true;
-	};
 
-	template <>
-	struct is_tconorm<fuzzy::bounded_sum>
+	template <class T, typename M>
+	concept TConorm = requires  std::floating_point<M> && fuzzy::traits::is_tconorm<T>::value && (T t, M m)
 	{
-		static const bool value = true;
+		M mr = t(m, m);
 	};
-
-	template <>
-	struct is_tconorm<fuzzy::drastic_sum>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tconorm<fuzzy::einstein_sum>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tconorm<fuzzy::hamacher_sum>
-	{
-		static const bool value = true;
-	};
-
-	template <>
-	struct is_tconorm<fuzzy::maximum>
-	{
-		static const bool value = true;
-	};
-}}
+}
 
 #endif //FUZZY__TRAITS_HPP
