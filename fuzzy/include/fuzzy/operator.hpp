@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <cassert>
 #include <concepts>
+#include <stdexcept>
 #include <limits>
 #include <type_traits>
 
@@ -38,238 +39,254 @@ namespace fuzzy
 {
 	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
 	template <typename M>
-	requires std::is_floating_point<M>
+	requires std::floating_point<M>
 	constexpr void validate_range(M m) noexcept
 	{
 		if (std::is_constant_evaluated())
-			static_assert(static_cast<M>(0) <= m && m <= static_cast<M>(1));
+		{
+			throw std::logic_error("static_cast<M>(0) <= m && m <= static_cast<M>(1)");
+		}
 		else
+		{
 			assert(static_cast<M>(0) <= m && m <= static_cast<M>(1));
+		}
 	}
 
 	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
 	template <typename M>
-	requires std::is_floating_point<M>
+	requires std::floating_point<M>
 	constexpr void validate_range(M x, M y)
 	{
-		validate_range(x);
-		validate_range(y);
+		validate_range<M>(x);
+		validate_range<M>(y);
 	}
 
 	// Triangular norm function object.
+	template <typename M = float>
+	requires std::floating_point<M>
 	struct algabraic_product
 	{
-		using tnorm = tag_tnorm;
+		using tnorm = tnorm_tag;
+		using value_type = M;
 
 		// Triangular norm of the form t(x,y) = x * y
 		// @param x The left hand side operand  in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value inn the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 	        return x * y;
 		}
 	};
 
 	// Triangular conorm function object.
+	template <typename M = float>
+	requires std::floating_point<M>
 	struct algabraic_sum
 	{
-		using tconorm = tag_tconorm;
+		using tconorm = tconorm_tag;
+		using value_type = M;
 
 		// Triangular conorm of the form t(x,y) = x + y - x * y
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range  [0,1].
 		// @result a value in the range [0,1]
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return (x + y) - (x * y);
 		}
 	};
 
 	// Triangular norm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct bounded_difference
 	{
-		using tnorm = tag_tnorm;
+		using tnorm = tnorm_tag;
+		using value_type = M;
 
 		// Triangular norm of the form t(x,y) = max(0, x + y - 1)
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1]
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return std::max(static_cast<M>(0), (x + y) - static_cast<M>(1));
 		}
 	};
 
 	// Triangular conorm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct bounded_sum
 	{
-		using tconorm = tag_tconorm;
+		using tconorm = tconorm_tag;
+		using value_type = M;
 
 		/// Triangular conorm of the form t(x,y) = min(1, x + y)
 		/// @param x The left hand side operand in the range [0,1].
 		/// @param y The right hand side operand in the range [0,1].
 		/// @result A value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return std::min(static_cast<M>(1), x + y);
 		}
 	};
 
 	// Triangular norm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct drastic_product
 	{
-		using tnorm = tag_tnorm;
+		using tnorm = tnorm_tag;
+		using value_type = M;
 
 		// Triangular norm of the form t(x,y) = min(x,y) if (max(x,y) == 1), 0 if x < 1 && y < 1
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return (x == static_cast<M>(1) || y == static_cast<M>(1)) ? std::min(x, y) : static_cast<M>(0);
 		}
 	};
 
 	// Triangular conorm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct drastic_sum
 	{
-		using tconorm = tag_tconorm;
+		using tconorm = tconorm_tag;
+		using value_type = M;
 
 		// Triangular conorm of the form t(x,y) = max(x,y) if (min(x,y) = 0), 1 if x | y > 0
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return (x == static_cast<M>(0) || y == static_cast<M>(0)) ? std::max(x, y) : static_cast<M>(1);
 		}
 	};
 
 	
 	// Triangular norm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct einstein_product
 	{
-		using tnorm = tag_tnorm;
+		using tnorm = tnorm_tag;
+		using value_type = M;
 
 		// Triangular norm of the form t(x,y) = x * y / (2 - [x + y - (x * y)])
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return (x * y) / (static_cast<M>(2) - ((x + y) - (x * y)));
 		}
 	};
 
 
 	// Triangular conorm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct einstein_sum
 	{
-		using tconorm = tag_tconorm;
+		using tconorm = tconorm_tag;
+		using value_type = M;
 
 		// Triangular conorm of the form t(x,y) = x + y / [1 + x * y]
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return (x + y) / (static_cast<M>(1) + (x * y));
 		}
 	};
 
 	// Triangular norm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct hamacher_product
 	{
-		using tnorm = tag_tnorm;
+		using tnorm = tnorm_tag;
+		using value_type = M;
 
 		// Triangular norm of the form t(x,y) = (x * y) / [x + y - (x * y)]
 		// @param lhs The left hand side operand in the range [0,1].
 		// @param rhs The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return ((x + y) - (x * y) == static_cast<M>(0)) ? static_cast<M>(0) : ((x * y) / ((x + y) - (x * y)));
 		}
 	};
 
 	// Triangular conorm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct hamacher_sum
 	{
-		using tconorm = tag_tconorm;
+		using tconorm = tconorm_tag;
+		using value_type = M;
 
 		// Triangular conorm of the form t(x,y) = [x + y - 2xy] / [1 - (x * y)]
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return (static_cast<M>(1) - (x * y) == static_cast<M>(0)) ? static_cast<M>(1) : (((x + y) - (static_cast<M>(2) * x * y)) / (static_cast<M>(1) - (x * y)));
 		}
 	};
 
 	// Triangular norm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct minimum
 	{
-		using tnorm = tag_tnorm;
+		using tnorm = tnorm_tag;
+		using value_type = M;
 
 		// Triangular norm of the form t(x,y) = min(x,y)
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return std::min(x, y);
 		}
 	};
 
 	// Triangular conorm function object.
+	template <typename M>
+	requires std::floating_point<M>
 	struct maximum
 	{
-		using tconorm = tag_tconorm;
+		using tconorm = tconorm_tag;
+		using value_type = M;
 
 		// Triangular conorm of the form t(x,y) = max(x,y)
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1].
-		template <typename M>
-		requires std::is_floating_point<M>
-		constexpr static [[nodiscard]] M operator()(M x, M y) noexcept
+		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
 		{
-			validate_range(x, y);
+			validate_range<M>(x, y);
 			return std::max(x, y);
 		}
 	};

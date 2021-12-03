@@ -35,7 +35,7 @@ namespace fuzzy
 {
 	/**  A basic_element is the fundemental building block(as in element of a set) for fuzzy variablesand fuzzy sets. */
 	template <class V, class M>
-	requires std::integral<V> && std:floating_point<M>
+	requires std::integral<V> && std::floating_point<M>
 	class basic_element
 	{
 	public:

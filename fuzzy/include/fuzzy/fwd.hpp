@@ -27,22 +27,52 @@
 
 namespace fuzzy
 {
+	template <typename M>
+	requires std::floating_point<M>
 	struct algabraic_product;
-	struct algabraic_sum;
 
+	template <typename M>
+	requires std::floating_point<M>
+	struct algabraic_sum;
+	
+	template <typename M>
+	requires std::floating_point<M>
 	struct bounded_difference;
+
+	template <typename M>
+	requires std::floating_point<M>
 	struct bounded_sum;
 
+	template <typename M>
+	requires std::floating_point<M>
 	struct drastic_product;
+
+	template <typename M>
+	requires std::floating_point<M>
 	struct drastic_sum;
 
+	template <typename M>
+	requires std::floating_point<M>
 	struct einstein_product;
+
+	template <typename M>
+	requires std::floating_point<M>
 	struct einstein_sum;
 
+	template <typename M>
+	requires std::floating_point<M>
 	struct hamacher_product;
-	struct hamacher_sum;
 
+	template <typename M>
+	requires std::floating_point<M>
+	struct hamacher_sum;
+	
+	template <typename M>
+	requires std::floating_point<M>
 	struct minimum;
+
+	template <typename M>
+	requires std::floating_point<M>
 	struct maximum;
 }
 #endif // FUZZY_FWD_HPP
