@@ -42,9 +42,9 @@ namespace fuzzy
 	requires std::floating_point<M>
 	constexpr void validate_range(M m) noexcept
 	{
-		if (std::is_constant_evaluated())
+		if (std::is_constant_evaluated() && m < static_cast<M>(0) || static_cast<M>(1) < m)
 		{
-			throw std::logic_error("static_cast<M>(0) <= m && m <= static_cast<M>(1)");
+			std::terminate();
 		}
 		else
 		{
@@ -55,7 +55,7 @@ namespace fuzzy
 	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
 	template <typename M>
 	requires std::floating_point<M>
-	constexpr void validate_range(M x, M y)
+	constexpr void validate_range(M x, M y) noexcept
 	{
 		validate_range<M>(x);
 		validate_range<M>(y);
@@ -100,7 +100,7 @@ namespace fuzzy
 	};
 
 	// Triangular norm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct bounded_difference
 	{
@@ -119,7 +119,7 @@ namespace fuzzy
 	};
 
 	// Triangular conorm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct bounded_sum
 	{
@@ -138,7 +138,7 @@ namespace fuzzy
 	};
 
 	// Triangular norm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct drastic_product
 	{
@@ -157,7 +157,7 @@ namespace fuzzy
 	};
 
 	// Triangular conorm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct drastic_sum
 	{
@@ -177,7 +177,7 @@ namespace fuzzy
 
 	
 	// Triangular norm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct einstein_product
 	{
@@ -197,7 +197,7 @@ namespace fuzzy
 
 
 	// Triangular conorm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct einstein_sum
 	{
@@ -216,7 +216,7 @@ namespace fuzzy
 	};
 
 	// Triangular norm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct hamacher_product
 	{
@@ -235,7 +235,7 @@ namespace fuzzy
 	};
 
 	// Triangular conorm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct hamacher_sum
 	{
@@ -254,7 +254,7 @@ namespace fuzzy
 	};
 
 	// Triangular norm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct minimum
 	{
@@ -273,7 +273,7 @@ namespace fuzzy
 	};
 
 	// Triangular conorm function object.
-	template <typename M>
+	template <typename M = float>
 	requires std::floating_point<M>
 	struct maximum
 	{
