@@ -26,6 +26,7 @@
 #ifndef FUZZY_TRAITS_HPP
 #define FUZZY_TRAITS_HPP
 
+#include <array>
 #include <type_traits>
 
 #include <fuzzy/fwd.hpp>
@@ -80,6 +81,21 @@ namespace fuzzy
 	
 	namespace traits
 	{
+		// NOTE: At this point this trait is not useful, as even basic sized buffers without allocators wouldn't be garunteed not to crash?  Maybe later?
+		//template <class Container>
+		//struct has_allocator
+		//{
+		//	static const bool value = true;
+		//};
+
+		//template <class T, std::size_t N>
+		//struct has_allocator<std::array<T, N>>
+		//{
+		//	static const bool value = false;
+		//};
+
+
+
 		//template <has_tnorm_tag T>
 		//struct is_tnorm
 		//{

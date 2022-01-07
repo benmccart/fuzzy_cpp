@@ -50,15 +50,14 @@ namespace fuzzy
 			validate_range(membership_);
 		}
 
-		constexpr bool operator<=>(self_type const&) const noexcept = default;
-
+		value_type operator<=>(self_type other) const = default;
 
 		constexpr membership_type const& membership() const noexcept    { return membership_;   }
-		membership_type& membership()                                   { return membership_;   }
+		membership_type& membership() noexcept                          { return membership_;   }
 		void membership(membership_type m)                              { membership_ = m;      }
 
 		constexpr value_type const& value() const noexcept              { return value_;        }
-		value_type& value()                                             { return value_;        }
+		value_type& value() noexcept                                    { return value_;        }
 		void value(value_type v)                                        { value_ = v;           }
 
 	private:
@@ -67,7 +66,7 @@ namespace fuzzy
 	};
 
 	/** Convenience defintion for common use cases. */
-	typedef basic_element<int, float> element;
+	using element = basic_element<int, float>;
 }
 
 #endif  // FUZZY_ELEMENT_HPP
