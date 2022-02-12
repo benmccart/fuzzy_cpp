@@ -50,7 +50,7 @@ namespace fuzzy
 			validate_range(membership_);
 		}
 
-		value_type operator<=>(self_type other) const = default;
+		value_type operator<=>(self_type const &other) const = default;
 
 		constexpr membership_type const& membership() const noexcept    { return membership_;   }
 		membership_type& membership() noexcept                          { return membership_;   }

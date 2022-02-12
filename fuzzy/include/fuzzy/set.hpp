@@ -42,29 +42,30 @@ namespace fuzzy
 	* use cases. Alternate storage container types (with custom allocators) may be used for constrained environments.
 	*/
 	template <class V, class M, class Container = std::vector<basic_element<V,M>>>
-	requires std::integral<V>&& std::floating_point<M>
+	requires std::integral<V> && std::floating_point<M>
 	class basic_set
 	{
 	public:
-		using self_type = basic_set<V, M, Allocator, Container>;
+		using container_type = Container;
+		using self_type = basic_set<V, M, Container>;
 		using key_type = V;
 		using element_type = basic_element<V, M>;
 		using membership_type = M;
 		using value_type = element_type;
-		using container_type = Container;
+		using container_type = container_type;
 		using size_type = typename container_type::size_type;
 		using difference_type = typename container_type::difference_type;
 		using key_compare = std::less<key_type>;
 		using value_compare = std::less<element_type>;
-		using allocator_type = typename Container::allocator_type;
+		using allocator_type = typename container_type::allocator_type;
 		using reference = element_type&;
 		using const_reference = element_type const&;
-		using pointer = typename Container::pointer;
-		using const_pointer = typename Container::const_pointer;
-		using iterator = typename Container::iterator;
-		using const_iterator = typename Container::const_iterator;
-		using reverse_iterator = typename Container::reverse_iterator;
-		using const_reverse_iterator = typename Container::const_reverse_iterator;
+		using pointer = typename container_type::pointer;
+		using const_pointer = typename container_type::const_pointer;
+		using iterator = typename container_type::iterator;
+		using const_iterator = typename container_type::const_iterator;
+		using reverse_iterator = typename container_type::reverse_iterator;
+		using const_reverse_iterator = typename container_type::const_reverse_iterator;
 
 		explicit basic_set(allocator_type const& = allocator_type());
 
@@ -180,7 +181,7 @@ namespace fuzzy
 		std::pair<iterator, bool> emplace(Args&& ...args);
 
 		template <class... Args>
-		std::pair<iterator, bool> emplace_hint(const_iterator, Args ..args);
+		std::pair<iterator, bool> emplace_hint(const_iterator, Args&& ...args);
 		
 		/** Removes the element at pos.
 		* @param pos Iterator to the element to remove
@@ -198,7 +199,7 @@ namespace fuzzy
 		/** Exchanges the contents of the container with those of other. Does not invoke any move, copy, or swap operations
 		*   on individual elements. All iterators and references remain valid. The past-the-end iterator is invalidated.
 		* @param other container to exchange the contents with. */
-		void swap(basic_set &other) noexcept                                   { container_.swap(other.container_;);   }
+		void swap(basic_set &other) noexcept                                   { container_.swap(other.container_);    }
 
 		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
 		*   or 0 since this container does not allow duplicates.
@@ -237,7 +238,7 @@ namespace fuzzy
 
 	private:
 
-		constexpr membership_type linear_interpolate(element_type, key_type, element_type) const noexcept
+		constexpr membership_type linear_interpolate(element_type, key_type, element_type) const noexcept;
 
 		struct element_less
 		{
@@ -248,10 +249,10 @@ namespace fuzzy
 		};
 
 		template <class V2, class M2, class Container2>
-		friend operator<=>(self_type const&, self_type const&);
+		friend key_type operator<=>(self_type const&, self_type const&);
 
-		template
-		friend erase_if(self_type&, )
+		template <class Predicate>
+		friend size_type erase_if(self_type&, Predicate);
 
 		container_type container_;
 
@@ -278,10 +279,12 @@ namespace fuzzy
 	* @return The number of erased elements.
 	*/
 	template <class V, class M, class Container, class Predicate>
-	typename basic_set<V,M,Container>::size_type erase_if(self_type&set, Predicate pred)
+	typename basic_set<V,M,Container>::size_type erase_if(basic_set<V, M, Container> &set, Predicate pred)
 	{
-		iterator endi = end();
-		iterator itr = std::remove_if(begin(), endi, pred);
+		using self_type = basic_set<V, M, Container>;
+		using iterator = typename self_type::iterator;
+		iterator endi = end(set);
+		iterator itr = std::remove_if(begin(set), endi, pred);
 		typename self_type::size_type count = endi - itr;
 		set.container_.erase(itr, endi);
 		return count;
@@ -291,6 +294,7 @@ namespace fuzzy
 	 * @param alloc - allocator to use for all memory allocations of this container
 	 */
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	basic_set<V, M, Container>::basic_set(allocator_type const &alloc)
 		: container_(alloc) {}
 
@@ -301,14 +305,12 @@ namespace fuzzy
 	* @param alloc - allocator to use for all memory allocations of this container
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	template <class InputIt>
-	basic_set<V, M, Container>::basic_set(InputIt first, InputIt last, allocator_type const &alloc)
-		: container_(alloc)
+		basic_set<V, M, Container>::basic_set(InputIt first, InputIt last, allocator_type const &alloc)
+		: container_(first, last, alloc)
 	{
-		std::for_each(first, last, [&](element_type const &value) -> void
-		{
-			insert(value);
-		});
+		std::sort(begin(container_), end(container_), element_less{});
 	}
 
 	/** Copy constructor.  Constructs the container with the copy of the contents of other.  The supplied allocator
@@ -317,6 +319,7 @@ namespace fuzzy
 	* @param alloc - allocator to use for all memory allocations of this container
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	basic_set<V, M, Container>::basic_set(self_type const &other, allocator_type const &alloc)
 		: container_(other.container_, alloc) {}
 
@@ -324,6 +327,7 @@ namespace fuzzy
 	*   allocator is used.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	basic_set<V, M, Container>::basic_set(self_type &&other, allocator_type const &alloc)
 		: container_(std::move(other.container_), alloc) {}
 
@@ -332,13 +336,11 @@ namespace fuzzy
 	* @param ilist - initializer list to use as data source
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	basic_set<V, M, Container>::basic_set(std::initializer_list<element_type> ilist, allocator_type const &alloc)
-		: container_(alloc)
+		: container_(std::move(ilist), alloc)
 	{
-		foreach(element_type & element : ilist)
-		{
-			insert(element);
-		}
+		std::sort(begin(container_), end(container_), element_less{});
 	}
 
 	/** 
@@ -346,13 +348,11 @@ namespace fuzzy
 	* @param init - initializer list to use as data source
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	basic_set<V, M, Container>& basic_set<V, M, Container>::operator=(std::initializer_list<element_type> ilist)
 	{
-		clear();
-		foreach(element_type & element : ilist)
-		{
-			insert(element);
-		}
+		container_ = std::move(ilist);
+		std::sort(begin(container_), end(container_), element_less{});
 
 		return *this;
 	}
@@ -362,6 +362,7 @@ namespace fuzzy
 	* @return The associated allocator.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::allocator_type basic_set<V, M, Container>::get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value)
 	{
 		return container_.get_allocator();
@@ -374,6 +375,7 @@ namespace fuzzy
 	*         the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert(element_type elem)
 	{
 		iterator itr = lower_bound(elem);
@@ -394,6 +396,7 @@ namespace fuzzy
 	*          if the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert([[maybe_unused]] const_iterator hint, element_type elem)
 	{
 		return insert(elem);
@@ -405,6 +408,7 @@ namespace fuzzy
 	* @param last One past the last element in the range to insert.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	template< class InputIt >
 	void basic_set<V, M, Container>::insert(InputIt first, InputIt last)
 	{
@@ -418,9 +422,10 @@ namespace fuzzy
 	* @param initializer List containing elements to insert.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	void basic_set<V, M, Container>::insert(std::initializer_list<element_type> ilist)
 	{
-		for (element_type & element : init)
+		for (element_type & element : ilist)
 		{
 			insert(element);
 		}
@@ -433,16 +438,18 @@ namespace fuzzy
 	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully emplaced.
 	 */
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	template <class... Args>
 	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace(Args&& ...args)
 	{
+		element_type elem{ std::forward<Args>(args)... };
 		iterator itr = lower_bound(elem);
 		if (*itr == elem)
 		{
 			return std::make_pair(itr, false);
 		}
 
-		iterator result = container_.emplace(itr, std::forward<Args>(args)...);
+		iterator result = container_.insert(itr, std::move(elem));
 		return std::make_pair(result, true);
 	}
 
@@ -454,6 +461,7 @@ namespace fuzzy
 	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully emplaced.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	template <class... Args>
 	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace_hint([[maybe_unused]] const_iterator hint, Args&& ...args)
 	{
@@ -465,6 +473,7 @@ namespace fuzzy
 	 * @return Number of elements removed.
 	 */
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	bool basic_set<V, M, Container>::erase(element_type elem)
 	{
 		iterator itr = lower_bound(elem);
@@ -482,6 +491,7 @@ namespace fuzzy
 	 * @return Number of elements removed.
 	 */
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	bool basic_set<V, M, Container>::erase(key_type key)
 	{
 		iterator itr = lower_bound(element_type{ key, static_cast<M>(0) });
@@ -495,6 +505,7 @@ namespace fuzzy
 	}
 
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::membership_type basic_set<V, M, Container>::membership(key_type key) const
 	{
 		const_iterator lb = lower_bound(key);
@@ -507,8 +518,8 @@ namespace fuzzy
 		if (lb == begin())
 			return static_cast<M>(0);
 
-		const_iterator prev{ lb }--;
-		return linear_interpolate(*prev, key, *lb);
+		const_iterator prev{ lb };
+		return linear_interpolate(*(--prev), key, *lb);
 	}
 
 	/** Finds an element with key that compares equivalent to the supplied key.
@@ -516,6 +527,7 @@ namespace fuzzy
 	* @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(key_type key)
 	{
 		return find(element_type{ key, static_cast<M>(0) });
@@ -526,6 +538,7 @@ namespace fuzzy
 	* @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(key_type key) const
 	{
 		return find(element_type{ key, static_cast<M>(0) });
@@ -538,10 +551,11 @@ namespace fuzzy
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(element_type elem)
 	{
 		iterator itr = lower_bound(elem);
-		if (itr == cend() || *itr != key)
+		if (itr == cend() || *itr != elem)
 			return cend();
 
 		return itr;
@@ -552,10 +566,11 @@ namespace fuzzy
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(element_type elem) const
 	{
 		const_iterator itr = lower_bound(elem);
-		if (itr == cend() || *itr != key)
+		if (itr == cend() || *itr != elem)
 			return cend();
 
 		return itr;
@@ -566,6 +581,7 @@ namespace fuzzy
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	bool basic_set<V, M, Container>::contains(key_type key) const
 	{
 		return find(key) != end();
@@ -576,9 +592,10 @@ namespace fuzzy
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	bool basic_set<V, M, Container>::contains(element_type elem) const
 	{
-		return find(key) != cend();
+		return find(elem) != cend();
 	}
 
 
@@ -590,6 +607,7 @@ namespace fuzzy
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator>
 	basic_set<V, M, Container>::equal_range(key_type key)
 	{
@@ -604,8 +622,9 @@ namespace fuzzy
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator> 
-	basic_set<V, M, Container>::equal_range(key_type) const
+	basic_set<V, M, Container>::equal_range(key_type key) const
 	{
 		return std::make_pair(lower_bound(key), upper_bound(key));
 	}
@@ -619,6 +638,7 @@ namespace fuzzy
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator> 
 	basic_set<V, M, Container>::equal_range(element_type elem)
 	{
@@ -634,8 +654,9 @@ namespace fuzzy
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator> 
-	basic_set<V, M, Container>::equal_range(element_type) const
+	basic_set<V, M, Container>::equal_range(element_type elem) const
 	{
 		return std::make_pair(lower_bound(elem), upper_bound(elem));
 	}
@@ -645,6 +666,7 @@ namespace fuzzy
 	* @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(element_type elem)
 	{
 		return std::lower_bound(begin(), end(), elem, element_less{});
@@ -655,6 +677,7 @@ namespace fuzzy
 	* @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(element_type elem) const
 	{
 		return std::lower_bound(cbegin(), cend(), elem, element_less{});
@@ -665,6 +688,7 @@ namespace fuzzy
 	* @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(key_type key)
 	{
 		return lower_bound(element_type{ key, static_cast<M>(0) });
@@ -675,6 +699,7 @@ namespace fuzzy
 	* @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(key_type key) const
 	{
 		return lower_bound(element_type{ key, static_cast<M>(0) });
@@ -686,6 +711,7 @@ namespace fuzzy
 	* @return iterator pointing to the first element that is greater than key, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(element_type elem)
 	{
 		return std::upper_bound(begin(), end(), elem, element_less{});
@@ -697,6 +723,7 @@ namespace fuzzy
 	* @return iterator pointing to the first element that is greater than the supplied key, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(element_type elem) const
 	{
 		return std::upper_bound(cbegin(), cend(), elem, element_less{});
@@ -708,6 +735,7 @@ namespace fuzzy
 	* @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(key_type key)
 	{
 		return upper_bound(element_type{ key, static_cast<M>(0) });
@@ -719,12 +747,14 @@ namespace fuzzy
 	* @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
 	*/
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(key_type key) const
 	{
 		return upper_bound(element_type{ key, static_cast<M>(0) });
 	}
 
 	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::membership_type basic_set<V, M, Container>::linear_interpolate(
 		element_type lhs,
 		key_type key,
@@ -732,7 +762,7 @@ namespace fuzzy
 	{
 		membership_type dy = rhs.membership() - lhs.membership();
 		membership_type dx = static_cast<membership_type>(rhs.value() - lhs.value());
-		membership_type ratio = static_cast<membership_type(key - lhs.value());
+		membership_type ratio = static_cast<membership_type>(key - lhs.value()) / dx;
 		return lhs.membership() + (ratio * dy);
 	}
 
