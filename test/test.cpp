@@ -111,3 +111,30 @@ TEST_CASE("t-conorm-tests", "[tconormtests]")
     REQUIRE(maximum<>::apply(1.00f, 1.00f) == 1.00f);
     REQUIRE(maximum<>::apply(0.50f, 0.50f) == 0.50f);
 }
+
+TEST_CASE("basic_element-tests", "[basic_elementtests]")
+{
+    element e1{ 1, 1.0f };
+    REQUIRE(e1.membership() == 1.0f);
+    REQUIRE(e1.value() == 1);
+
+    element e0{ 0, 0.0f };
+    REQUIRE(e0.membership() == 0.0f);
+    REQUIRE(e0.value() == 0);
+    REQUIRE(e0 < e1);
+    
+
+    // element em1{ -1, -1.0f }; // Aborts in debug!
+    // element em1{ -1, -1.0001f }; // Aborts in debug!
+    // element einf{ 1, std::numeric_limits<float>::infinity() }; // Aborts in debug!
+    // element eninf{ -1, -std::numeric_limits<float>::infinity() }; // Aborts in debug!
+
+    constexpr element ce1{ 1, 1.0f };
+    static_assert(ce1.membership() == 1.0f, "");
+    REQUIRE(e1.value() == 1);
+
+    constexpr element ce0{ 0, 0.0f };
+    static_assert(ce0 < ce1, "spaceship operator is not constexpr");
+    // constexpr element ce1{ -1, -1.0f }; // constexpr fails to compile
+    // constexpr element cenan{ 0, std::numeric_limits<float>::quiet_NaN() }; // constexpr fails to compile
+}

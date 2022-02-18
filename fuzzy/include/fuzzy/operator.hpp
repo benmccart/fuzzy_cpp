@@ -42,9 +42,10 @@ namespace fuzzy
 	requires std::floating_point<M>
 	constexpr void validate_range(M m) noexcept
 	{
-		if (std::is_constant_evaluated() && m < static_cast<M>(0) || static_cast<M>(1) < m)
+		if (std::is_constant_evaluated())
 		{
-			std::terminate();
+			if (m < static_cast<M>(0) || static_cast<M>(1) < m)
+				std::terminate();
 		}
 		else
 		{

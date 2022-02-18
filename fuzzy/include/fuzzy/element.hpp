@@ -43,14 +43,14 @@ namespace fuzzy
 		using membership_type = M;
 		using self_type = basic_element<V, M>;
 
-		constexpr basic_element(value_type, membership_type = static_cast<membership_type>(0))
-			: value_(value)
-			, membership_(membership)
+		constexpr basic_element(value_type val, membership_type mem = static_cast<membership_type>(0))
+			: value_(val)
+			, membership_(mem)
 		{
 			validate_range(membership_);
 		}
 
-		value_type operator<=>(self_type const &other) const = default;
+		std::partial_ordering operator<=>(self_type const &other) const = default;
 
 		constexpr membership_type const& membership() const noexcept    { return membership_;   }
 		membership_type& membership() noexcept                          { return membership_;   }
