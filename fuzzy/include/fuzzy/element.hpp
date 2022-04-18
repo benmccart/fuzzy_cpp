@@ -50,15 +50,15 @@ namespace fuzzy
 			validate_range(membership_);
 		}
 
-		std::partial_ordering operator<=>(self_type const &other) const = default;
+		constexpr std::partial_ordering operator<=>(self_type const &other) const = default;
 
 		constexpr membership_type const& membership() const noexcept    { return membership_;   }
-		membership_type& membership() noexcept                          { return membership_;   }
-		void membership(membership_type m)                              { membership_ = m;      }
+		constexpr membership_type& membership() noexcept                { return membership_;   }
+		constexpr void membership(membership_type m)                    { membership_ = m;      }
 
 		constexpr value_type const& value() const noexcept              { return value_;        }
-		value_type& value() noexcept                                    { return value_;        }
-		void value(value_type v)                                        { value_ = v;           }
+		constexpr value_type& value() noexcept                          { return value_;        }
+		constexpr void value(value_type v)                              { value_ = v;           }
 
 	private:
 		value_type value_;

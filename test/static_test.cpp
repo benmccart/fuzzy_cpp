@@ -123,8 +123,53 @@ void static_test_basic_elementtests()
     static_assert(e0.value() == 0, "");
     static_assert(e0 < e1, "");
 
+    constexpr element eol{ 3, 0.4f };
+    constexpr element eor{ 5, 0.4f };
+    constexpr element ea = [](element const l, element const r) constexpr
+    {
+        return element{ l.value() + r.value(), l.membership() + r.membership() };
+    }(eol, eor);
+
+    static_assert(ea.value() == 8, "");
+    static_assert(ea.membership() == 0.8f, "");
+
     // FAIL constexpr element em1{ -1, -1.0f };
     // FAIL constexpr element em1{ -1, -1.0001f };
     // FAIL constexpr element einf{ 1, std::numeric_limits<float>::infinity() };
     // FAIL constexprelement eninf{ -1, -std::numeric_limits<float>::infinity() };
+}
+
+constexpr bool all_ranges_valid(set const& s)
+{
+    size_t size = s.size();
+    if (s.end() - s.begin() != size)
+        return false;
+
+    if (s.cend() - s.cbegin() != size)
+        return false;
+    
+    if (s.rend() - s.rbegin() != size)
+        return false;
+
+    if (s.crend() - s.crbegin() != size)
+        return false;
+
+    return true;
+}
+
+consteval void static_test_basic_set_construc()
+{
+    constexpr auto empty = []() { return set{}; };
+    static_assert(empty().empty());
+    static_assert(empty().size() == 0u);
+    static_assert(all_ranges_valid(empty()));
+    
+    constexpr auto tri0 = []() { return make_triangle<float>(4, 8, 12); };
+    static_assert(tri0().size() == 3);
+    static_assert(all_ranges_valid(tri0()));
+    static_assert(tri0().membership(4) == 0.0f);
+    static_assert(tri0().membership(6) == 0.5f);
+    static_assert(tri0().membership(8) == 1.0f);
+    static_assert(tri0().membership(10) == 0.5f);
+    static_assert(tri0().membership(12) == 0.0f);
 }

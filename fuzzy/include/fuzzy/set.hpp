@@ -67,174 +67,174 @@ namespace fuzzy
 		using reverse_iterator = typename container_type::reverse_iterator;
 		using const_reverse_iterator = typename container_type::const_reverse_iterator;
 
-		explicit basic_set(allocator_type const& = allocator_type());
+		constexpr explicit basic_set(allocator_type const& = allocator_type());
 
 		template <class InputIt>
-		basic_set(InputIt, InputIt, allocator_type const& = allocator_type());
+		constexpr basic_set(InputIt, InputIt, allocator_type const& = allocator_type());
 
 		/** Copy constructor.  Constructs the container with the copy of the contents of other.  Allocator is obtained
 		*   by calling std::allocator_traits<allocator_type>::select_on_container_copy_construction(other.get_allocator())
 		* @param other The other basic_set to copy.*/
-		basic_set(self_type const&) = default;
-		basic_set(self_type const&, allocator_type const&);
+		constexpr basic_set(self_type const&) = default;
+		constexpr basic_set(self_type const&, allocator_type const&);
 
 		/** Move constructor.Constructs the container with the contents of other using move semantics. Allocator is
 		*   obtained by move - construction from the allocator belonging to other.*/
-		basic_set(self_type&&) = default;
-		basic_set(self_type&&, allocator_type const&);
-		basic_set(std::initializer_list<element_type>, allocator_type const&);
+		constexpr basic_set(self_type&&) = default;
+		constexpr basic_set(self_type&&, allocator_type const& = allocator_type());
+		constexpr basic_set(std::initializer_list<element_type>, allocator_type const& = allocator_type());
 
-		self_type& operator=(self_type const&) = default;
-		self_type& operator=(self_type&&) = default;
-		basic_set& operator=(std::initializer_list<element_type>);
+		constexpr self_type& operator=(self_type const&) = default;
+		constexpr self_type& operator=(self_type&&) = default;
+		constexpr basic_set& operator=(std::initializer_list<element_type>);
 
-		allocator_type get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value);
-
-		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
-		*   will be equal to end().
-		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
-		iterator begin() noexcept                                              { return container_.begin();            }
+		constexpr allocator_type get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value);
 
 		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
 		*   will be equal to end().
 		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
-		const_iterator begin() const noexcept                                  { return container_.begin();            }
+		constexpr iterator begin() noexcept                                    { return container_.begin();            }
 
 		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
 		*   will be equal to end().
 		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
-		const_iterator cbegin() const noexcept                                 { return container_.cbegin();           }
+		constexpr const_iterator begin() const noexcept                        { return container_.begin();            }
+
+		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
+		*   will be equal to end().
+		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
+		constexpr const_iterator cbegin() const noexcept                       { return container_.cbegin();           }
 
 		/** Returns an iterator to the element following the last element of the container.  This element acts as a
 		*   placeholder; attempting to access it results in undefined behavior.
 		* @return Iterator to one past the last element of the set. */
-		iterator end() noexcept                                                { return container_.end();              }
+		constexpr iterator end() noexcept                                      { return container_.end();              }
 
 		/** Returns an iterator to the element following the last element of the container.  This element acts as a
 		*   placeholder; attempting to access it results in undefined behavior.
 		* @return Iterator to one past the last element of the set. */
-		const_iterator end() const noexcept                                    { return container_.end();              }
+		constexpr const_iterator end() const noexcept                          { return container_.end();              }
 
 		/** Returns an iterator to the element following the last element of the container.  This element acts as a
 		*   placeholder; attempting to access it results in undefined behavior.
 		* @return Iterator to one past the last element of the set. */
-		const_iterator cend() const noexcept                                   { return container_.cend();             }
+		constexpr const_iterator cend() const noexcept                         { return container_.cend();             }
 
 		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
 		*   non-reversed container.
 		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
-		reverse_iterator rbegin() noexcept                                     { return container_.rbegin();           }
+		constexpr reverse_iterator rbegin() noexcept                           { return container_.rbegin();           }
 
 		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
 		*   non-reversed container.
 		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
-		const_reverse_iterator rbegin() const noexcept                         { return container_.rbegin();           }
+		constexpr const_reverse_iterator rbegin() const noexcept               { return container_.rbegin();           }
 
 		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
 		*   non-reversed container.
 		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
-		const_reverse_iterator crbegin() const noexcept                        { return container_.crbegin();          }
+		constexpr const_reverse_iterator crbegin() const noexcept              { return container_.crbegin();          }
 
 		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
 		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
 		*   to access it results in undefined behavior.
 		* @return A reverse iterator to one past the last element of the reversed set. */
-		reverse_iterator rend() noexcept                                       { return container_.rend();             }
+		constexpr reverse_iterator rend() noexcept                             { return container_.rend();             }
 
 		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
 		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
 		*   to access it results in undefined behavior.
 		* @return A reverse iterator to one past the last element of the reversed set. */
-		const_reverse_iterator rend() const noexcept                           { return container_.rend();             }
+		constexpr const_reverse_iterator rend() const noexcept                 { return container_.rend();             }
 
 		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
 		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
 		*   to access it results in undefined behavior.
 		* @return A reverse iterator to one past the last element of the reversed set. */
-		const_reverse_iterator crend() const noexcept                          { return container_.crend();            }
+		constexpr const_reverse_iterator crend() const noexcept                { return container_.crend();            }
 
 		/** Checks if the container has no elements. 
 		* @return True if the container is empty, false otherwise. */
-		bool empty() const noexcept                                            { return container_.empty();            }
+		constexpr bool empty() const noexcept                                  { return container_.empty();            }
 
 		/** Returns the number of elements in the container.
 		* @return The number of elements in the container. */
-		size_type size() const noexcept                                        { return container_.size();             }
+		constexpr size_type size() const noexcept                              { return container_.size();             }
 
 		/** Returns the maximum number of elements the container is able to hold due to system or library implementation
 		*   limitations.
 		* @return Maximum number of elements. */
-		size_type max_size() const noexcept                                    { return container_.max_size();         }
+		constexpr size_type max_size() const noexcept                          { return container_.max_size();         }
 
 		/** Removes all elements from the container.  Invalidates any references, pointers, or iterators referring to contained
 		*   elements. */
-		void clear() noexcept                                                  { container_.clear();                   }
+		constexpr void clear() noexcept                                        { container_.clear();                   }
 
-		std::pair<iterator, bool> insert(element_type);
-		std::pair<iterator, bool> insert(const_iterator, element_type);
+		constexpr std::pair<iterator, bool> insert(element_type);
+		constexpr std::pair<iterator, bool> insert(const_iterator, element_type);
 
 		template< class InputIt >
-		void insert(InputIt first, InputIt last);
-		void insert(std::initializer_list<element_type> ilist);
+		constexpr void insert(InputIt first, InputIt last);
+		constexpr void insert(std::initializer_list<element_type> ilist);
 
 		template <class... Args>
-		std::pair<iterator, bool> emplace(Args&& ...args);
+		constexpr std::pair<iterator, bool> emplace(Args&& ...args);
 
 		template <class... Args>
-		std::pair<iterator, bool> emplace_hint(const_iterator, Args&& ...args);
+		constexpr std::pair<iterator, bool> emplace_hint(const_iterator, Args&& ...args);
 		
 		/** Removes the element at pos.
 		* @param pos Iterator to the element to remove
 		* @return Iterator following the last removed element. */
-		iterator erase(const_iterator pos)                                     { return container_.erase(pos);         }
+		constexpr iterator erase(const_iterator pos)                           { return container_.erase(pos);         }
 
 		/** Removes the elements in the range [first, last).
 		* @param first Iterator to the first element in the range to remove.
 		* @param last Iterator to one past the last element in the range to remove.
 		* @return Iterator following the last removed element. */
-		void erase(const_iterator first, const_iterator last)                  { container_.erase(first, last);        }
-		bool erase(element_type);
-		bool erase(key_type);
+		constexpr void erase(const_iterator first, const_iterator last)        { container_.erase(first, last);        }
+		constexpr bool erase(element_type);
+		constexpr bool erase(key_type);
 
 		/** Exchanges the contents of the container with those of other. Does not invoke any move, copy, or swap operations
 		*   on individual elements. All iterators and references remain valid. The past-the-end iterator is invalidated.
 		* @param other container to exchange the contents with. */
-		void swap(basic_set &other) noexcept                                   { container_.swap(other.container_);    }
+		constexpr void swap(basic_set &other) noexcept                         { container_.swap(other.container_);    }
 
 		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
 		*   or 0 since this container does not allow duplicates.
 		* @param key - key of the element to count */
-		size_type count(key_type key) const                                    { return contains(key) ? 1u : 0u;       }
+		constexpr size_type count(key_type key) const                          { return contains(key) ? 1u : 0u;       }
 
 		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
 		*   or 0 since this container does not allow duplicates.
 		* @param elem - element to count */
-		size_type count(element_type elem) const                               { return contains(elem) ? 1u : 0u;       }
+		constexpr size_type count(element_type elem) const                     { return contains(elem) ? 1u : 0u;       }
 
-		membership_type membership(key_type) const;
+		constexpr membership_type membership(key_type) const;
 		
-		iterator find(key_type);
-		const_iterator find(key_type) const;
-		iterator find(element_type);
-		const_iterator find(element_type) const;
+		constexpr iterator find(key_type);
+		constexpr const_iterator find(key_type) const;
+		constexpr iterator find(element_type);
+		constexpr const_iterator find(element_type) const;
 
-		bool contains(key_type) const;
-		bool contains(element_type) const;
+		constexpr bool contains(key_type) const;
+		constexpr bool contains(element_type) const;
 
-		std::pair<iterator, iterator> equal_range(key_type);
-		std::pair<const_iterator, const_iterator> equal_range(key_type) const;
-		std::pair<iterator, iterator> equal_range(element_type);
-		std::pair<const_iterator, const_iterator> equal_range(element_type) const;
+		constexpr std::pair<iterator, iterator> equal_range(key_type);
+		constexpr std::pair<const_iterator, const_iterator> equal_range(key_type) const;
+		constexpr std::pair<iterator, iterator> equal_range(element_type);
+		constexpr std::pair<const_iterator, const_iterator> equal_range(element_type) const;
 
-		iterator lower_bound(key_type);
-		const_iterator lower_bound(key_type) const;
-		iterator lower_bound(element_type);
-		const_iterator lower_bound(element_type) const;
+		constexpr iterator lower_bound(key_type);
+		constexpr const_iterator lower_bound(key_type) const;
+		constexpr iterator lower_bound(element_type);
+		constexpr const_iterator lower_bound(element_type) const;
 
-		iterator upper_bound(key_type);
-		const_iterator upper_bound(key_type) const;
-		iterator upper_bound(element_type);
-		const_iterator upper_bound(element_type) const;
+		constexpr iterator upper_bound(key_type);
+		constexpr const_iterator upper_bound(key_type) const;
+		constexpr iterator upper_bound(element_type);
+		constexpr const_iterator upper_bound(element_type) const;
 
 	private:
 
@@ -244,7 +244,7 @@ namespace fuzzy
 		{
 			constexpr bool operator()(element_type lhs, element_type rhs) const noexcept
 			{
-				return lhs.value < rhs.value;
+				return lhs.value() < rhs.value();
 			}
 		};
 
@@ -255,8 +255,6 @@ namespace fuzzy
 		friend size_type erase_if(self_type&, Predicate);
 
 		container_type container_;
-
-		
 	};
 
 	/** 
@@ -267,7 +265,7 @@ namespace fuzzy
 	* @param rhs - 	sets whose contents to compare
 	*/
 	template <class V, class M, class Container>
-	V operator<=>(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
+	constexpr V operator<=>(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
 	{
 		return lhs.container_ <=> rhs.container_;
 	}
@@ -279,7 +277,7 @@ namespace fuzzy
 	* @return The number of erased elements.
 	*/
 	template <class V, class M, class Container, class Predicate>
-	typename basic_set<V,M,Container>::size_type erase_if(basic_set<V, M, Container> &set, Predicate pred)
+	constexpr typename basic_set<V,M,Container>::size_type erase_if(basic_set<V, M, Container> &set, Predicate pred)
 	{
 		using self_type = basic_set<V, M, Container>;
 		using iterator = typename self_type::iterator;
@@ -295,7 +293,7 @@ namespace fuzzy
 	 */
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	basic_set<V, M, Container>::basic_set(allocator_type const &alloc)
+	constexpr basic_set<V, M, Container>::basic_set(allocator_type const &alloc)
 		: container_(alloc) {}
 
 	/** Range constructor. Constructs the container with the contents of the range [first, last). If multiple
@@ -307,7 +305,7 @@ namespace fuzzy
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
 	template <class InputIt>
-		basic_set<V, M, Container>::basic_set(InputIt first, InputIt last, allocator_type const &alloc)
+	constexpr basic_set<V, M, Container>::basic_set(InputIt first, InputIt last, allocator_type const &alloc)
 		: container_(first, last, alloc)
 	{
 		std::sort(begin(container_), end(container_), element_less{});
@@ -320,7 +318,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	basic_set<V, M, Container>::basic_set(self_type const &other, allocator_type const &alloc)
+	constexpr basic_set<V, M, Container>::basic_set(self_type const &other, allocator_type const &alloc)
 		: container_(other.container_, alloc) {}
 
 	/** Move constructor.Constructs the container with the contents of other using move semantics.  The supplied
@@ -328,7 +326,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	basic_set<V, M, Container>::basic_set(self_type &&other, allocator_type const &alloc)
+	constexpr basic_set<V, M, Container>::basic_set(self_type &&other, allocator_type const &alloc)
 		: container_(std::move(other.container_), alloc) {}
 
 	/**  Initializer-list constructor. Constructs the container with the contents of the initializer list init. if
@@ -337,10 +335,10 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	basic_set<V, M, Container>::basic_set(std::initializer_list<element_type> ilist, allocator_type const &alloc)
+	constexpr basic_set<V, M, Container>::basic_set(std::initializer_list<element_type> ilist, allocator_type const &alloc)
 		: container_(std::move(ilist), alloc)
 	{
-		std::sort(begin(container_), end(container_), element_less{});
+		std::sort(std::begin(container_), std::end(container_), element_less{});
 	}
 
 	/** 
@@ -349,7 +347,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	basic_set<V, M, Container>& basic_set<V, M, Container>::operator=(std::initializer_list<element_type> ilist)
+	constexpr basic_set<V, M, Container>& basic_set<V, M, Container>::operator=(std::initializer_list<element_type> ilist)
 	{
 		container_ = std::move(ilist);
 		std::sort(begin(container_), end(container_), element_less{});
@@ -363,7 +361,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::allocator_type basic_set<V, M, Container>::get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value)
+	constexpr typename basic_set<V, M, Container>::allocator_type basic_set<V, M, Container>::get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value)
 	{
 		return container_.get_allocator();
 	}
@@ -376,7 +374,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert(element_type elem)
+	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert(element_type elem)
 	{
 		iterator itr = lower_bound(elem);
 		if (*itr == elem)
@@ -397,7 +395,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert([[maybe_unused]] const_iterator hint, element_type elem)
+	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert([[maybe_unused]] const_iterator hint, element_type elem)
 	{
 		return insert(elem);
 	}
@@ -410,7 +408,7 @@ namespace fuzzy
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
 	template< class InputIt >
-	void basic_set<V, M, Container>::insert(InputIt first, InputIt last)
+	constexpr void basic_set<V, M, Container>::insert(InputIt first, InputIt last)
 	{
 		std::for_each(first, last, [&](element_type element) -> void
 		{
@@ -423,7 +421,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	void basic_set<V, M, Container>::insert(std::initializer_list<element_type> ilist)
+	constexpr void basic_set<V, M, Container>::insert(std::initializer_list<element_type> ilist)
 	{
 		for (element_type & element : ilist)
 		{
@@ -440,7 +438,7 @@ namespace fuzzy
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
 	template <class... Args>
-	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace(Args&& ...args)
+	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace(Args&& ...args)
 	{
 		element_type elem{ std::forward<Args>(args)... };
 		iterator itr = lower_bound(elem);
@@ -463,7 +461,7 @@ namespace fuzzy
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
 	template <class... Args>
-	std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace_hint([[maybe_unused]] const_iterator hint, Args&& ...args)
+	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace_hint([[maybe_unused]] const_iterator hint, Args&& ...args)
 	{
 		return emplace(std::forward<Args>(args)...);
 	}
@@ -474,7 +472,7 @@ namespace fuzzy
 	 */
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	bool basic_set<V, M, Container>::erase(element_type elem)
+	constexpr bool basic_set<V, M, Container>::erase(element_type elem)
 	{
 		iterator itr = lower_bound(elem);
 		if (*itr == elem)
@@ -492,7 +490,7 @@ namespace fuzzy
 	 */
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	bool basic_set<V, M, Container>::erase(key_type key)
+	constexpr bool basic_set<V, M, Container>::erase(key_type key)
 	{
 		iterator itr = lower_bound(element_type{ key, static_cast<M>(0) });
 		if (itr != end() && itr->value == key)
@@ -506,14 +504,14 @@ namespace fuzzy
 
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::membership_type basic_set<V, M, Container>::membership(key_type key) const
+	constexpr typename basic_set<V, M, Container>::membership_type basic_set<V, M, Container>::membership(key_type key) const
 	{
 		const_iterator lb = lower_bound(key);
 		if (lb == end())
 			return static_cast<M>(0);
 
-		if (lb->key() == key)
-			return lb->value();
+		if (lb->value() == key)
+			return lb->membership();
 
 		if (lb == begin())
 			return static_cast<M>(0);
@@ -528,7 +526,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(key_type key)
+	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(key_type key)
 	{
 		return find(element_type{ key, static_cast<M>(0) });
 	}
@@ -539,12 +537,10 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(key_type key) const
+	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(key_type key) const
 	{
 		return find(element_type{ key, static_cast<M>(0) });
 	}
-
-
 
 	/** Finds an element with key that compares equivalent to the key of the supplied element.
 	* @param elem - element to compare elements against for equivalence.
@@ -552,11 +548,11 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(element_type elem)
+	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(element_type elem)
 	{
 		iterator itr = lower_bound(elem);
-		if (itr == cend() || *itr != elem)
-			return cend();
+		if (itr == end() || *itr != elem)
+			return end();
 
 		return itr;
 	}
@@ -567,7 +563,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(element_type elem) const
+	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(element_type elem) const
 	{
 		const_iterator itr = lower_bound(elem);
 		if (itr == cend() || *itr != elem)
@@ -582,7 +578,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	bool basic_set<V, M, Container>::contains(key_type key) const
+	constexpr bool basic_set<V, M, Container>::contains(key_type key) const
 	{
 		return find(key) != end();
 	}
@@ -593,7 +589,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	bool basic_set<V, M, Container>::contains(element_type elem) const
+	constexpr bool basic_set<V, M, Container>::contains(element_type elem) const
 	{
 		return find(elem) != cend();
 	}
@@ -608,7 +604,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator>
+	constexpr std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator>
 	basic_set<V, M, Container>::equal_range(key_type key)
 	{
 		return std::make_pair(lower_bound(key), upper_bound(key));
@@ -623,7 +619,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator> 
+	constexpr std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator>
 	basic_set<V, M, Container>::equal_range(key_type key) const
 	{
 		return std::make_pair(lower_bound(key), upper_bound(key));
@@ -639,7 +635,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator> 
+	constexpr std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator>
 	basic_set<V, M, Container>::equal_range(element_type elem)
 	{
 		return std::make_pair(lower_bound(elem), upper_bound(elem));
@@ -655,7 +651,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator> 
+	constexpr std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator>
 	basic_set<V, M, Container>::equal_range(element_type elem) const
 	{
 		return std::make_pair(lower_bound(elem), upper_bound(elem));
@@ -667,7 +663,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(element_type elem)
+	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(element_type elem)
 	{
 		return std::lower_bound(begin(), end(), elem, element_less{});
 	}
@@ -678,7 +674,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(element_type elem) const
+	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(element_type elem) const
 	{
 		return std::lower_bound(cbegin(), cend(), elem, element_less{});
 	}
@@ -689,7 +685,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(key_type key)
+	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(key_type key)
 	{
 		return lower_bound(element_type{ key, static_cast<M>(0) });
 	}
@@ -700,7 +696,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(key_type key) const
+	constexpr basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(key_type key) const
 	{
 		return lower_bound(element_type{ key, static_cast<M>(0) });
 	}
@@ -712,7 +708,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(element_type elem)
+	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(element_type elem)
 	{
 		return std::upper_bound(begin(), end(), elem, element_less{});
 	}
@@ -724,7 +720,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(element_type elem) const
+	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(element_type elem) const
 	{
 		return std::upper_bound(cbegin(), cend(), elem, element_less{});
 	}
@@ -736,7 +732,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(key_type key)
+	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(key_type key)
 	{
 		return upper_bound(element_type{ key, static_cast<M>(0) });
 	}
@@ -748,7 +744,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(key_type key) const
+	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(key_type key) const
 	{
 		return upper_bound(element_type{ key, static_cast<M>(0) });
 	}
@@ -765,6 +761,25 @@ namespace fuzzy
 		membership_type ratio = static_cast<membership_type>(key - lhs.value()) / dx;
 		return lhs.membership() + (ratio * dy);
 	}
+
+
+	template <class M, class V, class Container = std::vector<basic_element<V, M>>>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr basic_set<V, M, Container> make_triangle(V v1, V v2, V v3)
+	{
+		if (std::is_constant_evaluated())
+		{
+			if (!(v1 < v2 && v2 < v3))
+				std::terminate();
+		}
+		else
+		{
+			assert((v1 < v2&& v2 < v3));
+		}
+
+		return { {v1, static_cast<M>(0)}, {v2, static_cast<M>(1)}, {v3, static_cast<M>(0)} };
+	}
+
 
 	/** Convenience defintion for common use cases. */
 	typedef basic_set<int, float> set;
