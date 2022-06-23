@@ -7,6 +7,7 @@ project ("test")
 
 find_package(Catch2 REQUIRED)
 
+
 # Add source to this project's executable.
 add_executable (test "test.cpp" "static_test.cpp")
 

@@ -1,4 +1,5 @@
 #include "../include/fuzzy.hpp"
+#include "./test.hpp"
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
@@ -143,11 +144,7 @@ TEST_CASE("empty-set", "[empty_set]")
     set empty;
     REQUIRE(empty.empty());
     REQUIRE(empty.size() == 0u);
-    REQUIRE(empty.cbegin() == empty.cend());
-    REQUIRE(empty.begin() == empty.end());
-    REQUIRE(empty.rbegin() == empty.rend());
-    REQUIRE(empty.crbegin() == empty.crend());
-    REQUIRE(empty.find(0) == empty.cend());
+    REQUIRE(all_ranges_valid(empty));
     REQUIRE(empty.find(element{ 0, 0.3f }) == empty.cend());
     REQUIRE(!empty.contains(0));
     REQUIRE(empty.count(0) == 0);
@@ -159,9 +156,37 @@ TEST_CASE("empty-set", "[empty_set]")
 TEST_CASE("TR0-set", "[TR0_set]")
 {
     set tri0 = make_triangle<float>(4, 8, 12);
+    REQUIRE(tri0.membership(2) == 0.0f);
     REQUIRE(tri0.membership(4) == 0.0f);
     REQUIRE(tri0.membership(6) == 0.5f);
     REQUIRE(tri0.membership(8) == 1.0f);
     REQUIRE(tri0.membership(10) == 0.5f);
     REQUIRE(tri0.membership(12) == 0.0f);
+    REQUIRE(tri0.membership(14) == 0.0f);
 }
+
+TEST_CASE("TR1-set", "[TR1_set]")
+{
+    set tri1 = { {4, 0.0f}, {8, 1.0f}, {std::numeric_limits<int>::max(), 1.0f} };
+    REQUIRE(tri1.membership(2) == 0.0f);
+    REQUIRE(tri1.membership(4) == 0.0f);
+    REQUIRE(tri1.membership(6) == 0.5f);
+    REQUIRE(tri1.membership(8) == 1.0f);
+    REQUIRE(tri1.membership(12) == 1.0f);
+    REQUIRE(tri1.membership(1200000) == 1.0f);
+}
+
+TEST_CASE("TR2-set", "[TR2_set]")
+{
+    set tri2 = make_trapezoid<float>(4, 8, 12, 16);
+    REQUIRE(tri2.membership(2) == 0.0f);
+    REQUIRE(tri2.membership(4) == 0.0f);
+    REQUIRE(tri2.membership(6) == 0.5f);
+    REQUIRE(tri2.membership(8) == 1.0f);
+    REQUIRE(tri2.membership(10) == 1.0f);
+    REQUIRE(tri2.membership(12) == 1.0f);
+    REQUIRE(tri2.membership(14) == 0.5f);
+    REQUIRE(tri2.membership(16) == 0.0f);
+    REQUIRE(tri2.membership(18) == 0.0f);
+}
+

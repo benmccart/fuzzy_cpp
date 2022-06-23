@@ -1,4 +1,5 @@
 #include "../include/fuzzy.hpp"
+#include "./test.hpp"
 
 using namespace fuzzy;
 
@@ -139,37 +140,50 @@ void static_test_basic_elementtests()
     // FAIL constexprelement eninf{ -1, -std::numeric_limits<float>::infinity() };
 }
 
-constexpr bool all_ranges_valid(set const& s)
-{
-    size_t size = s.size();
-    if (s.end() - s.begin() != size)
-        return false;
-
-    if (s.cend() - s.cbegin() != size)
-        return false;
-    
-    if (s.rend() - s.rbegin() != size)
-        return false;
-
-    if (s.crend() - s.crbegin() != size)
-        return false;
-
-    return true;
-}
-
-consteval void static_test_basic_set_construc()
+consteval void static_test_empty_set()
 {
     constexpr auto empty = []() { return set{}; };
     static_assert(empty().empty());
     static_assert(empty().size() == 0u);
     static_assert(all_ranges_valid(empty()));
-    
-    constexpr auto tri0 = []() { return make_triangle<float>(4, 8, 12); };
-    static_assert(tri0().size() == 3);
-    static_assert(all_ranges_valid(tri0()));
-    static_assert(tri0().membership(4) == 0.0f);
-    static_assert(tri0().membership(6) == 0.5f);
-    static_assert(tri0().membership(8) == 1.0f);
-    static_assert(tri0().membership(10) == 0.5f);
-    static_assert(tri0().membership(12) == 0.0f);
+}
+ 
+consteval void static_test_TR0_test()
+{
+    constexpr auto item = []() { return make_triangle<float>(4, 8, 12); };
+    static_assert(item().size() == 3);
+    static_assert(all_ranges_valid(item()));
+    static_assert(item().membership(4) == 0.0f);
+    static_assert(item().membership(6) == 0.5f);
+    static_assert(item().membership(8) == 1.0f);
+    static_assert(item().membership(10) == 0.5f);
+    static_assert(item().membership(12) == 0.0f);
+}
+
+consteval void static_test_TR1_set()
+{
+    constexpr auto item = []() 
+    {
+        set s = { {4, 0.0f}, {8, 1.0f}, {std::numeric_limits<int>::max(), 1.0f} };
+        return s;
+    };
+    static_assert(item().membership(4) == 0.0f);
+    static_assert(item().membership(6) == 0.5f);
+    static_assert(item().membership(8) == 1.0f);
+    static_assert(item().membership(12) == 1.0f);
+    static_assert(item().membership(1200000) == 1.0f);
+}
+
+consteval void static_test_TR2_set()
+{
+    constexpr auto item = []() { return make_trapezoid<float>(4, 8, 12, 16); };
+    static_assert(item().membership(2) == 0.0f);
+    static_assert(item().membership(4) == 0.0f);
+    static_assert(item().membership(6) == 0.5f);
+    static_assert(item().membership(8) == 1.0f);
+    static_assert(item().membership(10) == 1.0f);
+    static_assert(item().membership(12) == 1.0f);
+    static_assert(item().membership(14) == 0.5f);
+    static_assert(item().membership(16) == 0.0f);
+    static_assert(item().membership(18) == 0.0f);
 }

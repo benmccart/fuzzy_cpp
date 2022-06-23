@@ -762,7 +762,13 @@ namespace fuzzy
 		return lhs.membership() + (ratio * dy);
 	}
 
-
+	/** Convenience function for making a basic set in the form of a triangle.
+	* Precondition: v1 < v2 < v3.
+	* @param v1 - the lowest value.
+	* @param v2 - the peak value.
+	* @param v3 - the highest value.
+	* @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
+	*/
 	template <class M, class V, class Container = std::vector<basic_element<V, M>>>
 	requires std::integral<V>&& std::floating_point<M>
 	constexpr basic_set<V, M, Container> make_triangle(V v1, V v2, V v3)
@@ -780,9 +786,31 @@ namespace fuzzy
 		return { {v1, static_cast<M>(0)}, {v2, static_cast<M>(1)}, {v3, static_cast<M>(0)} };
 	}
 
+	/** Convenience function for making a basic set in the form of a trapezoid.
+	* Precondition: v1 < v2 < v3 < v4.
+	* @param v1 - the lowest value.
+	* @param v2 - the peak value.
+	* @param v3 - the highest value.
+	* @return A set with trapezoid shape of {v1, 0}, {v2, 1}, {v3, 1}, {v4, 0}.
+	*/
+	template <class M, class V, class Container = std::vector<basic_element<V, M>>>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr basic_set<V, M, Container> make_trapezoid(V v1, V v2, V v3, V v4)
+	{
+		if (std::is_constant_evaluated())
+		{
+			if (!(v1 < v2 && v2 < v3))
+				std::terminate();
+		}
+		else
+		{
+			assert((v1 < v2&& v2 < v3));
+		}
+
+		return { {v1, static_cast<M>(0)}, {v2, static_cast<M>(1)}, {v3, static_cast<M>(1)}, {v4, static_cast<M>(0)} };
+	}
 
 	/** Convenience defintion for common use cases. */
 	typedef basic_set<int, float> set;
-
 }
 #endif
