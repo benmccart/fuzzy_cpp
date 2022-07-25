@@ -1,4 +1,4 @@
-//  Copyright (c) 2018, Ben McCart
+//  Copyright (c) 2022, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -80,13 +80,16 @@ namespace fuzzy
 
 		/** Move constructor.Constructs the container with the contents of other using move semantics. Allocator is
 		*   obtained by move - construction from the allocator belonging to other.*/
-		constexpr basic_set(self_type&&) = default;
-		constexpr basic_set(self_type&&, allocator_type const& = allocator_type());
+		constexpr basic_set(self_type&&) noexcept = default;
+		constexpr basic_set(self_type&&, allocator_type const&);
 		constexpr basic_set(std::initializer_list<element_type>, allocator_type const& = allocator_type());
 
 		constexpr self_type& operator=(self_type const&) = default;
 		constexpr self_type& operator=(self_type&&) = default;
 		constexpr basic_set& operator=(std::initializer_list<element_type>);
+
+		constexpr bool operator==(self_type const&) const = default;
+		constexpr bool operator!=(self_type const&) const = default;
 
 		constexpr allocator_type get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value);
 
@@ -349,6 +352,8 @@ namespace fuzzy
 	requires std::integral<V>&& std::floating_point<M>
 	constexpr basic_set<V, M, Container>& basic_set<V, M, Container>::operator=(std::initializer_list<element_type> ilist)
 	{
+		using std::begin;
+		using std::end;
 		container_ = std::move(ilist);
 		std::sort(begin(container_), end(container_), element_less{});
 

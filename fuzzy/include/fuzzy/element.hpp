@@ -1,4 +1,4 @@
-//  Copyright (c) 2021, Ben McCart
+//  Copyright (c) 2022, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -50,8 +50,7 @@ namespace fuzzy
 			validate_range(membership_);
 		}
 
-		constexpr std::partial_ordering operator<=>(self_type const &other) const = default;
-
+		constexpr std::partial_ordering operator<=>(self_type const&) const noexcept = default;
 		constexpr membership_type const& membership() const noexcept    { return membership_;   }
 		constexpr membership_type& membership() noexcept                { return membership_;   }
 		constexpr void membership(membership_type m)                    { membership_ = m;      }

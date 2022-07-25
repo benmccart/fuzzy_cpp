@@ -133,6 +133,25 @@ TEST_CASE("basic_element-tests", "[basic_elementtests]")
     REQUIRE(ea.value() == 8);
     REQUIRE(ea.membership() == 0.8f);
 
+    REQUIRE(eol == element{ 3, 0.4f });
+    REQUIRE(eol != element{ 3, 0.3999f });
+    REQUIRE(eol != element{ -3, 0.4f });
+    
+    element ec{ e1 };
+    REQUIRE(ec == e1);
+    REQUIRE(ec != e0);
+    ec = e0;
+    REQUIRE(ec != e1);
+    REQUIRE(ec == e0);
+
+    element em{ std::move(ec) };
+    REQUIRE(em == element{ 0, 0.0f });
+    REQUIRE(em != element{ 1, 1.0f });
+
+    em = element{ 2, 0.2f };
+    REQUIRE(em == element{ 2, 0.2f });
+    REQUIRE(em != element{ 2, 0.1f });
+
     // FAIL element em1{ -1, -1.0f };
     // FAIL element em1{ -1, -1.0001f };
     // FAIL element einf{ 1, std::numeric_limits<float>::infinity() };
@@ -145,13 +164,159 @@ TEST_CASE("empty-set", "[empty_set]")
     REQUIRE(empty.empty());
     REQUIRE(empty.size() == 0u);
     REQUIRE(all_ranges_valid(empty));
-    REQUIRE(empty.find(element{ 0, 0.3f }) == empty.cend());
-    REQUIRE(!empty.contains(0));
-    REQUIRE(empty.count(0) == 0);
-    REQUIRE(empty.count(element{ 0, 0.3f }) == 0);
+}
+
+TEST_CASE("one-element-set", "[one_element_set]")
+{
+    set s1 = { {3, 1.0f} };
+    REQUIRE(!s1.empty());
+    REQUIRE(s1.size() == 1u);
+    REQUIRE(all_ranges_valid(s1));
+}
+
+TEST_CASE("two-element-set", "[two_element_set]")
+{
+    set s2 = { {3, 1.0f}, {5, 1.0f} };
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+}
+
+TEST_CASE("set-equivalence", "[set_equivalence]")
+{
+    set s1 = { {3, 1.0f}, {5, 1.0f} };
+    set s2 = { {3, 1.0f}, {5, 1.0f} };
+    REQUIRE(s1 == s2);
+    REQUIRE(s1 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s1 != set{ { {3, 1.0f} } });
+    REQUIRE(s1 != set{ { { 5, 1.0f } } });
+    REQUIRE(s1 != set{ { {3, 0.999f}, { 5, 1.0f } } });
+    REQUIRE(s1 != set{ { {3, 1.0f}, { 5, 0.999f } } });
+    REQUIRE(s1 != set{ { {4, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s1 != set{ { {3, 1.0f}, { 4, 1.0f } } });
+}
+
+TEST_CASE("set-copy-construct", "[set_copy_construct]")
+{
+    set s1 = { {3, 1.0f}, {5, 1.0f} };
+    set s2{ s1 };
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+    REQUIRE(s2 == s1);
+
+    REQUIRE(s2 != set{ { {3, 0.0f}, { 4, 1.0f } } });
+}
+
+TEST_CASE("set-move-construct", "[set_move_construct]")
+{
+    set s1 = { {3, 1.0f}, {5, 1.0f} };
+    set s2{ std::move(s1) };
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+    REQUIRE(s1.empty());
+    REQUIRE(s2 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+}
+
+TEST_CASE("set-assignment", "[set_assignment]")
+{
+    set s1 = { {3, 1.0f}, {5, 1.0f} };
+    set s2;
+    s2 = s1;
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+    REQUIRE(s2 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+
+    set s3;
+    s3 = std::move(s1);
+    REQUIRE(!s3.empty());
+    REQUIRE(s3.size() == 2u);
+    REQUIRE(all_ranges_valid(s3));
+    REQUIRE(s3 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+
+    set s4;
+    s4 = { {3, 1.0f}, { 5, 1.0f } };
+    REQUIRE(!s4.empty());
+    REQUIRE(s4.size() == 2u);
+    REQUIRE(all_ranges_valid(s4));
+    REQUIRE(s4 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+}
+
+TEST_CASE("set-lowerbound", "[set_lowerbound]")
+{
+    set s = { {3, 1.0f}, {5, 0.8f} };
+
+    // lb on keys
+    REQUIRE(*s.lower_bound(0) == element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(3) == element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(4) == element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(5) == element{ 5, 0.8f });
+    REQUIRE(s.lower_bound(6) == s.end());
+
+    // lb on elements
+    REQUIRE(*s.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f });
+    REQUIRE(s.lower_bound(element{ 6, 0.0f }) == s.end());
+
+    set const cs = { {3, 1.0f}, {5, 0.8f} };
     
+    // lb on keys
+    REQUIRE(*cs.lower_bound(0) == element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(3) == element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(4) == element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(5) == element{ 5, 0.8f });
+    REQUIRE(cs.lower_bound(6) == cs.end());
+
+    // lb on elements
+    REQUIRE(*cs.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f });
+    REQUIRE(cs.lower_bound(element{ 6, 0.0f }) == cs.end());
 
 }
+
+TEST_CASE("set-upperbound", "[set_upperbound]")
+{
+    set s = { {3, 1.0f}, {5, 0.8f} };
+
+    // ub on keys
+    REQUIRE(*s.upper_bound(0) == element{ 3, 1.0f });
+    REQUIRE(*s.upper_bound(3) == element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(4) == element{ 5, 0.8f });
+    REQUIRE(s.upper_bound(5) == s.end());
+    REQUIRE(s.upper_bound(6) == s.end());
+
+    // ub on elements
+    REQUIRE(*s.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
+    REQUIRE(*s.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
+    REQUIRE(s.upper_bound(element{ 5, 0.8f }) == s.end());
+    REQUIRE(s.upper_bound(element{ 6, 0.0f }) == s.end());
+
+    set const cs = { {3, 1.0f}, {5, 0.8f} };
+
+    // ub on keys
+    REQUIRE(*cs.upper_bound(0) == element{ 3, 1.0f });
+    REQUIRE(*cs.upper_bound(3) == element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(4) == element{ 5, 0.8f });
+    REQUIRE(cs.upper_bound(5) == cs.end());
+    REQUIRE(cs.upper_bound(6) == cs.end());
+
+    // ub on elements
+    REQUIRE(*cs.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
+    REQUIRE(*cs.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
+    REQUIRE(cs.upper_bound(element{ 5, 0.8f }) == cs.end());
+    REQUIRE(cs.upper_bound(element{ 6, 0.0f }) == cs.end());
+}
+
+
+
 
 TEST_CASE("TR0-set", "[TR0_set]")
 {
