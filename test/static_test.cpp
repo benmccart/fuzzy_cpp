@@ -186,4 +186,38 @@ consteval void static_test_TR2_set()
     static_assert(item().membership(14) == 0.5f);
     static_assert(item().membership(16) == 0.0f);
     static_assert(item().membership(18) == 0.0f);
+
+    static_assert(!item().empty());
+    static_assert(item().size() == 4u);
+    static_assert(all_ranges_valid(item()));
+
+    constexpr auto expr01 = []() 
+    { 
+        auto itm = item();
+        return itm.find(element{ 0, 0.3f }) == itm.cend(); 
+    };
+    static_assert(expr01());
+
+    constexpr auto expr02 = []() 
+    {
+        auto itm = item();
+        return itm.find(element{8, 1.0f}) != itm.cend(); 
+    };
+    static_assert(expr02());
+
+    constexpr auto expr03 = []()
+    {
+        auto itm = item();
+        return *itm.find(element{ 8, 1.0f }) == element{ 8, 1.0f };
+    };
+    static_assert(expr03());
+
+    static_assert(!item().contains(0));
+    static_assert(item().contains(4));
+    static_assert(item().count(0) == 0);
+    static_assert(item().count(4) == 1);
+    static_assert(item().count(element{8, 1.0f}) == 1);
+    static_assert(item().count(element{std::numeric_limits<int>::max(), 0.3f}) == 0);
+    static_assert(item().count(element{std::numeric_limits<int>::max(), 0.0f}) == 0);
 }
+

@@ -155,38 +155,76 @@ TEST_CASE("empty-set", "[empty_set]")
 
 TEST_CASE("TR0-set", "[TR0_set]")
 {
-    set tri0 = make_triangle<float>(4, 8, 12);
-    REQUIRE(tri0.membership(2) == 0.0f);
-    REQUIRE(tri0.membership(4) == 0.0f);
-    REQUIRE(tri0.membership(6) == 0.5f);
-    REQUIRE(tri0.membership(8) == 1.0f);
-    REQUIRE(tri0.membership(10) == 0.5f);
-    REQUIRE(tri0.membership(12) == 0.0f);
-    REQUIRE(tri0.membership(14) == 0.0f);
+    set item = make_triangle<float>(4, 8, 12);
+    REQUIRE(item.membership(2) == 0.0f);
+    REQUIRE(item.membership(4) == 0.0f);
+    REQUIRE(item.membership(6) == 0.5f);
+    REQUIRE(item.membership(8) == 1.0f);
+    REQUIRE(item.membership(10) == 0.5f);
+    REQUIRE(item.membership(12) == 0.0f);
+    REQUIRE(item.membership(14) == 0.0f);
+
+    REQUIRE(!item.empty());
+    REQUIRE(item.size() == 3u);
+    REQUIRE(all_ranges_valid(item));
+    REQUIRE(item.find(element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(element{ 8, 1.0f }) != item.cend());
+    REQUIRE(!item.contains(0));
+    REQUIRE(item.contains(4));
+    REQUIRE(item.count(0) == 0);
+    REQUIRE(item.count(4) == 1);
+    REQUIRE(item.count(element{ 0, 0.3f }) == 0);
+    REQUIRE(item.count(element{ 12, 0.0f }) == 1);
 }
 
 TEST_CASE("TR1-set", "[TR1_set]")
 {
-    set tri1 = { {4, 0.0f}, {8, 1.0f}, {std::numeric_limits<int>::max(), 1.0f} };
-    REQUIRE(tri1.membership(2) == 0.0f);
-    REQUIRE(tri1.membership(4) == 0.0f);
-    REQUIRE(tri1.membership(6) == 0.5f);
-    REQUIRE(tri1.membership(8) == 1.0f);
-    REQUIRE(tri1.membership(12) == 1.0f);
-    REQUIRE(tri1.membership(1200000) == 1.0f);
+    set item = { {4, 0.0f}, {8, 1.0f}, {std::numeric_limits<int>::max(), 1.0f} };
+    REQUIRE(item.membership(2) == 0.0f);
+    REQUIRE(item.membership(4) == 0.0f);
+    REQUIRE(item.membership(6) == 0.5f);
+    REQUIRE(item.membership(8) == 1.0f);
+    REQUIRE(item.membership(12) == 1.0f);
+    REQUIRE(item.membership(1200000) == 1.0f);
+
+    REQUIRE(!item.empty());
+    REQUIRE(item.size() == 3u);
+    REQUIRE(all_ranges_valid(item));
+    REQUIRE(item.find(element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(element{ 8, 1.0f }) != item.cend());
+    REQUIRE(!item.contains(0));
+    REQUIRE(item.contains(4));
+    REQUIRE(item.count(0) == 0);
+    REQUIRE(item.count(4) == 1);
+    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.3f }) == 0);
+    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 1.0f }) == 1);
 }
 
 TEST_CASE("TR2-set", "[TR2_set]")
 {
-    set tri2 = make_trapezoid<float>(4, 8, 12, 16);
-    REQUIRE(tri2.membership(2) == 0.0f);
-    REQUIRE(tri2.membership(4) == 0.0f);
-    REQUIRE(tri2.membership(6) == 0.5f);
-    REQUIRE(tri2.membership(8) == 1.0f);
-    REQUIRE(tri2.membership(10) == 1.0f);
-    REQUIRE(tri2.membership(12) == 1.0f);
-    REQUIRE(tri2.membership(14) == 0.5f);
-    REQUIRE(tri2.membership(16) == 0.0f);
-    REQUIRE(tri2.membership(18) == 0.0f);
+    set item = make_trapezoid<float>(4, 8, 12, 16);
+    REQUIRE(item.membership(2) == 0.0f);
+    REQUIRE(item.membership(4) == 0.0f);
+    REQUIRE(item.membership(6) == 0.5f);
+    REQUIRE(item.membership(8) == 1.0f);
+    REQUIRE(item.membership(10) == 1.0f);
+    REQUIRE(item.membership(12) == 1.0f);
+    REQUIRE(item.membership(14) == 0.5f);
+    REQUIRE(item.membership(16) == 0.0f);
+    REQUIRE(item.membership(18) == 0.0f);
+
+    REQUIRE(!item.empty());
+    REQUIRE(item.size() == 4u);
+    REQUIRE(all_ranges_valid(item));
+    REQUIRE(item.find(element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(element{ 8, 1.0f }) != item.cend());
+    REQUIRE(*item.find(element{ 8, 1.0f }) == element{ 8, 1.0f });
+    REQUIRE(!item.contains(0));
+    REQUIRE(item.contains(4));
+    REQUIRE(item.count(0) == 0);
+    REQUIRE(item.count(4) == 1);
+    REQUIRE(item.count(element{ 8, 1.0f }) == 1);
+    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.3f }) == 0);
+    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.0f }) == 0);
 }
 
