@@ -315,8 +315,78 @@ TEST_CASE("set-upperbound", "[set_upperbound]")
     REQUIRE(cs.upper_bound(element{ 6, 0.0f }) == cs.end());
 }
 
+TEST_CASE("set-find", "[set_find]")
+{
+    // find on keys
+    set s = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(s.find(0) == s.end());
+    REQUIRE(*s.find(3) == element{ 3, 1.0f });
+    REQUIRE(s.find(4) == s.end());
+    REQUIRE(*s.find(5) == element{ 5, 0.8f });
+    REQUIRE(s.find(6) == s.end());
 
+    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(cs.find(0) == cs.end());
+    REQUIRE(*cs.find(3) == element{ 3, 1.0f });
+    REQUIRE(cs.find(4) == cs.end());
+    REQUIRE(*cs.find(5) == element{ 5, 0.8f });
+    REQUIRE(cs.find(6) == cs.end());
 
+    // find on elements
+    REQUIRE(s.find(element{ 0, 0.0f }) == s.end());
+    REQUIRE(*s.find(element{ 3, 1.0f }) == element{ 3, 1.0f });
+    REQUIRE(s.find(element{ 3, 0.0f }) == s.end());
+    REQUIRE(s.find(element{ 4, 0.0f }) == s.end());
+    REQUIRE(*s.find(element{ 5, 0.8f }) == element{ 5, 0.8f });
+    REQUIRE(s.find(element{ 6, 1.0f }) == s.end());
+
+    REQUIRE(cs.find(element{ 0, 1.0f }) == cs.end());
+    REQUIRE(*cs.find(element{ 3, 1.0f }) == element{ 3, 1.0f });
+    REQUIRE(cs.find(element{ 4, 1.0f }) == cs.end());
+    REQUIRE(*cs.find(element{ 5, 0.8f }) == element{ 5, 0.8f });
+    REQUIRE(cs.find(element{ 5, 0.7f }) == cs.end());
+    REQUIRE(cs.find(element{ 6, 0.0f }) == cs.end());
+}
+
+TEST_CASE("set-contains", "[set_contains]")
+{
+    // find on keys
+    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(!cs.contains(0));
+    REQUIRE(cs.contains(3));
+    REQUIRE(!cs.contains(4));
+    REQUIRE(cs.contains(5));
+    REQUIRE(!cs.contains(6));
+
+    // find on elements
+    REQUIRE(!cs.contains(element{ 0, 1.0f }));
+    REQUIRE(cs.contains(element{ 3, 1.0f }));
+    REQUIRE(!cs.contains(element{ 3, 0.7f }));
+    REQUIRE(!cs.contains(element{ 4, 1.0f }));
+    REQUIRE(cs.contains(element{ 5, 0.8f }));
+    REQUIRE(!cs.contains(element{ 5, 1.0f }));
+    REQUIRE(!cs.contains(element{ 6, 0.0f }));
+}
+
+TEST_CASE("set-count", "[set_count]")
+{
+    // find on keys
+    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(cs.count(0) == 0u);
+    REQUIRE(cs.count(3) == 1u);
+    REQUIRE(cs.count(4) == 0u);
+    REQUIRE(cs.count(5) == 1u);
+    REQUIRE(cs.count(6) == 0u);
+
+    // find on elements
+    REQUIRE(cs.count(element{ 0, 1.0f }) == 0u);
+    REQUIRE(cs.count(element{ 3, 1.0f }) == 1u);
+    REQUIRE(cs.count(element{ 3, 0.7f }) == 0u);
+    REQUIRE(cs.count(element{ 4, 1.0f }) == 0u);
+    REQUIRE(cs.count(element{ 5, 0.8f }) == 1u);
+    REQUIRE(cs.count(element{ 5, 1.0f }) == 0u);
+    REQUIRE(cs.count(element{ 6, 0.0f }) == 0u);
+}
 
 TEST_CASE("TR0-set", "[TR0_set]")
 {

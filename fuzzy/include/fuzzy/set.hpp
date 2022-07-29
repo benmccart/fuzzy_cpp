@@ -533,7 +533,12 @@ namespace fuzzy
 	requires std::integral<V>&& std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(key_type key)
 	{
-		return find(element_type{ key, static_cast<M>(0) });
+
+		iterator itr = lower_bound(element_type{ key, static_cast<M>(0) });
+		if (itr == end() || itr->value() != key)
+			return end();
+
+		return itr;
 	}
 
 	/** Finds an element with key that compares equivalent to the supplied key.
@@ -544,7 +549,11 @@ namespace fuzzy
 	requires std::integral<V>&& std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(key_type key) const
 	{
-		return find(element_type{ key, static_cast<M>(0) });
+		const_iterator itr = lower_bound(element_type{ key, static_cast<M>(0) });
+		if (itr == cend() || itr->value() != key)
+			return cend();
+
+		return itr;
 	}
 
 	/** Finds an element with key that compares equivalent to the key of the supplied element.

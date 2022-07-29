@@ -363,7 +363,75 @@ consteval void static_test_set_upperbound()
     static_assert([]() { set const cs = item(); return cs.upper_bound(element{ 6, 0.0f }) == cs.end(); }());
 }
 
+consteval void static_test_set_find()
+{
+    // find on keys
+    constexpr auto item = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
+    static_assert([]() { set s = item(); return s.find(0) == s.end(); });
+    static_assert([]() { set s = item(); return *s.find(3) == element{ 3, 1.0f }; });
+    static_assert([]() { set s = item(); return s.find(4) == s.end(); });
+    static_assert([]() { set s = item(); return *s.find(5) == element{ 5, 0.8f }; });
+    static_assert([]() { set s = item(); return s.find(6) == s.end(); });
 
+    static_assert([]() { set const cs = item(); return cs.find(0) == cs.end(); });
+    static_assert([]() { set const cs = item(); return *cs.find(3) == element{ 3, 1.0f }; });
+    static_assert([]() { set const cs = item(); return cs.find(4) == cs.end(); });
+    static_assert([]() { set const cs = item(); return *cs.find(5) == element{ 5, 0.8f }; });
+    static_assert([]() { set const cs = item(); return cs.find(6) == cs.end(); });
+
+    // find on elements
+    static_assert([]() { set s = item(); return s.find(element{ 0, 0.0f }) == s.end(); });
+    static_assert([]() { set s = item(); return *s.find(element{ 3, 0.0f }) == element{ 3, 1.0f }; });
+    static_assert([]() { set s = item(); return s.find(element{ 4, 0.0f }) == s.end(); });
+    static_assert([]() { set s = item(); return *s.find(element{ 5, 0.8f }) == element{ 5, 0.8f }; });
+    static_assert([]() { set s = item(); return s.find(element{ 6, 1.0f }) == s.end(); });
+
+    static_assert([]() { set const cs = item(); return cs.find(element{ 0, 1.0f }) == cs.end(); });
+    static_assert([]() { set const cs = item(); return *cs.find(element{ 3, 1.0f }) == element{ 3, 1.0f }; });
+    static_assert([]() { set const cs = item(); return cs.find(element{ 4, 1.0f }) == cs.end(); });
+    static_assert([]() { set const cs = item(); return *cs.find(element{ 5, 0.2f }) == element{ 5, 0.8f }; });
+    static_assert([]() { set const cs = item(); return cs.find(element{ 6, 0.0f }) == cs.end(); });
+}
+
+consteval void static_test_set_contains()
+{
+    // find on keys
+    constexpr auto cs = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
+    static_assert(!cs().contains(0));
+    static_assert(cs().contains(3));
+    static_assert(!cs().contains(4));
+    static_assert(cs().contains(5));
+    static_assert(!cs().contains(6));
+
+    // find on elements
+    static_assert(!cs().contains(element{ 0, 1.0f }));
+    static_assert(cs().contains(element{ 3, 1.0f }));
+    static_assert(!cs().contains(element{ 3, 0.7f }));
+    static_assert(!cs().contains(element{ 4, 1.0f }));
+    static_assert(cs().contains(element{ 5, 0.8f }));
+    static_assert(!cs().contains(element{ 5, 1.0f }));
+    static_assert(!cs().contains(element{ 6, 0.0f }));
+}
+
+consteval void static_test_set_count()
+{
+    // find on keys
+    constexpr auto cs = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
+    static_assert(cs().count(0) == 0u);
+    static_assert(cs().count(3) == 1u);
+    static_assert(cs().count(4) == 0u);
+    static_assert(cs().count(5) == 1u);
+    static_assert(cs().count(6) == 0u);
+
+    // find on elements
+    static_assert(cs().count(element{ 0, 1.0f }) == 0u);
+    static_assert(cs().count(element{ 3, 1.0f }) == 1u);
+    static_assert(cs().count(element{ 3, 0.7f }) == 0u);
+    static_assert(cs().count(element{ 4, 1.0f }) == 0u);
+    static_assert(cs().count(element{ 5, 0.8f }) == 1u);
+    static_assert(cs().count(element{ 5, 1.0f }) == 0u);
+    static_assert(cs().count(element{ 6, 0.0f }) == 0u);
+}
 
 
 
