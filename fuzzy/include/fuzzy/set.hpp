@@ -381,8 +381,8 @@ namespace fuzzy
 	requires std::integral<V>&& std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert(element_type elem)
 	{
-		iterator itr = lower_bound(elem);
-		if (*itr == elem)
+		iterator itr = lower_bound(elem.value());
+		if (itr != end() && itr->value() == elem.value())
 		{
 			return std::make_pair(itr, false);
 		}
@@ -415,10 +415,10 @@ namespace fuzzy
 	template< class InputIt >
 	constexpr void basic_set<V, M, Container>::insert(InputIt first, InputIt last)
 	{
-		std::for_each(first, last, [&](element_type element) -> void
+		for (;first != last; ++first)
 		{
-			insert(element);
-		});
+			insert(*first);
+		}
 	}
 
 	/** Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
@@ -428,7 +428,7 @@ namespace fuzzy
 	requires std::integral<V>&& std::floating_point<M>
 	constexpr void basic_set<V, M, Container>::insert(std::initializer_list<element_type> ilist)
 	{
-		for (element_type & element : ilist)
+		for (element_type const &element : ilist)
 		{
 			insert(element);
 		}

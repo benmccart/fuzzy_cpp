@@ -370,7 +370,7 @@ TEST_CASE("set-contains", "[set_contains]")
 
 TEST_CASE("set-count", "[set_count]")
 {
-    // find on keys
+    // count on keys
     set const cs = { {3, 1.0f}, {5, 0.8f} };
     REQUIRE(cs.count(0) == 0u);
     REQUIRE(cs.count(3) == 1u);
@@ -378,7 +378,7 @@ TEST_CASE("set-count", "[set_count]")
     REQUIRE(cs.count(5) == 1u);
     REQUIRE(cs.count(6) == 0u);
 
-    // find on elements
+    // count on elements
     REQUIRE(cs.count(element{ 0, 1.0f }) == 0u);
     REQUIRE(cs.count(element{ 3, 1.0f }) == 1u);
     REQUIRE(cs.count(element{ 3, 0.7f }) == 0u);
@@ -387,6 +387,39 @@ TEST_CASE("set-count", "[set_count]")
     REQUIRE(cs.count(element{ 5, 1.0f }) == 0u);
     REQUIRE(cs.count(element{ 6, 0.0f }) == 0u);
 }
+
+
+TEST_CASE("set-insert", "[set_insert]")
+{
+    // insertion of elements.
+    set cs;
+    cs.insert({ {3, 1.0f}, {5, 0.8f} });
+    REQUIRE(cs.count(0) == 0u);
+    REQUIRE(cs.count(3) == 1u);
+    REQUIRE(cs.count(4) == 0u);
+    REQUIRE(cs.count(5) == 1u);
+    REQUIRE(cs.count(6) == 0u);
+
+    cs.insert(element{ 4, 0.4f });
+    REQUIRE(cs.contains(4));
+    cs.insert(cs.cend(), element{ 0, 0.3f });
+    REQUIRE(cs.contains(0));
+
+    std::vector<element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
+    cs.insert(other.begin(), other.end());
+    REQUIRE(cs.contains(element{ 5, 0.8f }));
+    REQUIRE(cs.contains(element{ 6, 0.6f }));
+    REQUIRE(cs.contains(element{ 7, 1.0f }));
+
+    auto pair1 = cs.insert(cs.begin(), element{ 4, 1.0f });
+    REQUIRE(pair1.second == false);
+    REQUIRE(pair1.first != cs.end());
+
+    auto pair2 = cs.insert(cs.end(), element{ -1, 0.1f });
+    REQUIRE(pair2.second == true);
+    REQUIRE(pair2.first == cs.begin());
+}
+
 
 TEST_CASE("TR0-set", "[TR0_set]")
 {

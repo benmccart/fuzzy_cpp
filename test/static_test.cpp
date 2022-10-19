@@ -395,7 +395,7 @@ consteval void static_test_set_find()
 
 consteval void static_test_set_contains()
 {
-    // find on keys
+    // count on keys
     constexpr auto cs = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
     static_assert(!cs().contains(0));
     static_assert(cs().contains(3));
@@ -403,7 +403,7 @@ consteval void static_test_set_contains()
     static_assert(cs().contains(5));
     static_assert(!cs().contains(6));
 
-    // find on elements
+    // count on elements
     static_assert(!cs().contains(element{ 0, 1.0f }));
     static_assert(cs().contains(element{ 3, 1.0f }));
     static_assert(!cs().contains(element{ 3, 0.7f }));
@@ -412,6 +412,104 @@ consteval void static_test_set_contains()
     static_assert(!cs().contains(element{ 5, 1.0f }));
     static_assert(!cs().contains(element{ 6, 0.0f }));
 }
+
+consteval void tes_set_count()
+{
+    // count on keys
+    constexpr auto cs = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
+    static_assert(cs().count(0) == 0u);
+    static_assert(cs().count(3) == 1u);
+    static_assert(cs().count(4) == 0u);
+    static_assert(cs().count(5) == 1u);
+    static_assert(cs().count(6) == 0u);
+
+    // count on elements
+    static_assert(cs().count(element{0, 1.0f}) == 0u);
+    static_assert(cs().count(element{3, 1.0f}) == 1u);
+    static_assert(cs().count(element{3, 0.7f}) == 0u);
+    static_assert(cs().count(element{4, 1.0f}) == 0u);
+    static_assert(cs().count(element{5, 0.8f}) == 1u);
+    static_assert(cs().count(element{5, 1.0f}) == 0u);
+    static_assert(cs().count(element{6, 0.0f}) == 0u);
+}
+
+consteval void static_set_insert()
+{
+    // insertion of elements.
+    constexpr auto cs0 = []() 
+    {
+        set cs;
+        cs.insert({ {3, 1.0f}, {5, 0.8f} });
+        return cs;
+    };
+
+    static_assert(!cs0().contains(0));
+    static_assert(cs0().contains(3));
+    static_assert(!cs0().contains(4));
+    static_assert(cs0().contains(5));
+    static_assert(!cs0().contains(6));
+
+    constexpr auto cs1 = []()
+    {
+        set cs = cs0();
+        cs.insert({ {3, 1.0f}, {5, 0.8f} });
+        return cs;
+    };
+    
+    static_assert(cs1().count(0) == 0u);
+    static_assert(cs1().count(3) == 1u);
+    static_assert(cs1().count(4) == 0u);
+    static_assert(cs1().count(5) == 1u);
+    static_assert(cs1().count(6) == 0u);
+
+    constexpr auto cs2 = []()
+    {
+        set cs = cs1();
+        cs.insert(element{ 4, 0.4f });
+        return cs;
+    };
+    static_assert(cs2().contains(4));
+
+    constexpr auto cs3 = []()
+    {
+        set cs = cs2();
+        cs.insert(cs.cend(), element{ 0, 0.3f });
+        return cs;
+    };
+    static_assert(cs3().contains(0) == 1u);
+
+    constexpr auto cs4 = []()
+    {
+        set cs = cs3();
+        std::vector<element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
+        cs.insert(cbegin(other), cend(other));
+        return cs;
+    };
+    static_assert(cs4().contains(element{5, 0.8f}) && cs4().contains(element{6, 0.6f}) && cs4().contains(element{7, 1.0f}));
+
+    constexpr auto cs5a = []()
+    {
+        set cs = cs4();
+        auto pair1 = cs.insert(cs.begin(), element{ 4, 1.0f });
+        return pair1.first != cs.end() && pair1.second == false;
+    };
+    static_assert(cs5a());
+    
+    constexpr auto cs5b = []()
+    {
+        set cs = cs4();
+        auto pair2 = cs.insert(cs.end(), element{ -1, 0.1f });
+        return pair2.first == cs.begin() && pair2.second == true;
+    };
+    static_assert(cs5b());
+}
+
+
+
+
+
+
+
 
 consteval void static_test_set_count()
 {
