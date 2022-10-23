@@ -445,29 +445,6 @@ TEST_CASE("TR0-set", "[TR0_set]")
     REQUIRE(item.count(element{ 12, 0.0f }) == 1);
 }
 
-TEST_CASE("TR1-set", "[TR1_set]")
-{
-    set item = { {4, 0.0f}, {8, 1.0f}, {std::numeric_limits<int>::max(), 1.0f} };
-    REQUIRE(item.membership(2) == 0.0f);
-    REQUIRE(item.membership(4) == 0.0f);
-    REQUIRE(item.membership(6) == 0.5f);
-    REQUIRE(item.membership(8) == 1.0f);
-    REQUIRE(item.membership(12) == 1.0f);
-    REQUIRE(item.membership(1200000) == 1.0f);
-
-    REQUIRE(!item.empty());
-    REQUIRE(item.size() == 3u);
-    REQUIRE(all_ranges_valid(item));
-    REQUIRE(item.find(element{ 0, 0.3f }) == item.cend());
-    REQUIRE(item.find(element{ 8, 1.0f }) != item.cend());
-    REQUIRE(!item.contains(0));
-    REQUIRE(item.contains(4));
-    REQUIRE(item.count(0) == 0);
-    REQUIRE(item.count(4) == 1);
-    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.3f }) == 0);
-    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 1.0f }) == 1);
-}
-
 TEST_CASE("TR2-set", "[TR2_set]")
 {
     set item = make_trapezoid<float>(4, 8, 12, 16);

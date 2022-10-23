@@ -413,9 +413,9 @@ consteval void static_test_set_contains()
     static_assert(!cs().contains(element{ 6, 0.0f }));
 }
 
-consteval void tes_set_count()
+consteval void static_test_set_count()
 {
-    // count on keys
+    // find on keys
     constexpr auto cs = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
     static_assert(cs().count(0) == 0u);
     static_assert(cs().count(3) == 1u);
@@ -423,14 +423,14 @@ consteval void tes_set_count()
     static_assert(cs().count(5) == 1u);
     static_assert(cs().count(6) == 0u);
 
-    // count on elements
-    static_assert(cs().count(element{0, 1.0f}) == 0u);
-    static_assert(cs().count(element{3, 1.0f}) == 1u);
-    static_assert(cs().count(element{3, 0.7f}) == 0u);
-    static_assert(cs().count(element{4, 1.0f}) == 0u);
-    static_assert(cs().count(element{5, 0.8f}) == 1u);
-    static_assert(cs().count(element{5, 1.0f}) == 0u);
-    static_assert(cs().count(element{6, 0.0f}) == 0u);
+    // find on elements
+    static_assert(cs().count(element{ 0, 1.0f }) == 0u);
+    static_assert(cs().count(element{ 3, 1.0f }) == 1u);
+    static_assert(cs().count(element{ 3, 0.7f }) == 0u);
+    static_assert(cs().count(element{ 4, 1.0f }) == 0u);
+    static_assert(cs().count(element{ 5, 0.8f }) == 1u);
+    static_assert(cs().count(element{ 5, 1.0f }) == 0u);
+    static_assert(cs().count(element{ 6, 0.0f }) == 0u);
 }
 
 consteval void static_set_insert()
@@ -503,42 +503,6 @@ consteval void static_set_insert()
     };
     static_assert(cs5b());
 }
-
-
-
-
-
-
-
-
-consteval void static_test_set_count()
-{
-    // find on keys
-    constexpr auto cs = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
-    static_assert(cs().count(0) == 0u);
-    static_assert(cs().count(3) == 1u);
-    static_assert(cs().count(4) == 0u);
-    static_assert(cs().count(5) == 1u);
-    static_assert(cs().count(6) == 0u);
-
-    // find on elements
-    static_assert(cs().count(element{ 0, 1.0f }) == 0u);
-    static_assert(cs().count(element{ 3, 1.0f }) == 1u);
-    static_assert(cs().count(element{ 3, 0.7f }) == 0u);
-    static_assert(cs().count(element{ 4, 1.0f }) == 0u);
-    static_assert(cs().count(element{ 5, 0.8f }) == 1u);
-    static_assert(cs().count(element{ 5, 1.0f }) == 0u);
-    static_assert(cs().count(element{ 6, 0.0f }) == 0u);
-}
-
-
-
-
-
-
-
-
-
  
 consteval void static_test_TR0_test()
 {
@@ -550,23 +514,13 @@ consteval void static_test_TR0_test()
     static_assert(item().membership(8) == 1.0f);
     static_assert(item().membership(10) == 0.5f);
     static_assert(item().membership(12) == 0.0f);
+
+    static_assert(!item().empty());
+    static_assert(item().size() == 3u);
+    static_assert(all_ranges_valid(item()));
 }
 
 consteval void static_test_TR1_set()
-{
-    constexpr auto item = []() 
-    {
-        set s = { {4, 0.0f}, {8, 1.0f}, {std::numeric_limits<int>::max(), 1.0f} };
-        return s;
-    };
-    static_assert(item().membership(4) == 0.0f);
-    static_assert(item().membership(6) == 0.5f);
-    static_assert(item().membership(8) == 1.0f);
-    static_assert(item().membership(12) == 1.0f);
-    static_assert(item().membership(1200000) == 1.0f);
-}
-
-consteval void static_test_TR2_set()
 {
     constexpr auto item = []() { return make_trapezoid<float>(4, 8, 12, 16); };
     static_assert(item().membership(2) == 0.0f);
@@ -582,34 +536,5 @@ consteval void static_test_TR2_set()
     static_assert(!item().empty());
     static_assert(item().size() == 4u);
     static_assert(all_ranges_valid(item()));
-
-    constexpr auto expr01 = []() 
-    { 
-        auto itm = item();
-        return itm.find(element{ 0, 0.3f }) == itm.cend(); 
-    };
-    static_assert(expr01());
-
-    constexpr auto expr02 = []() 
-    {
-        auto itm = item();
-        return itm.find(element{8, 1.0f}) != itm.cend(); 
-    };
-    static_assert(expr02());
-
-    constexpr auto expr03 = []()
-    {
-        auto itm = item();
-        return *itm.find(element{ 8, 1.0f }) == element{ 8, 1.0f };
-    };
-    static_assert(expr03());
-
-    static_assert(!item().contains(0));
-    static_assert(item().contains(4));
-    static_assert(item().count(0) == 0);
-    static_assert(item().count(4) == 1);
-    static_assert(item().count(element{8, 1.0f}) == 1);
-    static_assert(item().count(element{std::numeric_limits<int>::max(), 0.3f}) == 0);
-    static_assert(item().count(element{std::numeric_limits<int>::max(), 0.0f}) == 0);
 }
 
