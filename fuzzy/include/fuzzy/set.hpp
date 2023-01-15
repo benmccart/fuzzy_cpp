@@ -156,6 +156,24 @@ namespace fuzzy
 		* @return A reverse iterator to one past the last element of the reversed set. */
 		constexpr const_reverse_iterator crend() const noexcept                { return container_.crend();            }
 
+		/** Returns the first element in the set, if it exists.
+		* @return The first element in the set, an exception otherwise. */
+		constexpr element_type const& front() const                            { return container_.front();            }
+
+		/** Returns the first element in the set, if it exists.
+		* @return The last element in the set, an exception otherwise. */
+		constexpr element_type& front()                                        { return container_.front();            }
+
+		/** Returns the last element in the set, if it exists.
+		* @return The first element in the set, an exception otherwise. */
+		constexpr element_type const& back() const                             { return container_.back();             }
+
+		/** Returns the last element in the set, if it exists.
+		* @return The laset element in the set, an exception otherwise. */
+		constexpr element_type& back()                                         { return container_.back();             }
+
+		
+
 		/** Checks if the container has no elements. 
 		* @return True if the container is empty, false otherwise. */
 		constexpr bool empty() const noexcept                                  { return container_.empty();            }
@@ -771,8 +789,8 @@ namespace fuzzy
 		element_type rhs) const noexcept
 	{
 		membership_type dy = rhs.membership() - lhs.membership();
-		membership_type dx = static_cast<membership_type>(rhs.value() - lhs.value());
-		membership_type ratio = static_cast<membership_type>(key - lhs.value()) / dx;
+		membership_type dx = static_cast<membership_type>(rhs.value()) - static_cast<membership_type>(lhs.value());
+		membership_type ratio = (static_cast<membership_type>(key) - static_cast<membership_type>(lhs.value())) / dx;
 		return lhs.membership() + (ratio * dy);
 	}
 
