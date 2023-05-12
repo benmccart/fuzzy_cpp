@@ -728,7 +728,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	constexpr basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(key_type key) const
+	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(key_type key) const
 	{
 		return lower_bound(element_type{ key, static_cast<M>(0) });
 	}

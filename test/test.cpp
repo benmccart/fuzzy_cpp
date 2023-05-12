@@ -1,16 +1,18 @@
 #include "../include/fuzzy.hpp"
 #include "./test.hpp"
 
+#include <iostream>
+
 #define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#include <catch.hpp>
 
 
 using namespace fuzzy;
 
 TEST_CASE("membership-bounds-check", "[boundscheck]")
 {
-    constexpr auto v0 = algabraic_product<>::apply(1.0f, 1.0f);
-    constexpr auto v1 = algabraic_product<>::apply(0.0f, 0.0f);
+    [[maybe_unused]] constexpr auto v0 = algabraic_product<>::apply(1.0f, 1.0f);
+    [[maybe_unused]] constexpr auto v1 = algabraic_product<>::apply(0.0f, 0.0f);
     // FAIL constexpr auto v2 = algabraic_product<>::apply(-0.01f, 1.0f);
     // FAIL constexpr auto v0 = algabraic_product<>::apply(1.01f, 1.0f);
     
@@ -445,7 +447,7 @@ TEST_CASE("TR0-set", "[TR0_set]")
     REQUIRE(item.count(element{ 12, 0.0f }) == 1);
 }
 
-TEST_CASE("TR2-set", "[TR2_set]")
+TEST_CASE("TR1-set", "[TR1_set]")
 {
     set item = make_trapezoid<float>(4, 8, 12, 16);
     REQUIRE(item.membership(2) == 0.0f);
@@ -473,3 +475,108 @@ TEST_CASE("TR2-set", "[TR2_set]")
     REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.0f }) == 0);
 }
 
+TEST_CASE("SET-complement", "[SET_complement]")
+{
+    // Default case.
+    set const empty;
+    set const empty_c = ~empty;
+    REQUIRE(empty_c.size() == 2u);
+    REQUIRE(empty_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(empty_c.membership(0) == 1.0f);
+    REQUIRE(empty_c.membership(std::numeric_limits<int>::max()) == 1.0f);
+    
+    // Common case.
+    set const tri = make_triangle<float>(4,8,12);
+    set const tri_c = ~tri;
+    REQUIRE(tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(tri_c.membership(4) == 1.0f);
+    REQUIRE(tri_c.membership(6) == 0.5f);
+    REQUIRE(tri_c.membership(8) == 0.0f);
+    REQUIRE(tri_c.membership(10) == 0.5f);
+    REQUIRE(tri_c.membership(12) == 1.0f);
+    REQUIRE(tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
+
+    // Extreme boundary case
+    set const eb_tri = make_triangle<float>(std::numeric_limits<int>::lowest(), 0, std::numeric_limits<int>::max());
+    set const eb_tri_c = ~eb_tri;
+    REQUIRE(eb_tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(eb_tri_c.membership(0) == 0.0f);
+    REQUIRE(eb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
+
+    // Near extreme boundary case
+    set const neb_tri = make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1);
+    set const neb_tri_c = ~neb_tri;
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::lowest() + 1) == 1.0f);
+    REQUIRE(neb_tri_c.membership(0) == 0.0f);
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max() - 1) == 1.0f);
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
+}
+
+#ifdef FUZZY_USE_TLS_DEF_OPERATOR
+TEST_CASE("current-tnorm")
+{
+    REQUIRE(detail::current_tnorm<float> == nullptr);
+	{
+		use_tnorm_t use_minimum{ minimum{} };
+		auto minimum_binder = detail::current_tnorm<float>;
+		REQUIRE(minimum_binder != nullptr);
+		{
+			use_tnorm_t use_hamacher_product{ hamacher_product{} };
+			auto hamacher_product_binder = detail::current_tnorm<float>;
+			REQUIRE(hamacher_product_binder != minimum_binder);
+			{
+				use_tnorm_t use_einstein_product{ einstein_product{} };
+				auto einstein_product_binder = detail::current_tnorm<float>;
+				REQUIRE(einstein_product_binder != hamacher_product_binder);
+				{
+
+					use_tnorm_t use_drastic_product{ drastic_product{} };
+					auto drastic_product_binder = detail::current_tnorm<float>;
+					REQUIRE(drastic_product_binder != einstein_product_binder);
+				}
+				REQUIRE(einstein_product_binder == detail::current_tnorm<float>);
+			}
+			REQUIRE(hamacher_product_binder == detail::current_tnorm<float>);
+		}
+		REQUIRE(minimum_binder == detail::current_tnorm<float>);
+	}
+	REQUIRE(detail::current_tnorm<float> == nullptr);
+}
+
+TEST_CASE("current-tconorm")
+{
+    REQUIRE(detail::current_tnorm<float> == nullptr);
+    {
+        use_tconorm_t use_maximum{ maximum{} };
+        auto maximum_binder = detail::current_tconorm<float>;
+        REQUIRE(maximum_binder != nullptr);
+        {
+            use_tconorm_t use_hamacher_sum{ hamacher_sum{} };
+            auto hamacher_sum_binder = detail::current_tconorm<float>;
+            REQUIRE(hamacher_sum_binder != maximum_binder);
+            {
+                use_tconorm_t use_einstein_sum{ einstein_sum{} };
+                auto einstein_sum_binder = detail::current_tconorm<float>;
+                REQUIRE(einstein_sum_binder != hamacher_sum_binder);
+                {
+                    use_tconorm_t use_drastic_sum{ drastic_sum{} };
+                    auto drastic_sum_binder = detail::current_tconorm<float>;
+                    REQUIRE(drastic_sum_binder != einstein_sum_binder);
+                }
+                REQUIRE(einstein_sum_binder == detail::current_tconorm<float>);
+            }
+            REQUIRE(hamacher_sum_binder == detail::current_tconorm<float>);
+        }
+        REQUIRE(maximum_binder == detail::current_tconorm<float>);
+    }
+    REQUIRE(detail::current_tconorm<float> == nullptr);
+}
+
+TEST_CASE("SET-intersection", "[SET_intersection]")
+{
+    set sa = make_triangle<float>(4, 8, 12);
+    set sb = make_triangle<float>(3, 7, 11);
+//    set si = 
+}
+#endif // FUZZY_USE_TLS_DEF_OPERATOR

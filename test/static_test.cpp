@@ -5,12 +5,12 @@ using namespace fuzzy;
 
 void static_test_boundscheck()
 {
-    constexpr auto v0 = algabraic_product<>::apply(1.0f, 1.0f);
-    constexpr auto v1 = algabraic_product<>::apply(0.0f, 0.0f);
+    [[maybe_unused]] constexpr auto v0 = algabraic_product<>::apply(1.0f, 1.0f);
+    [[maybe_unused]] constexpr auto v1 = algabraic_product<>::apply(0.0f, 0.0f);
     // FAIL constexpr auto v2 = algabraic_product<>::apply(-0.01f, 1.0f);
     // FAIL constexpr auto v0 = algabraic_product<>::apply(1.01f, 1.0f);
     
-    constexpr bool validate = []() constexpr
+    [[maybe_unused]] constexpr bool validate = []() constexpr
     {
         validate_range(0.0);
         validate_range(0.5);
@@ -138,7 +138,7 @@ void static_test_basic_elementtests()
     static_assert(ec == e1);
     static_assert(ec != e0);
 
-    constexpr auto expr0 = []()
+    constexpr auto expr0 = [=]()
     {
         element e{ 1, 0.1f };
         e = e0;
@@ -164,6 +164,8 @@ void static_test_basic_elementtests()
         e = element{ 2, 0.2f };
         return e;
     };
+    static_assert(expr2().value() == 2.0 && expr2().membership() == 0.2f);
+
     constexpr auto ema = element{ 2, 0.2f };
     static_assert(ema == element{ 2, 0.2f });
     static_assert(ema != element{ 2, 0.1f });
@@ -299,32 +301,32 @@ consteval void static_test_set_lowerbound()
     };
 
     // lb on keys
-    static_assert([]() { set s = item(); return *s.lower_bound(0) == element{ 3, 1.0f }; }());
-    static_assert([]() { set s = item(); return *s.lower_bound(3) == element{ 3, 1.0f }; }());
-    static_assert([]() { set s = item(); return *s.lower_bound(4) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return *s.lower_bound(5) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return s.lower_bound(6) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(0) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(3) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(4) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(5) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return s.lower_bound(6) == s.end(); }());
 
     // lb on elements
-    static_assert([]() { set s = item(); return *s.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
-    static_assert([]() { set s = item(); return *s.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f }; }());
-    static_assert([]() { set s = item(); return *s.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return *s.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return s.lower_bound(element{ 6, 0.0f }) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return *s.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return s.lower_bound(element{ 6, 0.0f }) == s.end(); }());
 
     // lb on keys
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(0) == element{ 3, 1.0f }; }());
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(3) == element{ 3, 1.0f }; }());
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(4) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(5) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return cs.lower_bound(6) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(0) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(3) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(4) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(5) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return cs.lower_bound(6) == cs.end(); }());
 
     // lb on elements
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f }; }());
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return *cs.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return cs.lower_bound(element{ 6, 0.0f }) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return cs.lower_bound(element{ 6, 0.0f }) == cs.end(); }());
 }
 consteval void static_test_set_upperbound()
 {
@@ -335,62 +337,62 @@ consteval void static_test_set_upperbound()
     };
 
     // lb on keys
-    static_assert([]() { set s = item(); return *s.upper_bound(0) == element{ 3, 1.0f }; }());
-    static_assert([]() { set s = item(); return *s.upper_bound(3) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return *s.upper_bound(4) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return s.upper_bound(5) == s.end(); }());
-    static_assert([]() { set s = item(); return s.upper_bound(6) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.upper_bound(0) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return *s.upper_bound(3) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return *s.upper_bound(4) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return s.upper_bound(5) == s.end(); }());
+    static_assert([&]() { set s = item(); return s.upper_bound(6) == s.end(); }());
 
     // lb on elements
-    static_assert([]() { set s = item(); return *s.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
-    static_assert([]() { set s = item(); return *s.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return *s.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set s = item(); return s.upper_bound(element{ 5, 0.8f }) == s.end(); }());
-    static_assert([]() { set s = item(); return s.upper_bound(element{ 6, 0.0f }) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return *s.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return *s.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return s.upper_bound(element{ 5, 0.8f }) == s.end(); }());
+    static_assert([&]() { set s = item(); return s.upper_bound(element{ 6, 0.0f }) == s.end(); }());
 
     // lb on keys
-    static_assert([]() { set const cs = item(); return *cs.upper_bound(0) == element{ 3, 1.0f }; }());
-    static_assert([]() { set const cs = item(); return *cs.upper_bound(3) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return *cs.upper_bound(4) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return cs.upper_bound(5) == cs.end(); }());
-    static_assert([]() { set const cs = item(); return cs.upper_bound(6) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.upper_bound(0) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.upper_bound(3) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.upper_bound(4) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return cs.upper_bound(5) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return cs.upper_bound(6) == cs.end(); }());
 
     // lb on elements
-    static_assert([]() { set const cs = item(); return *cs.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
-    static_assert([]() { set const cs = item(); return *cs.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return *cs.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
-    static_assert([]() { set const cs = item(); return cs.upper_bound(element{ 5, 0.8f }) == cs.end(); }());
-    static_assert([]() { set const cs = item(); return cs.upper_bound(element{ 6, 0.0f }) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return *cs.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return cs.upper_bound(element{ 5, 0.8f }) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return cs.upper_bound(element{ 6, 0.0f }) == cs.end(); }());
 }
 
 consteval void static_test_set_find()
 {
     // find on keys
     constexpr auto item = []() { return set{ {3, 1.0f}, {5, 0.8f} }; };
-    static_assert([]() { set s = item(); return s.find(0) == s.end(); });
-    static_assert([]() { set s = item(); return *s.find(3) == element{ 3, 1.0f }; });
-    static_assert([]() { set s = item(); return s.find(4) == s.end(); });
-    static_assert([]() { set s = item(); return *s.find(5) == element{ 5, 0.8f }; });
-    static_assert([]() { set s = item(); return s.find(6) == s.end(); });
+    static_assert([&]() { set s = item(); return s.find(0) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.find(3) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return s.find(4) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.find(5) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return s.find(6) == s.end(); }());
 
-    static_assert([]() { set const cs = item(); return cs.find(0) == cs.end(); });
-    static_assert([]() { set const cs = item(); return *cs.find(3) == element{ 3, 1.0f }; });
-    static_assert([]() { set const cs = item(); return cs.find(4) == cs.end(); });
-    static_assert([]() { set const cs = item(); return *cs.find(5) == element{ 5, 0.8f }; });
-    static_assert([]() { set const cs = item(); return cs.find(6) == cs.end(); });
+    static_assert([&]() { set const cs = item(); return cs.find(0) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.find(3) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return cs.find(4) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.find(5) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return cs.find(6) == cs.end(); }());
 
     // find on elements
-    static_assert([]() { set s = item(); return s.find(element{ 0, 0.0f }) == s.end(); });
-    static_assert([]() { set s = item(); return *s.find(element{ 3, 0.0f }) == element{ 3, 1.0f }; });
-    static_assert([]() { set s = item(); return s.find(element{ 4, 0.0f }) == s.end(); });
-    static_assert([]() { set s = item(); return *s.find(element{ 5, 0.8f }) == element{ 5, 0.8f }; });
-    static_assert([]() { set s = item(); return s.find(element{ 6, 1.0f }) == s.end(); });
+    static_assert([&]() { set s = item(); return s.find(element{ 0, 0.0f }) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.find(element{ 3, 1.0f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set s = item(); return s.find(element{ 4, 0.0f }) == s.end(); }());
+    static_assert([&]() { set s = item(); return *s.find(element{ 5, 0.8f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set s = item(); return s.find(element{ 6, 1.0f }) == s.end(); }());
 
-    static_assert([]() { set const cs = item(); return cs.find(element{ 0, 1.0f }) == cs.end(); });
-    static_assert([]() { set const cs = item(); return *cs.find(element{ 3, 1.0f }) == element{ 3, 1.0f }; });
-    static_assert([]() { set const cs = item(); return cs.find(element{ 4, 1.0f }) == cs.end(); });
-    static_assert([]() { set const cs = item(); return *cs.find(element{ 5, 0.2f }) == element{ 5, 0.8f }; });
-    static_assert([]() { set const cs = item(); return cs.find(element{ 6, 0.0f }) == cs.end(); });
+    static_assert([&]() { set const cs = item(); return cs.find(element{ 0, 1.0f }) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.find(element{ 3, 1.0f }) == element{ 3, 1.0f }; }());
+    static_assert([&]() { set const cs = item(); return cs.find(element{ 4, 1.0f }) == cs.end(); }());
+    static_assert([&]() { set const cs = item(); return *cs.find(element{ 5, 0.8f }) == element{ 5, 0.8f }; }());
+    static_assert([&]() { set const cs = item(); return cs.find(element{ 6, 0.0f }) == cs.end(); }());
 }
 
 consteval void static_test_set_contains()
@@ -449,7 +451,7 @@ consteval void static_set_insert()
     static_assert(cs0().contains(5));
     static_assert(!cs0().contains(6));
 
-    constexpr auto cs1 = []()
+    constexpr auto cs1 = [=]()
     {
         set cs = cs0();
         cs.insert({ {3, 1.0f}, {5, 0.8f} });
@@ -462,7 +464,7 @@ consteval void static_set_insert()
     static_assert(cs1().count(5) == 1u);
     static_assert(cs1().count(6) == 0u);
 
-    constexpr auto cs2 = []()
+    constexpr auto cs2 = [=]()
     {
         set cs = cs1();
         cs.insert(element{ 4, 0.4f });
@@ -470,7 +472,7 @@ consteval void static_set_insert()
     };
     static_assert(cs2().contains(4));
 
-    constexpr auto cs3 = []()
+    constexpr auto cs3 = [=]()
     {
         set cs = cs2();
         cs.insert(cs.cend(), element{ 0, 0.3f });
@@ -478,7 +480,7 @@ consteval void static_set_insert()
     };
     static_assert(cs3().contains(0) == 1u);
 
-    constexpr auto cs4 = []()
+    constexpr auto cs4 = [=]()
     {
         set cs = cs3();
         std::vector<element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
@@ -487,7 +489,7 @@ consteval void static_set_insert()
     };
     static_assert(cs4().contains(element{5, 0.8f}) && cs4().contains(element{6, 0.6f}) && cs4().contains(element{7, 1.0f}));
 
-    constexpr auto cs5a = []()
+    constexpr auto cs5a = [=]()
     {
         set cs = cs4();
         auto pair1 = cs.insert(cs.begin(), element{ 4, 1.0f });
@@ -495,7 +497,7 @@ consteval void static_set_insert()
     };
     static_assert(cs5a());
     
-    constexpr auto cs5b = []()
+    constexpr auto cs5b = [=]()
     {
         set cs = cs4();
         auto pair2 = cs.insert(cs.end(), element{ -1, 0.1f });
@@ -536,5 +538,40 @@ consteval void static_test_TR1_set()
     static_assert(!item().empty());
     static_assert(item().size() == 4u);
     static_assert(all_ranges_valid(item()));
+}
+
+consteval void static_test_SET_complement()
+{
+    // Default case.
+    constexpr auto empty_c = []() { return ~set{}; };
+    static_assert(empty_c().size() == 2u);
+    static_assert(empty_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    static_assert(empty_c().membership(0) == 1.0f);
+    static_assert(empty_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+
+    // Common case.
+    constexpr auto tri_c = []() { return ~make_triangle<float>(4, 8, 12); };
+    static_assert(tri_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    static_assert(tri_c().membership(4) == 1.0f);
+    static_assert(tri_c().membership(6) == 0.5f);
+    static_assert(tri_c().membership(8) == 0.0f);
+    static_assert(tri_c().membership(10) == 0.5f);
+    static_assert(tri_c().membership(12) == 1.0f);
+    static_assert(tri_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+
+    //// Extreme boundary case
+    constexpr auto eb_tri_c = []() { return ~make_triangle<float>(std::numeric_limits<int>::lowest(), 0, std::numeric_limits<int>::max()); };
+    static_assert(eb_tri_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    static_assert(eb_tri_c().membership(0) == 0.0f);
+    static_assert(eb_tri_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+
+    //// Near extreme boundary case
+    //set const neb_tri = make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1);
+    constexpr auto neb_tri_c = []() { return ~make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1); };
+    static_assert(neb_tri_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    static_assert(neb_tri_c().membership(std::numeric_limits<int>::lowest() + 1) == 1.0f);
+    static_assert(neb_tri_c().membership(0) == 0.0f);
+    static_assert(neb_tri_c().membership(std::numeric_limits<int>::max() - 1) == 1.0f);
+    static_assert(neb_tri_c().membership(std::numeric_limits<int>::max()) == 1.0f);
 }
 

@@ -23,11 +23,14 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
+#define FUZZY_USE_TLS_DEF_OPERATOR // DEBUG REMOVEME
+
 #ifndef FUZZY_ALGORITHM_HPP
 #define FUZZY_ALGORITHM_HPP
 
 #include <iterator>
 #include <limits>
+#include <stack>
 
 #include <fuzzy/element.hpp>
 #include <fuzzy/operator.hpp>
@@ -39,15 +42,15 @@ namespace fuzzy
 	namespace detail
 	{
 		template <class Operation>
-		requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>
+			requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>
 		struct operation
 		{
 			template <class V, class M, class Container>
-			constexpr static [[nodiscard]] fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 			{
 				using op_t = Operation;
 				using set_type = fuzzy::basic_set<V, M, Container>;
-				using element_type = set_type::element_type;
+				using element_type = typename set_type::element_type;
 
 				auto lhs_itr = cbegin(lhs);
 				auto lhs_end = cend(lhs);
@@ -98,7 +101,85 @@ namespace fuzzy
 				}
 			}
 		};
+
+		/* Triangular conorm function object.**/
+		template <typename M = float>
+		requires std::floating_point<M>
+		class tconorm_binder
+		{
+		public:
+			using tconorm = tconorm_tag;
+			using value_type = M;
+			using func_ptr = M(*)(M x, M y);
+
+			tconorm_binder() { func_ = [](M, M) { return std::numeric_limits<M>::quiet_NaN(); }; }
+			tconorm_binder(tconorm_binder<M> const&) = delete;
+			tconorm_binder(tconorm_binder<M>&&) = delete;
+			tconorm_binder<M>& operator=(tconorm_binder<M> const&) = delete;
+			tconorm_binder<M>& operator=(tconorm_binder<M>&&) = delete;
+
+			/** binds to a specific tconorm type */
+			template <typename T>
+			requires tconorm_type<T>
+			constexpr void bind(T) noexcept
+			{
+				func_ = [](M x, M y) -> M { return T::apply(x, y); };
+			}
+
+			[[nodiscard]] constexpr M apply(M x, M y) noexcept
+			{
+				validate_range<M>(x, y);
+				return func_(x, y);
+			}
+
+		private:
+			func_ptr func_ = nullptr;
+		};
+
+		/* Triangular conorm function object.**/
+		template <class M = float>
+		requires std::floating_point<M>
+		class tnorm_binder
+		{
+		public:
+			using tnorm = tnorm_tag;
+			using func_ptr = M(*)(M x, M y);
+
+			tnorm_binder() { func_ = [](M, M) { return std::numeric_limits<M>::quiet_NaN(); }; }
+			tnorm_binder(tnorm_binder<M> const&) = delete;
+			tnorm_binder(tnorm_binder<M>&&) = delete;
+			tnorm_binder<M>& operator=(tnorm_binder<M> const&) = delete;
+			tnorm_binder<M>& operator=(tnorm_binder<M>&&) = delete;
+
+			/** binds to a specific tconorm type */
+			template <class T>
+			requires tnorm_type<T>
+			constexpr void bind(T) noexcept
+			{
+				func_ = [](M x, M y) -> M { return T::apply(x, y); };
+			}
+
+			[[nodiscard]] constexpr M apply(M x, M y) noexcept
+			{
+				validate_range<M>(x, y);
+				return func_(x, y);
+			}
+
+		private:
+			func_ptr func_;
+		};
+
+#ifdef FUZZY_USE_TLS_DEF_OPERATOR
+		template <class M>
+		requires std::floating_point<M>
+		thread_local tconorm_binder<M> *current_tconorm = nullptr;
+
+		template <class M>
+		requires std::floating_point<M>
+		thread_local tnorm_binder<M> *current_tnorm = nullptr;
+#endif
 	}
+
 
 	/**
 	* Version of std::set_intersection compatible with fuzzy set theory.
@@ -108,7 +189,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Operation = fuzzy::minimum<M>, class Container>
 	requires std::integral<V> && std::floating_point<M> && tnorm_type<Operation>
-	constexpr [[nodiscard]] fuzzy::basic_set<V, M, Container> set_intersection(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_intersection(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
@@ -121,9 +202,98 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>&& tconorm_type<Operation>
-	constexpr [[nodiscard]] fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
+	}
+
+
+
+#ifdef FUZZY_USE_TLS_DEF_OPERATOR
+
+	template <class T>
+	requires tnorm_type<T> && std::floating_point<typename T::value_type>
+	class use_tnorm_t
+	{
+	public:
+		using value_type = typename T::value_type;
+
+		use_tnorm_t() = delete;
+		use_tnorm_t(use_tnorm_t<T> const&) = delete;
+		use_tnorm_t(use_tnorm_t<T>&&) = delete;
+		use_tnorm_t<T>& operator=(use_tnorm_t<T> const&) = delete;
+		use_tnorm_t<T>& operator=(use_tnorm_t<T>&&) = delete;
+
+		constexpr use_tnorm_t(T) noexcept
+			: previous_(detail::current_tnorm<value_type>)
+		{
+			current_.bind(T{});
+			detail::current_tnorm<value_type> = &current_;
+		}
+
+		constexpr ~use_tnorm_t() noexcept
+		{
+			assert(detail::current_tnorm<value_type> == &current_);
+			detail::current_tnorm<value_type> = previous_;
+		}
+
+	private:
+		detail::tnorm_binder<value_type> current_;
+		detail::tnorm_binder<value_type> *previous_;
+	};
+
+	template<class T> use_tnorm_t(T) -> use_tnorm_t<T>;
+	
+
+	template <class T>
+	requires tconorm_type<T>&& std::floating_point<typename T::value_type>
+	class use_tconorm_t
+	{
+	public:
+		using value_type = typename T::value_type;
+
+		use_tconorm_t() = delete;
+		use_tconorm_t(use_tconorm_t<T> const&) = delete;
+		use_tconorm_t(use_tconorm_t<T>&&) = delete;
+		use_tconorm_t<T>& operator=(use_tconorm_t<T> const&) = delete;
+		use_tconorm_t<T>& operator=(use_tconorm_t<T>&&) = delete;
+
+		constexpr use_tconorm_t(T) noexcept
+			: previous_(detail::current_tconorm<value_type>)
+		{
+			current_.bind(T{});
+			detail::current_tconorm<value_type> = &current_;
+		}
+
+		constexpr ~use_tconorm_t() noexcept
+		{
+			assert(detail::current_tconorm<value_type> == &current_);
+			detail::current_tconorm<value_type> = previous_;
+		}
+
+	private:
+		detail::tconorm_binder<value_type> current_;
+		detail::tconorm_binder<value_type>* previous_;
+	};
+
+	template<class T> use_tconorm_t(T) -> use_tconorm_t<T>;
+
+
+
+
+
+#endif
+
+	/**
+	* Complement of fuzzy set.
+	* @param aset The lhs set to intersect.
+	* @return The complement of the set.
+	*/
+	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator&(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	{
+		return set_intersection<V, M, Operation, Container>(lhs, rhs);
 	}
 
 	/**
@@ -133,10 +303,10 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	constexpr [[nodiscard]] fuzzy::basic_set<V, M, Container> set_complement(fuzzy::basic_set<V, M, Container> const& aset)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_complement(fuzzy::basic_set<V, M, Container> const& aset)
 	{
 		using set_type = fuzzy::basic_set<V, M, Container>;
-		using element_type = set_type::element_type;
+		using element_type = typename set_type::element_type;
 		set_type result;
 
 		constexpr V v_min = std::numeric_limits<V>::lowest();
@@ -144,7 +314,7 @@ namespace fuzzy
 		constexpr V v_offset = static_cast<V>(1);
 		constexpr M m_max = static_cast<M>(1.0);
 		constexpr M m_min = static_cast<M>(0.0);
-
+		constexpr complement<M> comp;
 
 		if (aset.empty())
 		{
@@ -153,7 +323,7 @@ namespace fuzzy
 			return result;
 		}
 
-		M const m_front = static_cast<M>(1.0) - aset.front().membership();
+		M const m_front = comp.apply(aset.front().membership());
 		if (m_front != m_min && aset.front().value() != v_min)
 		{
 			V const v_prefix = aset.front().value() - v_offset;
@@ -166,7 +336,7 @@ namespace fuzzy
 
 		for (auto& element : aset)
 		{
-			result.insert(fuzzy::basic_element<V, M>{ element.value(), static_cast<M>(1.0) - element.membership() });
+			result.insert(fuzzy::basic_element<V, M>{ element.value(), comp.apply(element.membership()) });
 		}
 
 		M const m_back = result.back().membership();
@@ -190,7 +360,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	constexpr [[nodiscard]] fuzzy::basic_set<V, M, Container> operator~(fuzzy::basic_set<V, M, Container> const& aset)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator~(fuzzy::basic_set<V, M, Container> const& aset)
 	{
 		return set_complement<V,M,Operation, Container>(aset);
 	}

@@ -74,7 +74,7 @@ namespace fuzzy
 		// @param x The left hand side operand  in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value inn the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 	        return x * y;
@@ -93,7 +93,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range  [0,1].
 		// @result a value in the range [0,1]
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return (x + y) - (x * y);
@@ -112,7 +112,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1]
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return std::max(static_cast<M>(0), (x + y) - static_cast<M>(1));
@@ -131,7 +131,7 @@ namespace fuzzy
 		/// @param x The left hand side operand in the range [0,1].
 		/// @param y The right hand side operand in the range [0,1].
 		/// @result A value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return std::min(static_cast<M>(1), x + y);
@@ -150,7 +150,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return (x == static_cast<M>(1) || y == static_cast<M>(1)) ? std::min(x, y) : static_cast<M>(0);
@@ -169,7 +169,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return (x == static_cast<M>(0) || y == static_cast<M>(0)) ? std::max(x, y) : static_cast<M>(1);
@@ -189,7 +189,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return (x * y) / (static_cast<M>(2) - ((x + y) - (x * y)));
@@ -209,7 +209,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return (x + y) / (static_cast<M>(1) + (x * y));
@@ -228,7 +228,7 @@ namespace fuzzy
 		// @param lhs The left hand side operand in the range [0,1].
 		// @param rhs The right hand side operand in the range [0,1].
 		// @result A value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return ((x + y) - (x * y) == static_cast<M>(0)) ? static_cast<M>(0) : ((x * y) / ((x + y) - (x * y)));
@@ -247,7 +247,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return (static_cast<M>(1) - (x * y) == static_cast<M>(0)) ? static_cast<M>(1) : (((x + y) - (static_cast<M>(2) * x * y)) / (static_cast<M>(1) - (x * y)));
@@ -266,7 +266,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return std::min(x, y);
@@ -285,7 +285,7 @@ namespace fuzzy
 		// @param x The left hand side operand in the range [0,1].
 		// @param y The right hand side operand in the range [0,1].
 		// @result a value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M x, M y) noexcept
+		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
 			return std::max(x, y);
@@ -302,7 +302,7 @@ namespace fuzzy
 		// Complement as 1 - m.
 		// @param m Membership in the range [0,1].
 		// @result a value in the range [0,1].
-		constexpr static [[nodiscard]] M apply(M m) noexcept
+		[[nodiscard]] constexpr static M apply(M m) noexcept
 		{
 			validate_range<M>(m);
 			return static_cast<M>(1.0) - m;
