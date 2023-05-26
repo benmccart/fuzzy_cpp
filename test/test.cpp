@@ -513,6 +513,146 @@ TEST_CASE("SET-complement", "[SET_complement]")
     REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 }
 
+TEST_CASE("SET-intersection", "[SET_intersection]")
+{
+    // Common case left-right
+    set si_cc_lr = set_intersection(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+    REQUIRE(si_cc_lr.membership(3) == 0.0f);
+    REQUIRE(si_cc_lr.membership(4) == 0.0f);
+    REQUIRE(si_cc_lr.membership(5) == 0.25f);
+    REQUIRE(si_cc_lr.membership(6) == 0.50f);
+    REQUIRE(si_cc_lr.membership(7) == 0.75f);
+    REQUIRE(si_cc_lr.membership(8) == 0.75f);
+    REQUIRE(si_cc_lr.membership(9) == 0.50f);
+    REQUIRE(si_cc_lr.membership(10) == 0.25f);
+    REQUIRE(si_cc_lr.membership(11) == 0.0f);
+    REQUIRE(si_cc_lr.membership(12) == 0.0f);
+
+    // Common case right-left
+    set si_cc_rl = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+    REQUIRE(si_cc_rl.membership(3) == 0.0f);
+    REQUIRE(si_cc_rl.membership(4) == 0.0f);
+    REQUIRE(si_cc_rl.membership(5) == 0.25f);
+    REQUIRE(si_cc_rl.membership(6) == 0.50f);
+    REQUIRE(si_cc_rl.membership(7) == 0.75f);
+    REQUIRE(si_cc_rl.membership(8) == 0.75f);
+    REQUIRE(si_cc_rl.membership(9) == 0.50f);
+    REQUIRE(si_cc_rl.membership(10) == 0.25f);
+    REQUIRE(si_cc_rl.membership(11) == 0.0f);
+    REQUIRE(si_cc_rl.membership(12) == 0.0f);
+
+    // Boundary case left-right
+    set si_bc_lr = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+    REQUIRE(si_bc_lr.membership(3) == 0.0f);
+    REQUIRE(si_bc_lr.membership(4) == 0.0f);
+    REQUIRE(si_bc_lr.membership(5) == 0.0f);
+    REQUIRE(si_bc_lr.membership(11) == 0.0f);
+    REQUIRE(si_bc_lr.membership(12) == 0.0f);
+    REQUIRE(si_bc_lr.membership(13) == 0.0f);
+    REQUIRE(si_bc_lr.membership(19) == 0.0f);
+    REQUIRE(si_bc_lr.membership(20) == 0.0f);
+    REQUIRE(si_bc_lr.membership(21) == 0.0f);
+
+    set si_bc_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+    REQUIRE(si_bc_rl.membership(3) == 0.0f);
+    REQUIRE(si_bc_rl.membership(4) == 0.0f);
+    REQUIRE(si_bc_rl.membership(5) == 0.0f);
+    REQUIRE(si_bc_rl.membership(11) == 0.0f);
+    REQUIRE(si_bc_rl.membership(12) == 0.0f);
+    REQUIRE(si_bc_rl.membership(13) == 0.0f);
+    REQUIRE(si_bc_rl.membership(19) == 0.0f);
+    REQUIRE(si_bc_rl.membership(20) == 0.0f);
+    REQUIRE(si_bc_rl.membership(21) == 0.0f);
+
+    // Boundary past each-other case
+    set si_bp_lr = set_intersection(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
+    REQUIRE(si_bp_lr.membership(-13) == 0.0f);
+    REQUIRE(si_bp_lr.membership(-12) == 0.0f);
+    REQUIRE(si_bp_lr.membership(-7) == 0.0f);
+    REQUIRE(si_bp_lr.membership(-3) == 0.0f);
+    REQUIRE(si_bp_lr.membership(11) == 0.0f);
+    REQUIRE(si_bp_lr.membership(12) == 0.0f);
+    REQUIRE(si_bp_lr.membership(17) == 0.0f);
+    REQUIRE(si_bp_lr.membership(20) == 0.0f);
+    REQUIRE(si_bp_lr.membership(21) == 0.0f);
+
+    set si_bp_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
+    REQUIRE(si_bp_rl.membership(-13) == 0.0f);
+    REQUIRE(si_bp_rl.membership(-12) == 0.0f);
+    REQUIRE(si_bp_rl.membership(-7) == 0.0f);
+    REQUIRE(si_bp_rl.membership(-3) == 0.0f);
+    REQUIRE(si_bp_rl.membership(11) == 0.0f);
+    REQUIRE(si_bp_rl.membership(12) == 0.0f);
+    REQUIRE(si_bp_rl.membership(17) == 0.0f);
+    REQUIRE(si_bp_rl.membership(20) == 0.0f);
+    REQUIRE(si_bp_rl.membership(21) == 0.0f);
+}
+
+TEST_CASE("SET-union", "[SET_union]")
+{
+    // Common case 
+    set su_cc_lr = set_union(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+    REQUIRE(su_cc_lr.membership(3) == 0.0f);
+    REQUIRE(su_cc_lr.membership(4) == 0.25f);
+    REQUIRE(su_cc_lr.membership(5) == 0.50f);
+    REQUIRE(su_cc_lr.membership(6) == 0.75f);
+    REQUIRE(su_cc_lr.membership(7) == 1.0f);
+    REQUIRE(su_cc_lr.membership(8) == 1.0f);
+    REQUIRE(su_cc_lr.membership(9) == 0.75f);
+    REQUIRE(su_cc_lr.membership(10) == 0.50f);
+    REQUIRE(su_cc_lr.membership(11) == 0.25f);
+    REQUIRE(su_cc_lr.membership(12) == 0.0f);
+
+    set su_cc_rl = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+    REQUIRE(su_cc_rl.membership(3) == 0.0f);
+    REQUIRE(su_cc_rl.membership(4) == 0.25f);
+    REQUIRE(su_cc_rl.membership(5) == 0.50f);
+    REQUIRE(su_cc_rl.membership(6) == 0.75f);
+    REQUIRE(su_cc_rl.membership(7) == 1.0f);
+    REQUIRE(su_cc_rl.membership(8) == 1.0f);
+    REQUIRE(su_cc_rl.membership(9) == 0.75f);
+    REQUIRE(su_cc_rl.membership(10) == 0.50f);
+    REQUIRE(su_cc_rl.membership(11) == 0.25f);
+    REQUIRE(su_cc_rl.membership(12) == 0.0f);
+
+    // Boundary case
+    set su_bc_lr = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+    REQUIRE(su_bc_lr.membership(3) == 0.0f);
+    REQUIRE(su_bc_lr.membership(4) == 0.0f);
+    REQUIRE(su_bc_lr.membership(5) == 0.25f);
+    REQUIRE(su_bc_lr.membership(11) == 0.25f);
+    REQUIRE(su_bc_lr.membership(12) == 0.0f);
+    REQUIRE(su_bc_lr.membership(13) == 0.25f);
+    REQUIRE(su_bc_lr.membership(16) == 1.0f);
+    REQUIRE(su_bc_lr.membership(20) == 0.0f);
+    REQUIRE(su_bc_lr.membership(21) == 0.0f);
+
+    // Boundaries past each-other case
+    set su_bp_lr = set_union(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
+    REQUIRE(su_bp_lr.membership(-13) == 0.0f);
+    REQUIRE(su_bp_lr.membership(-12) == 0.0f);
+    REQUIRE(su_bp_lr.membership(-5) == 0.25f);
+    REQUIRE(su_bp_lr.membership(-3) == 0.0f);
+    REQUIRE(su_bp_lr.membership(11) == 0.0f);
+    REQUIRE(su_bp_lr.membership(12) == 0.0f);
+    REQUIRE(su_bp_lr.membership(16) == 1.0f);
+    REQUIRE(su_bp_lr.membership(17) == 0.75f);
+    REQUIRE(su_bp_lr.membership(20) == 0.0f);
+    REQUIRE(su_bp_lr.membership(21) == 0.0f);
+
+    set su_bp_rl = set_union(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
+    REQUIRE(su_bp_rl.membership(-13) == 0.0f);
+    REQUIRE(su_bp_rl.membership(-12) == 0.0f);
+    REQUIRE(su_bp_rl.membership(-5) == 0.25f);
+    REQUIRE(su_bp_rl.membership(-3) == 0.0f);
+    REQUIRE(su_bp_rl.membership(11) == 0.0f);
+    REQUIRE(su_bp_rl.membership(12) == 0.0f);
+    REQUIRE(su_bp_rl.membership(16) == 1.0f);
+    REQUIRE(su_bp_rl.membership(17) == 0.75f);
+    REQUIRE(su_bp_rl.membership(20) == 0.0f);
+    REQUIRE(su_bp_rl.membership(21) == 0.0f);
+}
+
 #ifdef FUZZY_USE_TLS_DEF_OPERATOR
 TEST_CASE("current-tnorm")
 {
@@ -530,7 +670,6 @@ TEST_CASE("current-tnorm")
 				auto einstein_product_binder = detail::current_tnorm<float>;
 				REQUIRE(einstein_product_binder != hamacher_product_binder);
 				{
-
 					use_tnorm_t use_drastic_product{ drastic_product{} };
 					auto drastic_product_binder = detail::current_tnorm<float>;
 					REQUIRE(drastic_product_binder != einstein_product_binder);
@@ -573,10 +712,4 @@ TEST_CASE("current-tconorm")
     REQUIRE(detail::current_tconorm<float> == nullptr);
 }
 
-TEST_CASE("SET-intersection", "[SET_intersection]")
-{
-    set sa = make_triangle<float>(4, 8, 12);
-    set sb = make_triangle<float>(3, 7, 11);
-//    set si = 
-}
 #endif // FUZZY_USE_TLS_DEF_OPERATOR

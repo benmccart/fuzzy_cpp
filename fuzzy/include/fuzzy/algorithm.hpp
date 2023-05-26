@@ -23,7 +23,7 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#define FUZZY_USE_TLS_DEF_OPERATOR // DEBUG REMOVEME
+#define FUZZY_USE_TLS_DEF_OPERATOR // FIXME: Remove me!
 
 #ifndef FUZZY_ALGORITHM_HPP
 #define FUZZY_ALGORITHM_HPP
@@ -41,8 +41,29 @@ namespace fuzzy
 {
 	namespace detail
 	{
+
+		struct trim
+		{
+			template <class V, class M, class Container>
+			constexpr static void apply(fuzzy::basic_set<V, M, Container>& v)
+			{
+				constexpr M zero_m = static_cast<M>(0);
+				if (v.size() < 3ull)
+					return;
+
+				auto ritr = cend(v) - 1ull;
+				auto ritr_next = ritr - 1ull;
+				for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
+
+				auto itr = cbegin(v);
+				auto itr_next = itr + 1ull;
+				for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
+			}
+		};
+
+
 		template <class Operation>
-			requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>
+		requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>
 		struct operation
 		{
 			template <class V, class M, class Container>
@@ -58,7 +79,7 @@ namespace fuzzy
 				auto rhs_end = cend(rhs);
 
 				set_type result;
-				for (; lhs_itr != lhs_end && rhs_itr != rhs_end;)
+				for (; lhs_itr != lhs_end || rhs_itr != rhs_end;)
 				{
 					if (lhs_itr != lhs_end && rhs_itr != rhs_end)
 					{
@@ -99,6 +120,9 @@ namespace fuzzy
 						++rhs_itr;
 					}
 				}
+
+				trim::apply(result);
+				return result;
 			}
 		};
 
@@ -195,10 +219,12 @@ namespace fuzzy
 	}
 
 	/**
-	* Version of std::set_intersection compatible with fuzzy set theory.
+	* Version of std::set_union compatible with fuzzy set theory.
 	* @param lhs The left hand side fuzzy set operand.
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The union of the two fuzzy sets.
+	* FIXME: parameter order is wrong here!  Everthing can be deduced except the operation!
+	* FIXME: The operation needs a requires clause to ensure this is a union and not an intersection!
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>&& tconorm_type<Operation>
@@ -206,6 +232,11 @@ namespace fuzzy
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
+
+
+
+
+	
 
 
 
@@ -285,15 +316,27 @@ namespace fuzzy
 #endif
 
 	/**
-	* Complement of fuzzy set.
+	* Intersects two fuzzy sets.
 	* @param aset The lhs set to intersect.
-	* @return The complement of the set.
+	* @return The intersection of the sets.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator&(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return set_intersection<V, M, Operation, Container>(lhs, rhs);
+	}
+
+	/**
+	* Unions two fuzzy sets.
+	* @param aset The lhs set to intersect.
+	* @return The unions of the sets.
+	*/
+	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
+		requires std::integral<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator|(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	{
+		return set_union<V, M, Operation, Container>(lhs, rhs);
 	}
 
 	/**
