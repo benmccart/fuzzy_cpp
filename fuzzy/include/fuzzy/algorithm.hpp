@@ -149,67 +149,6 @@ namespace fuzzy
 			return vf(a, b);
 		}
 
-		///*
-		//*
-		//*/
-		//struct hedge
-		//{
-		//	template <class V, class M, class Container, class ValueFunc, class MembershipFunc>
-		//	requires ValueFunction<ValueFunc, V> && MembershipFunction<MembershipFunc,M>
-		//	[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& aset, MembershipFunc membership_func, ValueFunc value_front, ValueFunc value_back)
-		//	{
-		//		using set_type = fuzzy::basic_set<V, M, Container>;
-		//		using element_type = typename set_type::element_type;
-		//		using value_type = typename set_type::value_type;
-		//		set_type result;
-
-		//		constexpr M m_max = static_cast<M>(1.0);
-		//		constexpr M m_min = static_cast<M>(0.0);
-
-		//		if (aset.empty())
-		//		{
-		//			return result;
-		//		}
-		//		if (aset.size() == 1ull)
-		//		{
-		//			element_type e = aset.front();
-		//			e.membership(membership_func(e.membership()));
-		//			result.insert(std::move(e));
-		//			return result;
-		//		}
-
-		//		auto itr = begin(aset);
-		//		auto itr_next = itr + 1;
-		//		if (itr->membership() == m_min && itr_next->membership() != m_min)
-		//		{
-		//			// 'Squash' or 'extend' front of set depending on value_front().
-		//			value_type const delta = itr_next->value() - itr->value();
-		//			value_type v = value_front(itr_next->value(), itr->value());
-		//			result.insert(element_type{ .value = v, .membership = m_min });
-		//		}
-
-		//		for (; itr_next + 1 != end(aset); ++itr, ++itr_next)
-		//		{
-		//			result.insert(element_type{ .value = itr_next->value(), membership_func(itr_next->membership()) });
-		//		}
-		//		if (itr->membership() != m_min && itr_next->membership() == m_min)
-		//		{
-		//			value_type const delta = itr_next->value() - itr->value();
-		//			result.insert(element_type{ .value = itr_next->value() + delta, .membership = m_min });
-		//		}
-
-
-
-
-
-
-
-
-
-		//		return result;
-		//	}
-		//};
-
 		/* Triangular conorm function object.**/
 		template <typename M = float>
 		requires std::floating_point<M>
@@ -286,22 +225,6 @@ namespace fuzzy
 		requires std::floating_point<M>
 		thread_local tnorm_binder<M> *current_tnorm = nullptr;
 #endif
-
-
-		template <class V>
-		constexpr auto promote(V v)
-		{
-			if constexpr (std::is_floating_point_v<V> || std::is_unsigned_v<V>)
-				return v;
-			else if constexpr (sizeof(int) > sizeof(V))
-				return static_cast<int>(v);
-			else if constexpr (sizeof(long) > sizeof(V))
-				return static_cast<long>(v);
-			else if constexpr (sizeof(long long) > sizeof(V))
-				return static_cast<long long>(v);
-			else 
-				return v;
-		}
 	}
 
 

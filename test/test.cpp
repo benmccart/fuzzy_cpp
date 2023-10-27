@@ -2,6 +2,7 @@
 #include "./test.hpp"
 
 #include <iostream>
+#include <limits>
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
@@ -714,15 +715,49 @@ TEST_CASE("current-tconorm")
 
 TEST_CASE("SET-widem", "[SET_widen]")
 {
+    constexpr int v_min = std::numeric_limits<int>::min();
+    constexpr int v_max = std::numeric_limits<int>::max();
+
     // Common case 
-    set wc = widen(make_triangle<float>(4, 8, 12));
-    REQUIRE(wc.membership(0) == 0.0f);
-    REQUIRE(wc.membership(2) == 0.25f);
-    REQUIRE(wc.membership(4) == 0.5f);
-    REQUIRE(wc.membership(8) == 1.0f);
-    REQUIRE(wc.membership(12) == 0.5f);
-    REQUIRE(wc.membership(14) == 0.25f);
-    REQUIRE(wc.membership(16) == 0.0f);
+    set cc = widen(make_triangle<float>(4, 8, 12));
+    REQUIRE(cc.membership(0) == 0.0f);
+    REQUIRE(cc.membership(2) == 0.25f);
+    REQUIRE(cc.membership(4) == 0.5f);
+    REQUIRE(cc.membership(8) == 1.0f);
+    REQUIRE(cc.membership(12) == 0.5f);
+    REQUIRE(cc.membership(14) == 0.25f);
+    REQUIRE(cc.membership(16) == 0.0f);
+
+    // Min extreme
+    set mne = widen(make_triangle<float>(v_min, v_min + 4, v_min + 8));
+    REQUIRE(mne.membership(v_min) == 0.5f);
+    REQUIRE(mne.membership(v_min + 4) == 1.0f);
+    REQUIRE(mne.membership(v_min + 10) == 0.25f);
+    REQUIRE(mne.membership(v_min + 12) == 0.0f);
+
+    // Max extreme
+    set mxe = widen(make_triangle<float>(v_max - 8, v_max - 4, v_max));
+    REQUIRE(mxe.membership(v_max) == 0.5f);
+    REQUIRE(mxe.membership(v_max - 4) == 1.0f);
+    REQUIRE(mxe.membership(v_max - 10) == 0.25f);
+    REQUIRE(mxe.membership(v_max - 12) == 0.0f);
+
+    // Middle case
+    set mc = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 1.0f },element{ 16, 0.0f } });
+    REQUIRE(mc.membership(4) == 1.0f);
+    REQUIRE(mc.membership(6) == 0.75f);
+    REQUIRE(mc.membership(8) == 0.50f);
+    REQUIRE(mc.membership(10) == 0.75f);
+    REQUIRE(mc.membership(12) == 1.0f);
+
+    // Middle case constrained
+    set mcc = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 0.0f },element{ 16, 1.0f },element{ 18, 0.0f } });
+    REQUIRE(mc.membership(4) == 1.0f);
+    //REQUIRE(mc.membership(12) == 0.25f);
+    //REQUIRE(mc.membership(12) == 0.25f);
+    //REQUIRE(mc.membership(8) == 0.50f);
+    //REQUIRE(mc.membership(10) == 0.75f);
+    //REQUIRE(mc.membership(12) == 1.0f);
 }
 
 

@@ -66,6 +66,29 @@ namespace fuzzy
 
 	/** Convenience defintion for common use cases. */
 	using element = basic_element<int, float>;
+
+
+	namespace detail
+	{
+		/**
+		* Used to promote
+		*/
+		template <class V>
+		requires std::integral<V>
+		constexpr auto promote(V v)
+		{
+			if constexpr (std::is_floating_point_v<V> || std::is_unsigned_v<V>)
+				return v;
+			else if constexpr (sizeof(int) > sizeof(V))
+				return static_cast<int>(v);
+			else if constexpr (sizeof(long) > sizeof(V))
+				return static_cast<long>(v);
+			else if constexpr (sizeof(long long) > sizeof(V))
+				return static_cast<long long>(v);
+			else
+				return v;
+		}
+	}
 }
 
 #endif  // FUZZY_ELEMENT_HPP
