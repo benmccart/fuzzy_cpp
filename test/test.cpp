@@ -712,4 +712,18 @@ TEST_CASE("current-tconorm")
     REQUIRE(detail::current_tconorm<float> == nullptr);
 }
 
+TEST_CASE("SET-widem", "[SET_widen]")
+{
+    // Common case 
+    set wc = widen(make_triangle<float>(4, 8, 12));
+    REQUIRE(wc.membership(0) == 0.0f);
+    REQUIRE(wc.membership(2) == 0.25f);
+    REQUIRE(wc.membership(4) == 0.5f);
+    REQUIRE(wc.membership(8) == 1.0f);
+    REQUIRE(wc.membership(12) == 0.5f);
+    REQUIRE(wc.membership(14) == 0.25f);
+    REQUIRE(wc.membership(16) == 0.0f);
+}
+
+
 #endif // FUZZY_USE_TLS_DEF_OPERATOR

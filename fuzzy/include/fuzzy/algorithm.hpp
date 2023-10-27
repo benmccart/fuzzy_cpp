@@ -28,6 +28,8 @@
 #ifndef FUZZY_ALGORITHM_HPP
 #define FUZZY_ALGORITHM_HPP
 
+#include <cmath>
+#include <concepts> 
 #include <iterator>
 #include <limits>
 #include <stack>
@@ -126,6 +128,88 @@ namespace fuzzy
 			}
 		};
 
+
+		template <class VF, class V>
+		concept ValueFunction = std::integral<V> && requires (V va, V vb, VF vf)
+		{
+			{ vf(va, vb) } -> std::same_as<V>;
+		};
+
+		template <class MF, class M>
+		concept MembershipFunction = std::floating_point<M> && requires (M m, MF mf)
+		{
+			{ mf(m) } -> std::same_as<M>;
+		};
+
+
+		template <class V, class VF>
+		requires ValueFunction<VF, V>
+		V values(V a, V b, VF vf)
+		{
+			return vf(a, b);
+		}
+
+		///*
+		//*
+		//*/
+		//struct hedge
+		//{
+		//	template <class V, class M, class Container, class ValueFunc, class MembershipFunc>
+		//	requires ValueFunction<ValueFunc, V> && MembershipFunction<MembershipFunc,M>
+		//	[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& aset, MembershipFunc membership_func, ValueFunc value_front, ValueFunc value_back)
+		//	{
+		//		using set_type = fuzzy::basic_set<V, M, Container>;
+		//		using element_type = typename set_type::element_type;
+		//		using value_type = typename set_type::value_type;
+		//		set_type result;
+
+		//		constexpr M m_max = static_cast<M>(1.0);
+		//		constexpr M m_min = static_cast<M>(0.0);
+
+		//		if (aset.empty())
+		//		{
+		//			return result;
+		//		}
+		//		if (aset.size() == 1ull)
+		//		{
+		//			element_type e = aset.front();
+		//			e.membership(membership_func(e.membership()));
+		//			result.insert(std::move(e));
+		//			return result;
+		//		}
+
+		//		auto itr = begin(aset);
+		//		auto itr_next = itr + 1;
+		//		if (itr->membership() == m_min && itr_next->membership() != m_min)
+		//		{
+		//			// 'Squash' or 'extend' front of set depending on value_front().
+		//			value_type const delta = itr_next->value() - itr->value();
+		//			value_type v = value_front(itr_next->value(), itr->value());
+		//			result.insert(element_type{ .value = v, .membership = m_min });
+		//		}
+
+		//		for (; itr_next + 1 != end(aset); ++itr, ++itr_next)
+		//		{
+		//			result.insert(element_type{ .value = itr_next->value(), membership_func(itr_next->membership()) });
+		//		}
+		//		if (itr->membership() != m_min && itr_next->membership() == m_min)
+		//		{
+		//			value_type const delta = itr_next->value() - itr->value();
+		//			result.insert(element_type{ .value = itr_next->value() + delta, .membership = m_min });
+		//		}
+
+
+
+
+
+
+
+
+
+		//		return result;
+		//	}
+		//};
+
 		/* Triangular conorm function object.**/
 		template <typename M = float>
 		requires std::floating_point<M>
@@ -202,6 +286,22 @@ namespace fuzzy
 		requires std::floating_point<M>
 		thread_local tnorm_binder<M> *current_tnorm = nullptr;
 #endif
+
+
+		template <class V>
+		constexpr auto promote(V v)
+		{
+			if constexpr (std::is_floating_point_v<V> || std::is_unsigned_v<V>)
+				return v;
+			else if constexpr (sizeof(int) > sizeof(V))
+				return static_cast<int>(v);
+			else if constexpr (sizeof(long) > sizeof(V))
+				return static_cast<long>(v);
+			else if constexpr (sizeof(long long) > sizeof(V))
+				return static_cast<long long>(v);
+			else 
+				return v;
+		}
 	}
 
 
@@ -223,8 +323,6 @@ namespace fuzzy
 	* @param lhs The left hand side fuzzy set operand.
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The union of the two fuzzy sets.
-	* FIXME: parameter order is wrong here!  Everthing can be deduced except the operation!
-	* FIXME: The operation needs a requires clause to ensure this is a union and not an intersection!
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>&& tconorm_type<Operation>
@@ -232,13 +330,6 @@ namespace fuzzy
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
-
-
-
-
-	
-
-
 
 #ifdef FUZZY_USE_TLS_DEF_OPERATOR
 
@@ -391,6 +482,136 @@ namespace fuzzy
 
 			if (m_back != m_min)
 				result.insert(element_type{ v_postfix, m_max });
+		}
+
+		return result;
+	}
+
+	/**
+	* Widens a fuzzy set.
+	* @param aset The set to widen.
+	* @return The widened set.
+	*/
+	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
+		requires std::integral<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> widen(fuzzy::basic_set<V, M, Container> const& aset)
+	{
+		using detail::promote;
+		using set_type = fuzzy::basic_set<V, M, Container>;
+		using element_type = typename set_type::element_type;
+		set_type result;
+
+		constexpr V v_min = std::numeric_limits<V>::lowest();
+		constexpr V v_max = std::numeric_limits<V>::max();
+		constexpr M m_min = static_cast<M>(0.0);
+		constexpr M m_half = static_cast<M>(0.5);
+		constexpr M m_max = static_cast<M>(1.0);
+
+		// Handle special cases of empty or 1 element.
+		if (aset.empty())
+		{
+			return result;
+		}
+		if (aset.size() == 1ull)
+		{
+			element_type e = aset.front();
+			e.membership(std::sqrt(e.membership()));
+			result.insert(std::move(e));
+		}
+
+		auto widen_left = [](auto itr_last, auto itr, V vmin) -> element_type
+		{
+			assert(itr_last->membership() == m_min && itr->membership() != m_min);
+			auto const delta = promote(itr->value()) - promote(itr_last->value());
+			auto const max_delta = promote(itr_last->value()) - promote(vmin);
+			if (max_delta == promote(static_cast<V>(0)))
+			{
+				return element_type{ vmin, m_half };
+			}
+			else if (delta > max_delta)
+			{
+				M const ratio = m_max - (static_cast<M>(max_delta) / static_cast<M>(delta));
+				M const membership = ratio * m_half;
+				return element_type{ vmin, membership };
+			}
+			else
+			{
+				return element_type{ static_cast<V>(promote(itr_last->value()) - delta), m_min };
+			}
+		};
+
+		auto widen_right = [](auto itr, auto itr_next, V vmax) -> element_type
+		{
+			assert(itr->membership() != m_min && itr_next->membership() == m_min);
+			auto const delta = promote(itr_next->value()) - promote(itr->value());
+			auto const max_delta = promote(vmax) - promote(itr_next->value());
+			if (max_delta == promote(static_cast<V>(0)))
+			{
+				return element_type{ vmax, m_half };
+			}
+			else if (delta > max_delta)
+			{
+				M const ratio = m_max - (static_cast<M>(max_delta) / static_cast<M>(delta));
+				M const membership = ratio * m_half;
+				return element_type{ vmax, membership };
+			}
+			else
+			{
+				return element_type{ static_cast<V>(promote(itr_next->value()) + delta), m_min };
+			}
+		};
+
+		// Handle first element special cases.
+		auto itr_last = begin(aset);
+		auto itr = itr_last + 1;
+		assert(itr != end(aset));
+		{
+			M const lhm = itr_last->membership();
+			M const rhm = itr->membership();
+			if (lhm == m_min && rhm != m_min)
+				result.insert(widen_left(itr_last, itr, v_min));
+			else
+				result.insert(element_type{ itr_last->value(), std::sqrt(itr_last->membership()) });
+		}
+
+		// Handle the general case.
+		auto itr_next = itr + 1;
+		for (; itr_next != end(aset); ++itr_last, ++itr, ++itr_next)
+		{
+			M const lm = itr_last->membership();
+			M const m = itr->membership();
+			M const nm = itr_next->membership();
+
+			if (m != m_min)
+			{
+				// Default, take the square root.
+				result.insert(element_type{ itr->value(), std::sqrt(itr->membership()) });
+			}
+			else if (lm != m_min && nm != m_min)
+			{
+				// Raise value from minimum (zero).
+				M const membership = ((lm + nm) / static_cast<M>(2.0)) * m_half;
+				result.insert(element_type{ itr->value(), membership });
+			}
+			else if (nm != m_min)
+			{
+				result.insert(widen_left(itr, itr_next, itr_last->value() + static_cast<V>(1)));
+			}
+			else if (lm != m_min)
+			{
+				result.insert(widen_right(itr_last, itr, itr_next->value() - static_cast<V>(1)));
+			}
+			// else we don't care because we have at least three zero membership points in a row, skip this one in the middle.
+		}
+
+		// Handle last element special case.
+		{
+			M const lhm = itr_last->membership();
+			M const rhm = itr->membership();
+			if (lhm != m_min && rhm == m_min)
+				result.insert(widen_right(itr_last, itr, v_max));
+			else
+				result.insert(element_type{ itr->value(), std::sqrt(itr->membership()) });
 		}
 
 		return result;
