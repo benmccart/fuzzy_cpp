@@ -753,11 +753,10 @@ TEST_CASE("SET-widem", "[SET_widen]")
     // Middle case constrained
     set mcc = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 0.0f },element{ 16, 1.0f },element{ 18, 0.0f } });
     REQUIRE(mc.membership(4) == 1.0f);
-    //REQUIRE(mc.membership(12) == 0.25f);
-    //REQUIRE(mc.membership(12) == 0.25f);
-    //REQUIRE(mc.membership(8) == 0.50f);
-    //REQUIRE(mc.membership(10) == 0.75f);
-    //REQUIRE(mc.membership(12) == 1.0f);
+    REQUIRE(mc.membership(8) == 0.50f);
+    REQUIRE(mc.membership(10) == 0.25f);
+    REQUIRE(mc.membership(12) == 0.50f);
+    REQUIRE(mc.membership(16) == 1.0f);
 }
 
 

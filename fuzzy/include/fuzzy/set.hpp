@@ -31,6 +31,7 @@
 #include <vector>
 
 #include <fuzzy/element.hpp>
+#include <fuzzy/math.hpp>
 
 namespace fuzzy
 {
@@ -169,10 +170,8 @@ namespace fuzzy
 		constexpr element_type const& back() const                             { return container_.back();             }
 
 		/** Returns the last element in the set, if it exists.
-		* @return The laset element in the set, an exception otherwise. */
+		* @return The last element in the set, an exception otherwise. */
 		constexpr element_type& back()                                         { return container_.back();             }
-
-		
 
 		/** Checks if the container has no elements. 
 		* @return True if the container is empty, false otherwise. */
@@ -258,8 +257,6 @@ namespace fuzzy
 		constexpr const_iterator upper_bound(element_type) const;
 
 	private:
-
-		constexpr membership_type linear_interpolate(element_type, key_type, element_type) const noexcept;
 
 		struct element_less
 		{
@@ -540,7 +537,7 @@ namespace fuzzy
 			return static_cast<M>(0);
 
 		const_iterator prev{ lb };
-		return linear_interpolate(*(--prev), key, *lb);
+		return math::linear_interpolate(*(--prev), key, *lb);
 	}
 
 	/** Finds an element with key that compares equivalent to the supplied key.
@@ -779,21 +776,6 @@ namespace fuzzy
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(key_type key) const
 	{
 		return upper_bound(element_type{ key, static_cast<M>(0) });
-	}
-
-	template <class V, class M, class Container>
-	requires std::integral<V> && std::floating_point<M>
-	constexpr typename basic_set<V, M, Container>::membership_type basic_set<V, M, Container>::linear_interpolate(
-		element_type lhs,
-		key_type key,
-		element_type rhs) const noexcept
-	{
-		using detail::promote;
-		membership_type dy = rhs.membership() - lhs.membership();
-		membership_type dx = static_cast<membership_type>(promote(rhs.value()) - promote(lhs.value()));
-		membership_type x_offset = static_cast<membership_type>(promote(key) - promote(lhs.value()));
-		membership_type ratio = x_offset / dx;
-		return lhs.membership() + (ratio * dy);
 	}
 
 	/** Convenience function for making a basic set in the form of a triangle.

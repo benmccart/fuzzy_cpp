@@ -35,6 +35,7 @@
 #include <stack>
 
 #include <fuzzy/element.hpp>
+#include <fuzzy/math.hpp>
 #include <fuzzy/operator.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/traits.hpp>
@@ -225,6 +226,14 @@ namespace fuzzy
 		requires std::floating_point<M>
 		thread_local tnorm_binder<M> *current_tnorm = nullptr;
 #endif
+
+		template <class V, class M>
+		requires std::integral<V> && std::floating_point<M>
+		struct edge
+		{
+			basic_element<V, M> v0;
+			basic_element<V, M> v1;
+		};
 	}
 
 
@@ -419,7 +428,7 @@ namespace fuzzy
 		requires std::integral<V>&& std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> widen(fuzzy::basic_set<V, M, Container> const& aset)
 	{
-		using detail::promote;
+		using math::promote;
 		using set_type = fuzzy::basic_set<V, M, Container>;
 		using element_type = typename set_type::element_type;
 		set_type result;
@@ -427,8 +436,6 @@ namespace fuzzy
 		constexpr V v_min = std::numeric_limits<V>::lowest();
 		constexpr V v_max = std::numeric_limits<V>::max();
 		constexpr M m_min = static_cast<M>(0.0);
-		constexpr M m_half = static_cast<M>(0.5);
-		constexpr M m_max = static_cast<M>(1.0);
 
 		// Handle special cases of empty or 1 element.
 		if (aset.empty())
@@ -442,46 +449,106 @@ namespace fuzzy
 			result.insert(std::move(e));
 		}
 
-		auto widen_left = [](auto itr_last, auto itr, V vmin) -> element_type
+		auto widen_left = [](auto itr, auto itr_next, V vmin) -> element_type
 		{
-			assert(itr_last->membership() == m_min && itr->membership() != m_min);
-			auto const delta = promote(itr->value()) - promote(itr_last->value());
-			auto const max_delta = promote(itr_last->value()) - promote(vmin);
-			if (max_delta == promote(static_cast<V>(0)))
+			assert(itr->membership() == m_min && itr_next->membership() != m_min);
+			auto const delta = promote(itr_next->value()) - promote(itr->value());
+			auto const max_delta = promote(itr->value()) - promote(vmin);
+			if (delta > max_delta)
 			{
-				return element_type{ vmin, m_half };
-			}
-			else if (delta > max_delta)
-			{
-				M const ratio = m_max - (static_cast<M>(max_delta) / static_cast<M>(delta));
-				M const membership = ratio * m_half;
+				using pv_t = decltype(delta);
+				using pv_element = basic_element<pv_t, M>;
+				pv_element e0{ promote(itr->value()) - delta, m_min };
+				pv_element e1{ promote(itr_next->value()), itr_next->membership() };
+				M const membership = fuzzy::math::linear_interpolate<pv_t, M>(e0, promote(vmin), e1);
 				return element_type{ vmin, membership };
 			}
 			else
 			{
-				return element_type{ static_cast<V>(promote(itr_last->value()) - delta), m_min };
+				assert((promote(itr->value()) - delta) >= promote(vmin));
+				return element_type{ static_cast<V>(promote(itr->value()) - delta), m_min };
 			}
 		};
 
-		auto widen_right = [](auto itr, auto itr_next, V vmax) -> element_type
+		auto widen_right = [](auto itr_last, auto itr, V vmax) -> element_type
 		{
-			assert(itr->membership() != m_min && itr_next->membership() == m_min);
-			auto const delta = promote(itr_next->value()) - promote(itr->value());
-			auto const max_delta = promote(vmax) - promote(itr_next->value());
-			if (max_delta == promote(static_cast<V>(0)))
+			assert(itr_last->membership() != m_min && itr->membership() == m_min);
+			auto const delta = promote(itr->value()) - promote(itr_last->value());
+			auto const max_delta = promote(vmax) - promote(itr->value());
+			if (delta > max_delta)
 			{
-				return element_type{ vmax, m_half };
-			}
-			else if (delta > max_delta)
-			{
-				M const ratio = m_max - (static_cast<M>(max_delta) / static_cast<M>(delta));
-				M const membership = ratio * m_half;
+				using pv_t = decltype(delta);
+				using pv_element = basic_element<pv_t, M>;
+				pv_element e0{ promote(itr_last->value()), itr_last->membership() };
+				pv_element e1{ promote(itr->value()) + delta, m_min };
+				M const membership = math::linear_interpolate<pv_t,M>(e0, promote(vmax), e1);
 				return element_type{ vmax, membership };
 			}
 			else
 			{
-				return element_type{ static_cast<V>(promote(itr_next->value()) + delta), m_min };
+				return element_type{ static_cast<V>(promote(itr->value()) + delta), m_min };
 			}
+		};
+
+		auto intersect = [&](element_type l0, element_type l1, element_type r0, element_type r1)
+		{
+			assert(l1.value() > r0.value());
+			M const ldy = l1.membership() - l0.membership();
+			M const ldx = static_cast<M>(promote(l1.value()) - promote(l0.value()));
+			M const lm = ldy / ldx; assert(lm < static_cast<M>(0));
+			M const lb = l0.membership() - (lm * static_cast<M>(l0.value()));
+
+			M const rdy = r1.membership() - r0.membership();
+			M const rdx = static_cast<M>(promote(r1.value()) - promote(r0.value()));
+			M const rm = rdy / rdx; assert(rm > static_cast<M>(0));
+			M const rb = r1.membership() - (rm * static_cast<M>(r1.value()));
+
+			M const value = static_cast<V>(std::round((rb - lb) / (lm - rm))); assert(r0 <= value && value <= l1);
+			return static_cast<V>(std::round(value));
+		};
+
+		auto widen_left_min = [&](auto itr, auto itr_next)
+		{
+			auto itr_v0 = itr;
+			for (; itr_v0 != begin(aset) && itr_v0->membership() == m_min; --itr_v0) {}
+			if (itr_v0->membership() == m_min)
+				return v_min;
+
+			auto itr_v1 = itr_v0 + 1;
+			auto const delta_right = promote(itr_v1->value()) - promote(itr_v0->value());
+			auto const value_scan_right = promote(itr_v1->value()) + delta_right;
+			auto const delta_left = promote(itr_next->value()) - promote(itr->value());
+			auto const value_scan_left = promote(itr->value()) - delta_left;
+			if (value_scan_right < value_scan_left)
+				return static_cast<V>(value_scan_left);
+
+			return intersect(
+				*itr_v0,
+				element_type{ static_cast<V>(value_scan_right), m_min },
+				element_type{ static_cast<V>(value_scan_left), m_min },
+				*itr_next);
+		};
+
+		auto widen_right_max = [&](auto itr_last, auto itr)
+		{
+			auto itr_v1 = itr;
+			for (; itr_v1 != end(aset) && itr_v1->membership() == m_min; ++itr_v1) {}
+			if (itr_v1 == end(aset) || itr_v1->membership() == m_min)
+				return v_max;
+
+			auto itr_v0 = itr_v1 - 1;
+			auto const delta_left = promote(itr_v1->value()) - promote(itr_v0->value());
+			auto const value_scan_left = promote(itr_v0->value()) - delta_left;
+			auto const delta_right = promote(itr->value()) - promote(itr_last->value());
+			auto const value_scan_right = promote(itr->value()) + delta_right;
+			if (value_scan_right < value_scan_left)
+				return static_cast<V>(value_scan_right);
+
+			return intersect(
+				*itr_last,
+				element_type{ static_cast<V>(value_scan_right), m_min },
+				element_type{ static_cast<V>(value_scan_left), m_min },
+				*itr_v1);
 		};
 
 		// Handle first element special cases.
@@ -512,17 +579,19 @@ namespace fuzzy
 			}
 			else if (lm != m_min && nm != m_min)
 			{
-				// Raise value from minimum (zero).
-				M const membership = ((lm + nm) / static_cast<M>(2.0)) * m_half;
-				result.insert(element_type{ itr->value(), membership });
+				// Either widen_left() / or widen_right() should work just fine here.
+				V const vmax = widen_right_max(itr_last, itr);
+				result.insert(widen_right(itr_last, itr, vmax));
 			}
 			else if (nm != m_min)
 			{
-				result.insert(widen_left(itr, itr_next, itr_last->value() + static_cast<V>(1)));
+				V const vmin = widen_left_min(itr, itr_next);
+				result.insert(widen_left(itr, itr_next, vmin));
 			}
 			else if (lm != m_min)
 			{
-				result.insert(widen_right(itr_last, itr, itr_next->value() - static_cast<V>(1)));
+				V const vmax = widen_right_max(itr_last, itr);
+				result.insert(widen_right(itr_last, itr, vmax));
 			}
 			// else we don't care because we have at least three zero membership points in a row, skip this one in the middle.
 		}
