@@ -560,7 +560,7 @@ namespace fuzzy
 			M const rhm = itr->membership();
 			if (lhm == m_min && rhm != m_min)
 				result.insert(widen_left(itr_last, itr, v_min));
-			else
+			else if (lhm != m_min && rhm != m_min)
 				result.insert(element_type{ itr_last->value(), std::sqrt(itr_last->membership()) });
 		}
 
@@ -602,7 +602,7 @@ namespace fuzzy
 			M const rhm = itr->membership();
 			if (lhm != m_min && rhm == m_min)
 				result.insert(widen_right(itr_last, itr, v_max));
-			else
+			else if (lhm != m_min && rhm != m_min)
 				result.insert(element_type{ itr->value(), std::sqrt(itr->membership()) });
 		}
 

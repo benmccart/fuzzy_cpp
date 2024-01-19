@@ -752,11 +752,31 @@ TEST_CASE("SET-widem", "[SET_widen]")
 
     // Middle case constrained
     set mcc = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 0.0f },element{ 16, 1.0f },element{ 18, 0.0f } });
-    REQUIRE(mc.membership(4) == 1.0f);
-    REQUIRE(mc.membership(8) == 0.50f);
-    REQUIRE(mc.membership(10) == 0.25f);
-    REQUIRE(mc.membership(12) == 0.50f);
-    REQUIRE(mc.membership(16) == 1.0f);
+    REQUIRE(mcc.membership(2) == 0.75f);
+    REQUIRE(mcc.membership(4) == 1.0f);
+    REQUIRE(mcc.membership(8) == 0.50f);
+    REQUIRE(mcc.membership(10) == 0.25f);
+    REQUIRE(mcc.membership(12) == 0.50f);
+    REQUIRE(mcc.membership(16) == 1.0f);
+
+    // Middle case limited
+    set mcl = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 1.0f },element{ 16, 0.0f } });
+    REQUIRE(mcc.membership(2) == 0.75f);
+    REQUIRE(mcl.membership(4) == 1.0f);
+    REQUIRE(mcl.membership(8) == 0.50f);
+    REQUIRE(mcl.membership(10) == 0.75f);
+    REQUIRE(mcl.membership(12) == 1.0f);
+    REQUIRE(mcl.membership(16) == 0.50f);
+
+    // Middle case constrained, extra zeros
+    set mccez = widen(set{ element{ -2, 0.0f }, element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f }, element{ 10, 0.0f }, element{ 12, 0.0f },element{ 16, 1.0f }, element{ 20, 0.0f }, element{ 22, 0.0f } });
+    REQUIRE(mccez.membership(2) == 0.75f);
+    REQUIRE(mccez.membership(4) == 1.0f);
+    REQUIRE(mccez.membership(8) == 0.50f);
+    REQUIRE(mccez.membership(10) == 0.25f);
+    REQUIRE(mccez.membership(12) == 0.50f);
+    REQUIRE(mccez.membership(16) == 1.0f);
+    REQUIRE(mccez.membership(18) == 0.75f);
 }
 
 
