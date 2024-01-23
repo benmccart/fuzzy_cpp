@@ -534,7 +534,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
 	requires std::integral<V>&& std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> verry(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> very(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
 		constexpr auto very_func = [](M m) { return m * m; };
 		return detail::linguistic_term_impl(aset, very_func, steps);

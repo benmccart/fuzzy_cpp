@@ -763,5 +763,55 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
     REQUIRE(nu.membership(18) == 0.0f);
 }
 
+TEST_CASE("SET-verry", "[SET_verry]")
+{
+    // Common case 
+    set cc = very(make_triangle<float>(4, 12, 20));
+    REQUIRE(cc.membership(4) == 0.0f);
+    REQUIRE(cc.membership(6) == 0.0625f);
+    REQUIRE(cc.membership(8) == 0.25f);
+    REQUIRE(cc.membership(10) == 0.5625f);
+    REQUIRE(cc.membership(12) == 1.0f);
+    REQUIRE(cc.membership(14) == 0.5625f);
+    REQUIRE(cc.membership(16) == 0.25f);
+    REQUIRE(cc.membership(18) == 0.0625f);
+    REQUIRE(cc.membership(20) == 0.0f);
+
+    // Compact case
+    set cpc = very(make_triangle<float>(4, 8, 12));
+    REQUIRE(cpc.membership(4) == 0.0f);
+    REQUIRE(cpc.membership(5) == 0.0625f);
+    REQUIRE(cpc.membership(6) == 0.25f);
+    REQUIRE(cpc.membership(7) == 0.5625f);
+    REQUIRE(cpc.membership(8) == 1.0f);
+    REQUIRE(cpc.membership(9) == 0.5625f);
+    REQUIRE(cpc.membership(10) == 0.25f);
+    REQUIRE(cpc.membership(11) == 0.0625f);
+    REQUIRE(cpc.membership(12) == 0.0f);
+
+    // Constrained case
+    set csc = very(make_triangle<float>(4, 6, 8));
+    REQUIRE(csc.membership(4) == 0.0f);
+    REQUIRE(csc.membership(5) == 0.25f);
+    REQUIRE(csc.membership(6) == 1.0f);
+    REQUIRE(csc.membership(7) == 0.25f);
+    REQUIRE(csc.membership(8) == 0.0f);
+
+    // Extreme case
+    set ec = very(make_triangle<float>(4, 5, 6));
+    REQUIRE(ec.membership(4) == 0.0f);
+    REQUIRE(ec.membership(5) == 1.0f);
+    REQUIRE(ec.membership(6) == 0.0f);
+
+    // Non-uniform case.
+    set nu = very(set{ element{ 0, 0.0f },element{ 4, 0.25f },element{ 8, 0.5f },element{ 12, 0.75f },element{ 16, 0.4f },element{ 18, 0.0f } });
+    REQUIRE(nu.membership(0) == 0.0f);
+    REQUIRE(nu.membership(4) == 0.0625f);
+    REQUIRE(nu.membership(8) == 0.25f);
+    REQUIRE(nu.membership(12) == 0.5625f);
+    REQUIRE(nu.membership(16) == 0.16000001f);
+    REQUIRE(nu.membership(18) == 0.0f);
+}
+
 
 #endif // FUZZY_USE_TLS_DEF_OPERATOR
