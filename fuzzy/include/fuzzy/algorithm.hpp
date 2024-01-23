@@ -29,9 +29,11 @@
 #define FUZZY_ALGORITHM_HPP
 
 #include <cmath>
-#include <concepts> 
+#include <concepts>
+#include <cstdint>
 #include <iterator>
 #include <limits>
+#include <span>
 #include <stack>
 
 #include <fuzzy/element.hpp>
@@ -42,6 +44,9 @@
 
 namespace fuzzy
 {
+	constexpr std::size_t linguistic_term_default_steps = 3ull;
+	constexpr std::size_t linguistic_term_max_steps = 7ull;
+
 	namespace detail
 	{
 
@@ -234,6 +239,95 @@ namespace fuzzy
 			basic_element<V, M> v0;
 			basic_element<V, M> v1;
 		};
+
+		template <class V, class M>
+		requires std::integral<V>&& std::floating_point<M>
+		constexpr std::span<fuzzy::basic_element<V, M>> calculate_linear_steps(fuzzy::basic_element<V,M> le, fuzzy::basic_element<V, M> re, std::span<fuzzy::basic_element<V, M>> steps)
+		{
+			using math::promote;
+			M const dy = re.membership() - le.membership();
+			M const dx = static_cast<M>(promote(re.value()) - promote(le.value()));
+			M const lm = dy / dx;
+			M const lb = le.membership() - (lm * static_cast<M>(le.value()));
+
+			M const step_size = dx / static_cast<M>(steps.size() + 1ull);
+			M step_x = step_size + static_cast<M>(le.value());
+			for (auto itr = begin(steps); itr != end(steps); ++itr, step_x += step_size)
+			{
+				const M x = std::round(step_x);
+				const M m = (lm * x) + lb;
+				const V v = static_cast<V>(x);
+				*itr = fuzzy::basic_element<V, M>{ v, m };
+			}
+
+			return steps;
+		};
+
+		template <class Func, class V, class M, class Operation = fuzzy::maximum<M>, class Container>
+		requires std::integral<V>&& std::floating_point<M>
+		[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> linguistic_term_impl(fuzzy::basic_set<V, M, Container> const& aset, Func const& func, std::size_t step_count = linguistic_term_default_steps)
+		{
+			using math::promote;
+			using set_type = fuzzy::basic_set<V, M, Container>;
+			using element_type = typename set_type::element_type;
+			set_type result;
+
+			constexpr M min_threshold = static_cast<M>(0.25);
+			constexpr M max_threshold = static_cast<M>(0.95);
+
+			// Handle special cases of empty or 1 element.
+			if (aset.empty())
+			{
+				return result;
+			}
+			if (aset.size() == 1ull)
+			{
+				element_type e = aset.front();
+				e.membership(std::sqrt(e.membership()));
+				result.insert(std::move(e));
+			}
+
+			std::array<element_type, linguistic_term_max_steps> buffer = 
+			{ 
+				element_type{0,0.0}, 
+				element_type{0,0.0}, 
+				element_type{0,0.0}, 
+				element_type{0,0.0}, 
+				element_type{0,0.0}, 
+				element_type{0,0.0}, 
+				element_type{0,0.0} 
+			};
+			auto calc_steps = [&](element_type lhs, element_type rhs) -> std::size_t
+			{
+				assert(rhs.value() > lhs.value());
+				std::size_t const steps = std::min(static_cast<std::size_t>(rhs.value() - lhs.value()) - 1ull, step_count);
+				return std::min(steps, buffer.size());
+			};
+
+			// Handle the general case.
+			auto itr_last = begin(aset);
+			assert(itr_last != end(aset));
+			for (auto itr = itr_last + 1; itr != end(aset); ++itr_last, ++itr)
+			{
+				result.insert(element_type{ itr_last->value(), func(itr_last->membership()) });
+
+				M const lm = itr_last->membership();
+				M const rm = itr->membership();
+				if ((lm > max_threshold && rm < min_threshold) || (lm < min_threshold && rm > max_threshold))
+				{
+					std::span<element_type> steps = calculate_linear_steps(
+						*itr_last,
+						*itr,
+						std::span<element_type>{ buffer.data(), buffer.data() + calc_steps(*itr_last, *itr) });
+					for (auto e : steps)
+					{
+						result.insert(element_type{ e.value(), func(e.membership()) });
+					}
+				}
+			}
+			return result;
+		}
+
 	}
 
 
@@ -419,194 +513,31 @@ namespace fuzzy
 		return result;
 	}
 
+
 	/**
-	* Widens a fuzzy set.
-	* @param aset The set to widen.
-	* @return The widened set.
+	* Fuzzy term 'somewhat' relaxes requirement for the fuzzy set.
+	* @param aset The set to relax.
+	* @return The relaxed set.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-		requires std::integral<V>&& std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> widen(fuzzy::basic_set<V, M, Container> const& aset)
+	requires std::integral<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> somewhat(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
-		using math::promote;
-		using set_type = fuzzy::basic_set<V, M, Container>;
-		using element_type = typename set_type::element_type;
-		set_type result;
+		constexpr auto somewhat_func = [](M m) { return std::sqrt(m); };
+		return detail::linguistic_term_impl(aset, somewhat_func, steps);
+	}
 
-		constexpr V v_min = std::numeric_limits<V>::lowest();
-		constexpr V v_max = std::numeric_limits<V>::max();
-		constexpr M m_min = static_cast<M>(0.0);
-
-		// Handle special cases of empty or 1 element.
-		if (aset.empty())
-		{
-			return result;
-		}
-		if (aset.size() == 1ull)
-		{
-			element_type e = aset.front();
-			e.membership(std::sqrt(e.membership()));
-			result.insert(std::move(e));
-		}
-
-		auto widen_left = [](auto itr, auto itr_next, V vmin) -> element_type
-		{
-			assert(itr->membership() == m_min && itr_next->membership() != m_min);
-			auto const delta = promote(itr_next->value()) - promote(itr->value());
-			auto const max_delta = promote(itr->value()) - promote(vmin);
-			if (delta > max_delta)
-			{
-				using pv_t = decltype(delta);
-				using pv_element = basic_element<pv_t, M>;
-				pv_element e0{ promote(itr->value()) - delta, m_min };
-				pv_element e1{ promote(itr_next->value()), itr_next->membership() };
-				M const membership = fuzzy::math::linear_interpolate<pv_t, M>(e0, promote(vmin), e1);
-				return element_type{ vmin, membership };
-			}
-			else
-			{
-				assert((promote(itr->value()) - delta) >= promote(vmin));
-				return element_type{ static_cast<V>(promote(itr->value()) - delta), m_min };
-			}
-		};
-
-		auto widen_right = [](auto itr_last, auto itr, V vmax) -> element_type
-		{
-			assert(itr_last->membership() != m_min && itr->membership() == m_min);
-			auto const delta = promote(itr->value()) - promote(itr_last->value());
-			auto const max_delta = promote(vmax) - promote(itr->value());
-			if (delta > max_delta)
-			{
-				using pv_t = decltype(delta);
-				using pv_element = basic_element<pv_t, M>;
-				pv_element e0{ promote(itr_last->value()), itr_last->membership() };
-				pv_element e1{ promote(itr->value()) + delta, m_min };
-				M const membership = math::linear_interpolate<pv_t,M>(e0, promote(vmax), e1);
-				return element_type{ vmax, membership };
-			}
-			else
-			{
-				return element_type{ static_cast<V>(promote(itr->value()) + delta), m_min };
-			}
-		};
-
-		auto intersect = [&](element_type l0, element_type l1, element_type r0, element_type r1)
-		{
-			assert(l1.value() > r0.value());
-			M const ldy = l1.membership() - l0.membership();
-			M const ldx = static_cast<M>(promote(l1.value()) - promote(l0.value()));
-			M const lm = ldy / ldx; assert(lm < static_cast<M>(0));
-			M const lb = l0.membership() - (lm * static_cast<M>(l0.value()));
-
-			M const rdy = r1.membership() - r0.membership();
-			M const rdx = static_cast<M>(promote(r1.value()) - promote(r0.value()));
-			M const rm = rdy / rdx; assert(rm > static_cast<M>(0));
-			M const rb = r1.membership() - (rm * static_cast<M>(r1.value()));
-
-			M const value = static_cast<V>(std::round((rb - lb) / (lm - rm))); assert(r0 <= value && value <= l1);
-			return static_cast<V>(std::round(value));
-		};
-
-		auto widen_left_min = [&](auto itr, auto itr_next)
-		{
-			auto itr_v0 = itr;
-			for (; itr_v0 != begin(aset) && itr_v0->membership() == m_min; --itr_v0) {}
-			if (itr_v0->membership() == m_min)
-				return v_min;
-
-			auto itr_v1 = itr_v0 + 1;
-			auto const delta_right = promote(itr_v1->value()) - promote(itr_v0->value());
-			auto const value_scan_right = promote(itr_v1->value()) + delta_right;
-			auto const delta_left = promote(itr_next->value()) - promote(itr->value());
-			auto const value_scan_left = promote(itr->value()) - delta_left;
-			if (value_scan_right < value_scan_left)
-				return static_cast<V>(value_scan_left);
-
-			return intersect(
-				*itr_v0,
-				element_type{ static_cast<V>(value_scan_right), m_min },
-				element_type{ static_cast<V>(value_scan_left), m_min },
-				*itr_next);
-		};
-
-		auto widen_right_max = [&](auto itr_last, auto itr)
-		{
-			auto itr_v1 = itr;
-			for (; itr_v1 != end(aset) && itr_v1->membership() == m_min; ++itr_v1) {}
-			if (itr_v1 == end(aset) || itr_v1->membership() == m_min)
-				return v_max;
-
-			auto itr_v0 = itr_v1 - 1;
-			auto const delta_left = promote(itr_v1->value()) - promote(itr_v0->value());
-			auto const value_scan_left = promote(itr_v0->value()) - delta_left;
-			auto const delta_right = promote(itr->value()) - promote(itr_last->value());
-			auto const value_scan_right = promote(itr->value()) + delta_right;
-			if (value_scan_right < value_scan_left)
-				return static_cast<V>(value_scan_right);
-
-			return intersect(
-				*itr_last,
-				element_type{ static_cast<V>(value_scan_right), m_min },
-				element_type{ static_cast<V>(value_scan_left), m_min },
-				*itr_v1);
-		};
-
-		// Handle first element special cases.
-		auto itr_last = begin(aset);
-		auto itr = itr_last + 1;
-		assert(itr != end(aset));
-		{
-			M const lhm = itr_last->membership();
-			M const rhm = itr->membership();
-			if (lhm == m_min && rhm != m_min)
-				result.insert(widen_left(itr_last, itr, v_min));
-			else if (lhm != m_min && rhm != m_min)
-				result.insert(element_type{ itr_last->value(), std::sqrt(itr_last->membership()) });
-		}
-
-		// Handle the general case.
-		auto itr_next = itr + 1;
-		for (; itr_next != end(aset); ++itr_last, ++itr, ++itr_next)
-		{
-			M const lm = itr_last->membership();
-			M const m = itr->membership();
-			M const nm = itr_next->membership();
-
-			if (m != m_min)
-			{
-				// Default, take the square root.
-				result.insert(element_type{ itr->value(), std::sqrt(itr->membership()) });
-			}
-			else if (lm != m_min && nm != m_min)
-			{
-				// Either widen_left() / or widen_right() should work just fine here.
-				V const vmax = widen_right_max(itr_last, itr);
-				result.insert(widen_right(itr_last, itr, vmax));
-			}
-			else if (nm != m_min)
-			{
-				V const vmin = widen_left_min(itr, itr_next);
-				result.insert(widen_left(itr, itr_next, vmin));
-			}
-			else if (lm != m_min)
-			{
-				V const vmax = widen_right_max(itr_last, itr);
-				result.insert(widen_right(itr_last, itr, vmax));
-			}
-			// else we don't care because we have at least three zero membership points in a row, skip this one in the middle.
-		}
-
-		// Handle last element special case.
-		{
-			M const lhm = itr_last->membership();
-			M const rhm = itr->membership();
-			if (lhm != m_min && rhm == m_min)
-				result.insert(widen_right(itr_last, itr, v_max));
-			else if (lhm != m_min && rhm != m_min)
-				result.insert(element_type{ itr->value(), std::sqrt(itr->membership()) });
-		}
-
-		return result;
+	/**
+	* Fuzzy term 'verry' tightens requirement for the fuzzy set.
+	* @param aset The set to tighten.
+	* @return The tightened set.
+	*/
+	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> verry(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
+	{
+		constexpr auto very_func = [](M m) { return m * m; };
+		return detail::linguistic_term_impl(aset, very_func, steps);
 	}
 
 	/**

@@ -713,70 +713,54 @@ TEST_CASE("current-tconorm")
     REQUIRE(detail::current_tconorm<float> == nullptr);
 }
 
-TEST_CASE("SET-widem", "[SET_widen]")
+TEST_CASE("SET-somewhat", "[SET_somewhat]")
 {
-    constexpr int v_min = std::numeric_limits<int>::min();
-    constexpr int v_max = std::numeric_limits<int>::max();
-
     // Common case 
-    set cc = widen(make_triangle<float>(4, 8, 12));
-    REQUIRE(cc.membership(0) == 0.0f);
-    REQUIRE(cc.membership(2) == 0.25f);
-    REQUIRE(cc.membership(4) == 0.5f);
-    REQUIRE(cc.membership(8) == 1.0f);
-    REQUIRE(cc.membership(12) == 0.5f);
-    REQUIRE(cc.membership(14) == 0.25f);
-    REQUIRE(cc.membership(16) == 0.0f);
+    set cc = somewhat(make_triangle<float>(4, 12, 20));
+    REQUIRE(cc.membership(4) == 0.0f);
+    REQUIRE(cc.membership(6) == 0.5f);
+    REQUIRE(cc.membership(8) == 0.70710678f);
+    REQUIRE(cc.membership(10) == 0.8660254f);
+    REQUIRE(cc.membership(12) == 1.0f);
+    REQUIRE(cc.membership(14) == 0.8660254f);
+    REQUIRE(cc.membership(16) == 0.70710678f);
+    REQUIRE(cc.membership(18) == 0.5f);
+    REQUIRE(cc.membership(20) == 0.0f);
 
-    // Min extreme
-    set mne = widen(make_triangle<float>(v_min, v_min + 4, v_min + 8));
-    REQUIRE(mne.membership(v_min) == 0.5f);
-    REQUIRE(mne.membership(v_min + 4) == 1.0f);
-    REQUIRE(mne.membership(v_min + 10) == 0.25f);
-    REQUIRE(mne.membership(v_min + 12) == 0.0f);
+    // Compact case
+    set cpc = somewhat(make_triangle<float>(4, 8, 12));
+    REQUIRE(cpc.membership(4) == 0.0f);
+    REQUIRE(cpc.membership(5) == 0.5f);
+    REQUIRE(cpc.membership(6) == 0.70710678f);
+    REQUIRE(cpc.membership(7) == 0.8660254f);
+    REQUIRE(cpc.membership(8) == 1.0f);
+    REQUIRE(cpc.membership(9) == 0.8660254f);
+    REQUIRE(cpc.membership(10) == 0.70710678f);
+    REQUIRE(cpc.membership(11) == 0.5f);
+    REQUIRE(cpc.membership(12) == 0.0f);
 
-    // Max extreme
-    set mxe = widen(make_triangle<float>(v_max - 8, v_max - 4, v_max));
-    REQUIRE(mxe.membership(v_max) == 0.5f);
-    REQUIRE(mxe.membership(v_max - 4) == 1.0f);
-    REQUIRE(mxe.membership(v_max - 10) == 0.25f);
-    REQUIRE(mxe.membership(v_max - 12) == 0.0f);
+    // Constrained case
+    set csc = somewhat(make_triangle<float>(4, 6, 8));
+    REQUIRE(csc.membership(4) == 0.0f);
+    REQUIRE(csc.membership(5) == 0.70710678f);
+    REQUIRE(csc.membership(6) == 1.0f);
+    REQUIRE(csc.membership(7) == 0.70710678f);
+    REQUIRE(csc.membership(8) == 0.0f);
 
-    // Middle case
-    set mc = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 1.0f },element{ 16, 0.0f } });
-    REQUIRE(mc.membership(4) == 1.0f);
-    REQUIRE(mc.membership(6) == 0.75f);
-    REQUIRE(mc.membership(8) == 0.50f);
-    REQUIRE(mc.membership(10) == 0.75f);
-    REQUIRE(mc.membership(12) == 1.0f);
+    // Extreme case
+    set ec = somewhat(make_triangle<float>(4, 5, 6));
+    REQUIRE(ec.membership(4) == 0.0f);
+    REQUIRE(ec.membership(5) == 1.0f);
+    REQUIRE(ec.membership(6) == 0.0f);
 
-    // Middle case constrained
-    set mcc = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 0.0f },element{ 16, 1.0f },element{ 18, 0.0f } });
-    REQUIRE(mcc.membership(2) == 0.75f);
-    REQUIRE(mcc.membership(4) == 1.0f);
-    REQUIRE(mcc.membership(8) == 0.50f);
-    REQUIRE(mcc.membership(10) == 0.25f);
-    REQUIRE(mcc.membership(12) == 0.50f);
-    REQUIRE(mcc.membership(16) == 1.0f);
-
-    // Middle case limited
-    set mcl = widen(set{ element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f },element{ 12, 1.0f },element{ 16, 0.0f } });
-    REQUIRE(mcc.membership(2) == 0.75f);
-    REQUIRE(mcl.membership(4) == 1.0f);
-    REQUIRE(mcl.membership(8) == 0.50f);
-    REQUIRE(mcl.membership(10) == 0.75f);
-    REQUIRE(mcl.membership(12) == 1.0f);
-    REQUIRE(mcl.membership(16) == 0.50f);
-
-    // Middle case constrained, extra zeros
-    set mccez = widen(set{ element{ -2, 0.0f }, element{ 0, 0.0f },element{ 4, 1.0f },element{ 8, 0.0f }, element{ 10, 0.0f }, element{ 12, 0.0f },element{ 16, 1.0f }, element{ 20, 0.0f }, element{ 22, 0.0f } });
-    REQUIRE(mccez.membership(2) == 0.75f);
-    REQUIRE(mccez.membership(4) == 1.0f);
-    REQUIRE(mccez.membership(8) == 0.50f);
-    REQUIRE(mccez.membership(10) == 0.25f);
-    REQUIRE(mccez.membership(12) == 0.50f);
-    REQUIRE(mccez.membership(16) == 1.0f);
-    REQUIRE(mccez.membership(18) == 0.75f);
+    // Non-uniform case.
+    set nu = somewhat(set{ element{ 0, 0.0f },element{ 4, 0.25f },element{ 8, 0.5f },element{ 12, 0.75f },element{ 16, 0.4f },element{ 18, 0.0f } });
+    REQUIRE(nu.membership(0) == 0.0f);
+    REQUIRE(nu.membership(4) == 0.5f);
+    REQUIRE(nu.membership(8) == 0.70710678f);
+    REQUIRE(nu.membership(12) == 0.8660254f);
+    REQUIRE(nu.membership(16) == 0.63245553f);
+    REQUIRE(nu.membership(18) == 0.0f);
 }
 
 
