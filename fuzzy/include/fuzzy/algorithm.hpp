@@ -69,67 +69,144 @@ namespace fuzzy
 			}
 		};
 
+		template <class V, class M, class Container>
+		class set_operation_value_sequence
+		{
+		public:
+			using set_t = fuzzy::basic_set<V, M, Container>;
+			using element_t = typename set_t::element_type;
+			using value_t = std::pair<element_t, element_t>;
+
+			class iterator 
+			{
+			public:
+				using iterator_category = std::forward_iterator_tag;
+				using value_type = value_t;
+				using difference_type = std::ptrdiff_t;
+				using pointer = value_t*;
+				using reference = value_t;
+				using iter_impl_t = typename set_t::const_iterator;
+
+				iterator() = delete;
+
+				constexpr explicit iterator(iter_impl_t a, set_t const &a_set, iter_impl_t b, set_t const &b_set)
+					: a_(a), a_set_(&a_set), b_(b), b_set_(&b_set) {}
+
+				constexpr iterator& operator++()
+				{
+					auto a_end = cend(*a_set_);
+					auto b_end = cend(*b_set_);
+					if (a_ != a_end && b_ != b_end)
+					{
+						V av = a_->value();
+						V bv = b_->value();
+						if (av < bv)
+							++a_;
+						else if (bv < av)
+							++b_;
+						else { ++a_; ++b_; }
+					}
+					else if (a_ != a_end)
+						++a_;
+					else if (b_ != b_end)
+						++b_;
+
+					 return *this; 
+				}
+
+				constexpr iterator operator++(int)
+				{
+					iterator retval = *this;
+					++(*this);
+					return retval; 
+				}
+
+				constexpr bool operator!=(iterator const& o) const { return !(*this == o); }
+				constexpr bool operator==(iterator const& o) const
+				{
+					return (a_ == o.a_ && b_ == o.b_);
+				}
+
+				constexpr reference operator*() const
+				{
+					auto a_end = cend(*a_set_);
+					auto b_end = cend(*b_set_);
+					if (a_ != a_end && b_ != b_end)
+					{
+						V av = a_->value();
+						V bv = b_->value();
+						if (av < bv)
+							return value_t{ *a_, element_t{ av, b_set_->membership(av)} };
+						else if (bv < av)
+							return value_t{ element_t{ bv, a_set_->membership(bv)}, *b_ };
+						else
+							return value_t{ *a_, *b_ };
+					}
+					else if (a_ != a_end)
+						return value_t{ *a_, element_t{ a_->value(), b_set_->membership(a_->value())} };
+					else if (b_ != b_end)
+						return value_t{ element_t{ b_->value(), a_set_->membership(b_->value()) }, * b_ };
+
+					return value_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+				}
+				
+				constexpr pointer operator->() const { return this; }
+
+			private:
+				iter_impl_t a_;
+				set_t const *a_set_;
+				iter_impl_t b_;
+				set_t const *b_set_;
+			};
+			
+			
+			set_operation_value_sequence() = delete;
+			constexpr set_operation_value_sequence(set_t const& a, set_t const& b) : a_(a), b_(b) {}
+
+			constexpr iterator begin() const
+			{
+				return iterator{ fuzzy::cbegin(a_), a_, fuzzy::cbegin(b_), b_};
+			}
+
+			constexpr iterator end() const
+			{
+				return iterator{ fuzzy::cend(a_), a_, fuzzy::cend(b_), b_ };
+			}
+
+		private:
+
+			set_t const& a_;
+			set_t const& b_;
+		};
+
+		template <class V, class M, class Container>
+		constexpr typename set_operation_value_sequence<V, M, Container>::iterator begin(set_operation_value_sequence<V, M, Container> const& set) { return set.begin(); }
+
+		template <class V, class M, class Container>
+		constexpr typename set_operation_value_sequence<V, M, Container>::iterator end(set_operation_value_sequence<V, M, Container> const& set)   { return set.end();   }
 
 		template <class Operation>
 		requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>
 		struct operation
 		{
 			template <class V, class M, class Container>
-			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& a, fuzzy::basic_set<V, M, Container> const& b)
 			{
+				using set_t = fuzzy::basic_set<V, M, Container>;
+				using element_t = typename set_t::element_type;
 				using op_t = Operation;
-				using set_type = fuzzy::basic_set<V, M, Container>;
-				using element_type = typename set_type::element_type;
+				using pair_t = typename set_operation_value_sequence<V, M, Container>::value_t;
 
-				auto lhs_itr = cbegin(lhs);
-				auto lhs_end = cend(lhs);
-				auto rhs_itr = cbegin(rhs);
-				auto rhs_end = cend(rhs);
-
-				set_type result;
-				for (; lhs_itr != lhs_end || rhs_itr != rhs_end;)
+				set_t result;
+				set_operation_value_sequence<V, M, Container> seq{ a, b };
+				for (pair_t pair : seq)
 				{
-					if (lhs_itr != lhs_end && rhs_itr != rhs_end)
-					{
-						V lhs_value = lhs_itr->value();
-						V rhs_value = rhs_itr->value();
-						if (lhs_value < rhs_value)
-						{
-							M m = op_t::apply(lhs_itr->membership(), rhs.membership(lhs_value));
-							result.insert(element_type{ lhs_value, m });
-							++lhs_itr;
-						}
-						else if (rhs_value < lhs_value)
-						{
-							M m = op_t::apply(lhs.membership(rhs_value), rhs_itr->membership());
-							result.insert(element_type{ rhs_value, m });
-							++rhs_itr;
-						}
-						else
-						{
-							M m = op_t::apply(lhs_itr->membership(), rhs_itr->membership());
-							result.insert(element_type{ lhs_value, m });
-							++lhs_itr;
-							++rhs_itr;
-						}
-					}
-					else if (lhs_itr != lhs_end)
-					{
-						V lhs_value = lhs_itr->value();
-						M m = op_t::apply(lhs_itr->membership(), rhs.membership(lhs_value));
-						result.insert(element_type{ lhs_value, m });
-						++lhs_itr;
-					}
-					else if (rhs_itr != rhs_end)
-					{
-						V rhs_value = rhs_itr->value();
-						M m = op_t::apply(lhs.membership(rhs_value), rhs_itr->membership());
-						result.insert(element_type{ rhs_value, m });
-						++rhs_itr;
-					}
+					V v = pair.first.value();
+					M m = op_t::apply(pair.first.membership(), pair.second.membership());
+					result.insert(element_t{ v, m });
 				}
-
 				trim::apply(result);
+
 				return result;
 			}
 		};

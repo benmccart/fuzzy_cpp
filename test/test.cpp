@@ -763,7 +763,7 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
     REQUIRE(nu.membership(18) == 0.0f);
 }
 
-TEST_CASE("SET-verry", "[SET_verry]")
+TEST_CASE("SET-very", "[SET_very]")
 {
     // Common case 
     set cc = very(make_triangle<float>(4, 12, 20));
@@ -811,6 +811,21 @@ TEST_CASE("SET-verry", "[SET_verry]")
     REQUIRE(nu.membership(12) == 0.5625f);
     REQUIRE(nu.membership(16) == 0.16000001f);
     REQUIRE(nu.membership(18) == 0.0f);
+}
+
+TEST_CASE("SET-relation", "[SET_relation]")
+{
+    set large = make_triangle<float>(1200, 1600, 2000);
+    set strong = make_triangle<float>(1600, 2000, 2400);
+    relation rel{ large, strong, minimum{} };
+
+    REQUIRE(rel.membership(1200, 1600) == 0.0f);
+    REQUIRE(rel.membership(1200, 2000) == 0.0f);
+    REQUIRE(rel.membership(1400, 1800) == 0.5f);
+    REQUIRE(rel.membership(1600, 2000) == 1.0f);
+    REQUIRE(rel.membership(1700, 1900) == 0.75f);
+    REQUIRE(rel.membership(1900, 2200) == 0.25f);
+    REQUIRE(rel.membership(1100, 1900) == 0.0f);
 }
 
 

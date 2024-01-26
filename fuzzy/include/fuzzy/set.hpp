@@ -778,6 +778,72 @@ namespace fuzzy
 		return upper_bound(element_type{ key, static_cast<M>(0) });
 	}
 
+	/** Convenience function to get the begining iterator for the set's range of values.
+	* @param set - the set to get the beginning of.
+	* @param An iterator pointing to the beginning of the set.
+	*/
+	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr typename basic_set<V, M, Container>::iterator begin(basic_set<V, M, Container> &set)
+	{
+		return set.begin();
+	}
+
+	/** Convenience function to get the begining iterator for the set's range of values.
+	* @param set - the set to get the beginning of.
+	* @param An cons_iterator pointing to the beginning of the set.
+	*/
+	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr typename basic_set<V, M, Container>::const_iterator begin(basic_set<V, M, Container> const &set)
+	{
+		return set.begin();
+	}
+
+	/** Convenience function to get the begining iterator for the set's range of values.
+	* @param set - the set to get the beginning of.
+	* @param An const_iterator pointing to the beginning of the set.
+	*/
+	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr typename basic_set<V, M, Container>::const_iterator cbegin(basic_set<V, M, Container> const& set)
+	{
+		return set.cbegin();
+	}
+
+	/** Convenience function to get the end iterator for the set's range of values.
+	* @param set - the set to get the end of.
+	* @param An iterator pointing to the end of the set.
+	*/
+	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr typename basic_set<V, M, Container>::iterator end(basic_set<V, M, Container>& set)
+	{
+		return set.end();
+	}
+
+	/** Convenience function to get the end iterator for the set's range of values.
+	* @param set - the set to get the end of.
+	* @param An const_iterator pointing to the end of the set.
+	*/
+	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr typename basic_set<V, M, Container>::const_iterator end(basic_set<V, M, Container> const& set)
+	{
+		return set.end();
+	}
+
+	/** Convenience function to get the end iterator for the set's range of values.
+	* @param set - the set to get the end of.
+	* @param An const_iterator pointing to the end of the set.
+	*/
+	template <class V, class M, class Container>
+	requires std::integral<V>&& std::floating_point<M>
+	constexpr typename basic_set<V, M, Container>::const_iterator cend(basic_set<V, M, Container> const& set)
+	{
+		return set.cend();
+	}
+
 	/** Convenience function for making a basic set in the form of a triangle.
 	* Precondition: v1 < v2 < v3.
 	* @param v1 - the lowest value.

@@ -29,36 +29,69 @@
 #define FUZZY_RELATION_HPP
 
 #include <fuzzy/set.hpp>
+#include <fuzzy/traits.hpp>
 
 
 namespace fuzzy
 {
 	/**
-*
-*
-*/
-	template <class V, class M, class Container = std::vector<basic_element<V, M>, class Operation = fuzzy::minimum<M>>
-	requires tnorm_type<Operation>&& std::integral<V>&& std::floating_point<M>&& tconorm_type<Operation>
+	* Forms a relation between the two sets by creating a cartesian product.
+	*
+	*/
+	template <class V, class M, class Container = std::vector<basic_element<V, M>>, class Operation = fuzzy::minimum<M>>
+	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
 	class relation
 	{
 	public:
-		using set_t = set<V, M, Container>;
+		using set_t = basic_set<V, M, Container>;
 		using self_t = relation<V, M, Container, Operation>;
 
 		relation() = delete;
-		constexpr relation(set_t const& set_t const&) noexcept;
+		constexpr relation(set_t const&, set_t const&) noexcept;
 
-		constexpr relation(self_t const&) = default;
-		relation(self_t&&) = delete;
-		self_t& operator=(self_t const&) = delete;
-		self_t& operator=(self_t&&) = delete;
+		constexpr relation(set_t const&, set_t const&, Operation op) noexcept;
 
-		constexpr M membership(std::size_t, std::size_t) const;
+		//constexpr relation(self_t const&) = default;
+		//relation(self_t&&) = delete;
+		//self_t& operator=(self_t const&) = delete;
+		//self_t& operator=(self_t&&) = delete;
+
+		constexpr M membership(V, V) const noexcept;
 
 	private:
-		set_t const& antecedent_;
-		set_t const& consequent_;
+		set_t const * a_;
+		set_t const * b_;
 	};
+
+	template<class V, class M, class Container = std::vector<basic_element<V, M>>, class Operation> relation(basic_set<V,M,Container> const&, basic_set<V, M, Container> const&, Operation op) ->
+	relation<V,M, basic_set<V, M, Container>, Operation>;
+
+	template <class V, class M, class Container, class Operation>
+	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	constexpr relation<V, M, Container, Operation>::relation(set_t const &a, set_t const &b) noexcept
+		: a_(&a)
+		, b_(&b)
+	{
+
+	}
+
+	template <class V, class M, class Container, class Operation>
+	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	constexpr relation<V, M, Container, Operation>::relation(set_t const& a, set_t const& b, Operation op) noexcept
+		: a_(&a)
+		, b_(&b)
+	{
+
+	}
+
+	template <class V, class M, class Container, class Operation>
+	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	constexpr M relation<V, M, Container, Operation>::membership(V av, V bv) const noexcept
+	{
+		return Operation::apply(a_->membership(av), b_->membership(bv));
+	}
+
+
 }
 
 
