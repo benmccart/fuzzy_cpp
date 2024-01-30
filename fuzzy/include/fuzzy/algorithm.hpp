@@ -77,7 +77,7 @@ namespace fuzzy
 			using element_t = typename set_t::element_type;
 			using value_t = std::pair<element_t, element_t>;
 
-			class iterator 
+			class const_iterator 
 			{
 			public:
 				using iterator_category = std::forward_iterator_tag;
@@ -87,12 +87,12 @@ namespace fuzzy
 				using reference = value_t;
 				using iter_impl_t = typename set_t::const_iterator;
 
-				iterator() = delete;
+				const_iterator() = delete;
 
-				constexpr explicit iterator(iter_impl_t a, set_t const &a_set, iter_impl_t b, set_t const &b_set)
+				constexpr explicit const_iterator(iter_impl_t a, set_t const &a_set, iter_impl_t b, set_t const &b_set)
 					: a_(a), a_set_(&a_set), b_(b), b_set_(&b_set) {}
 
-				constexpr iterator& operator++()
+				constexpr const_iterator& operator++()
 				{
 					auto a_end = cend(*a_set_);
 					auto b_end = cend(*b_set_);
@@ -114,15 +114,15 @@ namespace fuzzy
 					 return *this; 
 				}
 
-				constexpr iterator operator++(int)
+				constexpr const_iterator operator++(int)
 				{
-					iterator retval = *this;
+					const_iterator retval = *this;
 					++(*this);
 					return retval; 
 				}
 
-				constexpr bool operator!=(iterator const& o) const { return !(*this == o); }
-				constexpr bool operator==(iterator const& o) const
+				constexpr bool operator!=(const_iterator const& o) const { return !(*this == o); }
+				constexpr bool operator==(const_iterator const& o) const
 				{
 					return (a_ == o.a_ && b_ == o.b_);
 				}
@@ -163,14 +163,14 @@ namespace fuzzy
 			set_operation_value_sequence() = delete;
 			constexpr set_operation_value_sequence(set_t const& a, set_t const& b) : a_(a), b_(b) {}
 
-			constexpr iterator begin() const
+			constexpr const_iterator begin() const
 			{
-				return iterator{ fuzzy::cbegin(a_), a_, fuzzy::cbegin(b_), b_};
+				return const_iterator{ fuzzy::cbegin(a_), a_, fuzzy::cbegin(b_), b_};
 			}
 
-			constexpr iterator end() const
+			constexpr const_iterator end() const
 			{
-				return iterator{ fuzzy::cend(a_), a_, fuzzy::cend(b_), b_ };
+				return const_iterator{ fuzzy::cend(a_), a_, fuzzy::cend(b_), b_ };
 			}
 
 		private:

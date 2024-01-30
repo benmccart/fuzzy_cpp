@@ -715,6 +715,25 @@ consteval void static_test_SET_union()
     static_assert(su_bp_rl().membership(21) == 0.0f);
 }
 
+consteval void static_test_Relation()
+{
+    constexpr auto rel = [](int d, int r)
+    {
+        set large = make_triangle<float>(1200, 1600, 2000);
+        set strong = make_triangle<float>(1600, 2000, 2400);
+        relation rel{ large, strong, minimum{} };
+        return rel.membership(d, r);
+    };
+
+    static_assert(rel(1200, 1600) == 0.0f);
+    static_assert(rel(1200, 2000) == 0.0f);
+    static_assert(rel(1400, 1800) == 0.5f);
+    static_assert(rel(1600, 2000) == 1.0f);
+    static_assert(rel(1700, 1900) == 0.75f);
+    static_assert(rel(1900, 2200) == 0.25f);
+    static_assert(rel(1100, 1900) == 0.0f);
+}
+
 
 
 

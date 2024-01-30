@@ -3,6 +3,7 @@
 
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/element.hpp>
+#include <fuzzy/mapping.hpp>
 #include <fuzzy/math.hpp>
 #include <fuzzy/operator.hpp>
 #include <fuzzy/relation.hpp>

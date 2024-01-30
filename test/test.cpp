@@ -813,7 +813,7 @@ TEST_CASE("SET-very", "[SET_very]")
     REQUIRE(nu.membership(18) == 0.0f);
 }
 
-TEST_CASE("SET-relation", "[SET_relation]")
+TEST_CASE("Relation", "[Relation]")
 {
     set large = make_triangle<float>(1200, 1600, 2000);
     set strong = make_triangle<float>(1600, 2000, 2400);
@@ -826,6 +826,24 @@ TEST_CASE("SET-relation", "[SET_relation]")
     REQUIRE(rel.membership(1700, 1900) == 0.75f);
     REQUIRE(rel.membership(1900, 2200) == 0.25f);
     REQUIRE(rel.membership(1100, 1900) == 0.0f);
+}
+
+TEST_CASE("Mapping-Rule", "[Mapping_Rule]")
+{
+    set large = make_triangle<float>(1200, 1600, 2000);
+    set strong = make_triangle<float>(1600, 2000, 2400);
+    relation rel{ large, strong, minimum{} };
+    mapping_rule rule{ rel, fuzzy::maximum{} };
+
+    set horse_weight = make_triangle<float>(1300, 1400, 1500);
+    set horse_strength = rule.map(horse_weight);
+    REQUIRE(horse_strength.size() == 6);
+    REQUIRE(horse_strength.membership(1600) == 0.0f);
+    REQUIRE(horse_strength.membership(1700) == 0.25f);
+    REQUIRE(horse_strength.membership(1800) == 0.5f);
+    REQUIRE(horse_strength.membership(1900) == 0.5f);
+    REQUIRE(horse_strength.membership(2000) == 0.5f);
+    REQUIRE(horse_strength.membership(2400) == 0.0f);
 }
 
 
