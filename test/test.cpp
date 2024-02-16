@@ -828,22 +828,93 @@ TEST_CASE("Relation", "[Relation]")
     REQUIRE(rel.membership(1100, 1900) == 0.0f);
 }
 
-TEST_CASE("Mapping-Rule", "[Mapping_Rule]")
+TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
 {
     set large = make_triangle<float>(1200, 1600, 2000);
     set strong = make_triangle<float>(1600, 2000, 2400);
-    relation rel{ large, strong, minimum{} };
-    mapping_rule rule{ rel, fuzzy::maximum{} };
+    relation rel1{ large, strong, minimum{} };
+    mapping_rule rule1{ rel1, fuzzy::maximum{} };
 
     set horse_weight = make_triangle<float>(1300, 1400, 1500);
-    set horse_strength = rule.map(horse_weight);
-    REQUIRE(horse_strength.size() == 6);
-    REQUIRE(horse_strength.membership(1600) == 0.0f);
-    REQUIRE(horse_strength.membership(1700) == 0.25f);
-    REQUIRE(horse_strength.membership(1800) == 0.5f);
-    REQUIRE(horse_strength.membership(1900) == 0.5f);
-    REQUIRE(horse_strength.membership(2000) == 0.5f);
-    REQUIRE(horse_strength.membership(2400) == 0.0f);
+    set horse_strength1 = rule1.map(horse_weight);
+    REQUIRE(horse_strength1.size() == 6);
+    REQUIRE(horse_strength1.membership(1600) == 0.0f);
+    REQUIRE(horse_strength1.membership(1700) == 0.25f);
+    REQUIRE(horse_strength1.membership(1800) == 0.5f);
+    REQUIRE(horse_strength1.membership(1900) == 0.5f);
+    REQUIRE(horse_strength1.membership(2000) == 0.5f);
+    REQUIRE(horse_strength1.membership(2400) == 0.0f);
+
+
+    set medium = make_triangle<float>(800, 1200, 1600);
+    set moderate = make_triangle<float>(1200, 1600, 2000);
+    relation rel2{ medium, moderate, minimum{} };
+    mapping_rule rule2{ rel2, fuzzy::maximum{} };
+
+    set horse_strength2 = rule2.map(horse_weight);
+    REQUIRE(horse_strength2.size() == 6);
+    REQUIRE(horse_strength2.membership(1200) == 0.0f);
+    REQUIRE(horse_strength2.membership(1600) == 0.5f);
+    REQUIRE(horse_strength2.membership(1700) == 0.5f);
+    REQUIRE(horse_strength2.membership(1800) == 0.5f);
+    REQUIRE(horse_strength2.membership(1900) == 0.25f);
+    REQUIRE(horse_strength2.membership(2000) == 0.0f);
+}
+
+TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
+{
+    set hot = make_triangle<float>(90, 105, 120);
+    set fast = make_triangle<float>(700, 900, 1100);
+    relation rel1{ hot, fast, minimum{} };
+    mapping_rule rule1{ rel1, fuzzy::maximum{} };
+
+    set temp = make_triangle<float>(95,100,105);
+    set fan_speed1 = rule1.map(temp);
+    //REQUIRE(fan_speed1.size() == 6);
+    //REQUIRE(fan_speed1.membership(1600) == 0.0f);
+    //REQUIRE(fan_speed1.membership(1700) == 0.25f);
+    //REQUIRE(fan_speed1.membership(1800) == 0.5f);
+    //REQUIRE(fan_speed1.membership(1900) == 0.5f);
+    //REQUIRE(fan_speed1.membership(2000) == 0.5f);
+    //REQUIRE(fan_speed1.membership(2400) == 0.0f);
+
+
+    set warm = make_triangle<float>(75,90,105);
+    set medium = make_triangle<float>(500, 700, 900);
+    relation rel2{ warm, medium, minimum{} };
+    mapping_rule rule2{ rel2, fuzzy::maximum{} };
+
+    set fan_speed2 = rule2.map(temp);
+    //REQUIRE(fan_speed2.size() == 6);
+    //REQUIRE(fan_speed2.membership(1200) == 0.0f);
+    //REQUIRE(fan_speed2.membership(1600) == 0.5f);
+    //REQUIRE(fan_speed2.membership(1700) == 0.5f);
+    //REQUIRE(fan_speed2.membership(1800) == 0.5f);
+    //REQUIRE(fan_speed2.membership(1900) == 0.25f);
+    //REQUIRE(fan_speed2.membership(2000) == 0.0f);
+}
+
+TEST_CASE("Consequent", "[Consequent]")
+{
+
+    consequent<int,float> cons1{fuzzy::mamdani<float>{}};
+
+    // NOTE: Matches checked results from prior test.
+    set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1700, 0.25f },element{ 1800, 0.5f },element{ 1900, 0.5f },element{ 2000, 0.5f },element{ 2400, 0.0f } };
+    set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1600, 0.5f },element{ 1700, 0.5f },element{ 1800, 0.5f },element{ 1900, 0.25f },element{ 2000, 0.0f } };
+
+    cons1.aggregate(horse_strength1);
+    cons1.aggregate(horse_strength2);
+
+    set const& horse_strength3 = cons1;
+
+    REQUIRE(horse_strength3.membership(1200) == 0.0f);
+    REQUIRE(horse_strength3.membership(1600) == 0.5f);
+    REQUIRE(horse_strength3.membership(1700) == 0.5f);
+    REQUIRE(horse_strength3.membership(1800) == 0.5f);
+    REQUIRE(horse_strength3.membership(1900) == 0.5f);
+    REQUIRE(horse_strength3.membership(2000) == 0.5f);
+    REQUIRE(horse_strength3.membership(2400) == 0.0f);
 }
 
 
