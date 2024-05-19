@@ -50,32 +50,77 @@ namespace fuzzy
 	namespace detail
 	{
 
-		struct trim
-		{
-			template <class V, class M, class Container>
-			constexpr static void apply(fuzzy::basic_set<V, M, Container>& v)
-			{
-				constexpr M zero_m = static_cast<M>(0);
-				if (v.size() < 3ull)
-					return;
-
-				auto ritr = cend(v) - 1ull;
-				auto ritr_next = ritr - 1ull;
-				for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
-
-				auto itr = cbegin(v);
-				auto itr_next = itr + 1ull;
-				for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
-			}
-		};
-
 		template <class V, class M, class Container>
 		class set_operation_value_sequence
 		{
 		public:
 			using set_t = fuzzy::basic_set<V, M, Container>;
 			using element_t = typename set_t::element_type;
-			using value_t = std::pair<element_t, element_t>;
+			using value_t = std::pair<element_t,element_t>;
+
+			class value_step_iterator
+			{
+			public:
+				using iterator_category = std::forward_iterator_tag;
+				using value_type = element_t;
+				using difference_type = std::ptrdiff_t;
+				using pointer = value_type const*;
+				using reference = value_type;
+				using iter_impl_t = typename set_t::const_iterator;
+
+				value_step_iterator() = delete;
+
+				constexpr explicit value_step_iterator(iter_impl_t itr, set_t const& set) : itr_(itr), set_(&set), value_({ static_cast<V>(0), static_cast<M>(0) })
+				{
+					if (itr_ != cend(*set_))
+						value_ = *itr_;
+				}
+
+				constexpr value_step_iterator(value_step_iterator const&) = default;
+
+
+				constexpr value_step_iterator& operator++()
+				{
+					++itr_;
+					if (itr_ != cend(*set_))
+						value_ = *itr_;
+
+					return *this; 
+				}
+
+				constexpr value_step_iterator operator++(int)
+				{
+					value_step_iterator retval = *this;
+					++(*this);
+					return retval;
+				}
+
+				constexpr bool operator!=(value_step_iterator const& o) const    { return !(*this == o);  }
+				constexpr bool operator==(value_step_iterator const& o) const    { return itr_ == o.itr_; }
+
+				constexpr reference operator*() const                            { return value_;         }
+				constexpr pointer operator->() const                             { return &value_;        }
+
+				void value(V v)
+				{
+					assert(v > itr_->value());
+					auto next = [](iter_impl_t itr) { return ++itr; }(itr_);
+					if (next == cend(*set_))
+					{
+						itr_ = next;
+						value_ = element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+					}
+					else
+					{
+						value_ = element_t{ v, set_->membership(v) };
+					}
+				}
+
+			private:
+				iter_impl_t itr_;
+				set_t const *set_;
+				element_t value_;
+			};
 
 			class const_iterator 
 			{
@@ -86,30 +131,33 @@ namespace fuzzy
 				using pointer = value_t*;
 				using reference = value_t;
 				using iter_impl_t = typename set_t::const_iterator;
+				using segment_t = fuzzy::math::basic_segment<V, M>;
 
 				const_iterator() = delete;
 
 				constexpr explicit const_iterator(iter_impl_t a, set_t const &a_set, iter_impl_t b, set_t const &b_set)
-					: a_(a), a_set_(&a_set), b_(b), b_set_(&b_set) {}
+					: a_(a, a_set), a_set_(&a_set), b_(b, b_set), b_set_(&b_set) {}
+
+				constexpr const_iterator(const_iterator const&) = default;
 
 				constexpr const_iterator& operator++()
 				{
-					auto a_end = cend(*a_set_);
-					auto b_end = cend(*b_set_);
+					auto a_end = value_step_iterator{ cend(*a_set_), *a_set_ };
+					auto b_end = value_step_iterator{ cend(*b_set_), *b_set_ };
 					if (a_ != a_end && b_ != b_end)
 					{
 						V av = a_->value();
 						V bv = b_->value();
 						if (av < bv)
-							++a_;
+							advance_a();
 						else if (bv < av)
-							++b_;
-						else { ++a_; ++b_; }
+							advance_b();
+						else { advance_a(); advance_b(); }
 					}
 					else if (a_ != a_end)
-						++a_;
+						advance_a();
 					else if (b_ != b_end)
-						++b_;
+						advance_b();
 
 					 return *this; 
 				}
@@ -129,8 +177,8 @@ namespace fuzzy
 
 				constexpr reference operator*() const
 				{
-					auto a_end = cend(*a_set_);
-					auto b_end = cend(*b_set_);
+					auto a_end = value_step_iterator{ cend(*a_set_), *a_set_ };
+					auto b_end = value_step_iterator{ cend(*b_set_), *b_set_ };
 					if (a_ != a_end && b_ != b_end)
 					{
 						V av = a_->value();
@@ -149,13 +197,132 @@ namespace fuzzy
 
 					return value_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
 				}
-				
-				constexpr pointer operator->() const { return this; }
-
+	
 			private:
-				iter_impl_t a_;
+				constexpr void advance_a()
+				{
+					auto a_next = [](value_step_iterator itr) { return ++itr; }(a_);
+					V const v0 = a_->value();
+					V const v1 = std::min(a_next->value(), b_->value());
+					segment_t seg_a
+					{ 
+						*a_,
+						element_t{ v1, a_set_->membership(v1) }
+					};
+					segment_t seg_b
+					{
+						element_t{ v0, b_set_->membership(v0) },
+						element_t{ v1, b_set_->membership(v1) },
+					};
+
+					auto rm_current = relative_membership(seg_a.v0, seg_b.v0);
+					auto rm_next = relative_membership(seg_a.v1, seg_b.v1);
+					if (do_relative_memberships_intersect(rm_current, rm_next))
+					{
+						element_t intersec = intersection(seg_a, seg_b);
+						assert(intersec.membership() == intersec.membership());
+						if (intersec.value() == a_->value())
+							a_ = a_next;
+						else
+							a_.value(intersec.value());
+					}
+					else
+					{
+						a_ = a_next;
+					}
+				}
+				constexpr void advance_b()
+				{
+					auto b_next = [](value_step_iterator itr) { return ++itr; }(b_);
+					V const v0 = b_->value();
+					V const v1 = std::min(b_next->value(), a_->value());
+					segment_t seg_a
+					{
+						element_t{ v0, a_set_->membership(v0) },
+						element_t{ v1, a_set_->membership(v1) }
+					};
+					segment_t seg_b
+					{
+						*b_,
+						element_t{ v1, b_set_->membership(v1) },
+					};
+
+					auto rm_current = relative_membership(seg_a.v0, seg_b.v0);
+					auto rm_next = relative_membership(seg_a.v1, seg_b.v1);
+					if (do_relative_memberships_intersect(rm_current, rm_next))
+					{
+						element_t intersec = intersection(seg_a, seg_b);
+						assert(intersec.membership() == intersec.membership());
+						if (intersec.value() == b_->value())
+							b_ = b_next;
+						else
+							b_.value(intersec.value());
+					}
+					else
+					{
+						b_ = b_next;
+					}
+				}
+				constexpr void advance_ab()
+				{
+					auto a_next = [](value_step_iterator itr) { return ++itr; }(a_);
+					auto b_next = [](value_step_iterator itr) { return ++itr; }(b_);
+					V const v0 = a_->value();
+					assert(v0 == b_->value());
+					V const v1 = std::min(a_next->value(), b_next->value());
+					segment_t seg_a
+					{
+						*a_,
+						element_t{ v1, a_set_->membership(v1) }
+					};
+					segment_t seg_b
+					{
+						*b_,
+						element_t{ v1, b_set_->membership(v1) },
+					};
+
+					auto rm_current = relative_membership(seg_a.v0, seg_b.v0);
+					auto rm_next = relative_membership(seg_a.v1, seg_b.v1);
+					if (do_relative_memberships_intersect(rm_current, rm_next))
+					{
+						element_t intersec = intersection(seg_a, seg_b);
+						assert(intersec.membership() == intersec.membership());
+						if (intersec.value() == a_.value_())
+						{
+							a_ = a_next;
+							b_ = b_next;
+						}
+						else
+						{
+							a_.value(intersec.value());
+							b_.value(intersec.value());
+						}
+					}
+					else
+					{
+						a_ = a_next;
+						b_ = b_next;
+					}
+				}
+
+				constexpr static int relative_membership(element_t e0, element_t e1)
+				{
+					if (e0.membership() < e1.membership())
+						return -1;
+					else if (e0.membership() > e1.membership())
+						return 1;
+					else return 0;
+				}
+
+				constexpr static bool do_relative_memberships_intersect(int rm0, int rm1)
+				{
+					int const result = rm0 - rm1;
+					return std::abs(result) == 2;
+				}
+
+				value_step_iterator a_;
 				set_t const *a_set_;
-				iter_impl_t b_;
+				value_step_iterator b_;
 				set_t const *b_set_;
 			};
 			
@@ -184,6 +351,121 @@ namespace fuzzy
 
 		template <class V, class M, class Container>
 		constexpr typename set_operation_value_sequence<V, M, Container>::iterator end(set_operation_value_sequence<V, M, Container> const& set)   { return set.end();   }
+
+		struct trim
+		{
+			template <class V, class M, class Container>
+			constexpr static void apply(fuzzy::basic_set<V, M, Container>& v)
+			{
+				constexpr M zero_m = static_cast<M>(0);
+				if (v.size() < 3ull)
+					return;
+
+				auto ritr = cend(v) - 1ull;
+				auto ritr_next = ritr - 1ull;
+				for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
+
+				auto itr = cbegin(v);
+				auto itr_next = itr + 1ull;
+				for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
+			}
+
+			/**
+			* @brief Finds the sequence that represents the original sequence but with front and back elements that have zero membership removed.
+			* @tparam V The value type.
+			* @tparam M The membership type.
+			* @tparam Container The underlying storage container type for the set.
+			* @param seq The set operation value sequence.
+			* @return A pair of iterators pointing to a subset of the original sequence.
+			*/
+			template <class V, class M, class Container>
+			requires std::integral<V>&& std::floating_point<M>
+			constexpr static auto apply(typename set_operation_value_sequence<V, M, Container>::const_iterator first, typename set_operation_value_sequence<V, M, Container>::const_iterator last)
+			{
+				using const_iterator = typename set_operation_value_sequence<V, M, Container>::const_iterator;
+				std::pair<const_iterator, const_iterator> result{ first, last };
+
+				using element_t = fuzzy::basic_element<V, M>;
+				auto non_zero = [](element_t a, element_t b) -> bool { return a.membership() != static_cast<M>(0) && b.membership() != static_cast<M>(0); };
+				for (auto itr = first; itr != last; ++itr)
+				{
+					auto cpair = *itr;
+					if (non_zero(cpair.first, cpair.second))
+					{
+						result.second = itr;
+						auto ipair = *result.first;
+						if (!non_zero(ipair.first, ipair.second))
+							result.first = itr;
+					}
+				}
+				if (result.second != last)
+					++result.second;
+
+				return result;
+			}
+		};
+
+		struct simplify_impl
+		{
+			template <class V, class M>
+			requires std::integral<V>&& std::floating_point<M>
+			constexpr static M slope(fuzzy::basic_element<V, M> p0, fuzzy::basic_element<V, M> p1)
+			{
+				M dx = static_cast<M>(p1.value()) - static_cast<M>(p0.value());
+				M dy = p1.membership() - p0.membership();
+				return dy / dx;
+			}
+
+			template <class M>
+			requires std::floating_point<M>
+			constexpr static bool slopes_equivelant(M s0, M s1)
+			{
+				M diff = static_cast<M>(std::abs(s1 - s0));
+				return diff < static_cast<M>(0.000035f);
+			}
+
+			/**
+			 * @brief The effect is to remove fuzzy values that are co-linear with values before and after.
+			 * @tparam M Floating-point type used for membership.
+			 * @tparam V Integral type used for value.
+			 * @tparam Container The container type used for the set.
+			 * @param set The set to simplify in-place.
+			*/
+			template <class V, class M, class Container>
+			requires std::integral<V>&& std::floating_point<M>
+			constexpr static void apply(fuzzy::basic_set<V, M, Container> &set)
+			{
+				using iterator = typename fuzzy::basic_set<V, M, Container>::iterator;
+
+				if (set.size() == 2u && set.front().membership() == static_cast<M>(0) && set.back().membership() == static_cast<M>(0))
+					set.clear(); // The set is indistinguishable from empty if both values are zero.
+
+				if (set.size() < 3u)
+					return; // No simplification is possible.
+
+				iterator last = set.end();
+				for (iterator prev = set.begin(),itr = prev + 1,next = itr + 1; next != last;)
+				{
+					M const s0 = slope(*prev, *itr);
+					M const s1 = slope(*itr, *next);
+					if (slopes_equivelant(s0, s1))
+					{
+						std::copy(next, last, itr);
+						--last;
+					}
+					else
+					{
+						++prev;
+						++itr;
+						++next;
+					}
+				}
+				set.erase(last, set.end());
+
+				if (set.size() == 2u && set.front().membership() == static_cast<M>(0) && set.back().membership() == static_cast<M>(0))
+					set.clear(); // The set is indistinguishable from empty if both values are zero.
+			}
+		};
 
 		template <class Operation>
 		requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>

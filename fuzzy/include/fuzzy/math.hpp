@@ -60,7 +60,7 @@ namespace fuzzy { namespace math
 	* @return The linear interpolated membership.
 	*/
 	template <class V, class M>
-	requires std::integral<V>&& std::floating_point<M>
+	requires std::integral<V> && std::floating_point<M>
 	constexpr M linear_interpolate(basic_element<V, M> lhs, V key, basic_element<V, M> rhs) noexcept
 	{
 		M dy = rhs.membership() - lhs.membership();
@@ -70,6 +70,42 @@ namespace fuzzy { namespace math
 		return lhs.membership() + (ratio * dy);
 	}
 
+	template <class V, class M>
+	requires std::integral<V> && std::floating_point<M>
+	struct basic_segment
+	{
+		using element_t = basic_element<V, M>;
+		element_t v0;
+		element_t v1;
+	};
+
+	template <class V, class M>
+	requires std::integral<V> && std::floating_point<M>
+	constexpr basic_element<V, M> intersection(basic_segment<V, M> const& s0, basic_segment<V, M> const& s1)
+	{
+		using element_t = basic_element<V, M>;
+		assert(s0.v0.value() < s0.v1.value());
+		assert(s1.v0.value() < s1.v1.value());
+
+		M const s0_deltax = static_cast<M>(s0.v1.value() - s0.v0.value());
+		M const s0_deltay = s0.v1.membership() - s0.v0.membership();
+		M const s1_deltax = static_cast<M>(s1.v1.value() - s1.v0.value());
+		M const s1_deltay = s1.v1.membership() - s1.v0.membership();
+		
+		M const s = (-s0_deltay * static_cast<M>(s0.v0.value() - s1.v0.value()) + s0_deltax * (s0.v0.membership() - s1.v0.membership())) / (-s1_deltax * s0_deltay + s0_deltax * s1_deltay);
+		M const t = (s1_deltax * (s0.v0.membership() - s1.v0.membership()) - s1_deltay * static_cast<M>(s0.v0.value() - s1.v0.value())) / (-s1_deltax * s0_deltay + s0_deltax * s1_deltay);
+		if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+		{
+			V const v = s0.v0.value() + std::round(t * s0_deltax);
+			if ((s0.v0.value() <= v && v <= s0.v1.value()) && (s1.v0.value() <= v && v <= s1.v1.value()))
+			{
+				M const m = linear_interpolate(s0.v0, v, s0.v1);
+				return element_t{ v, m };
+			}
+		}
+
+		return element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+	}
 }}
 
 

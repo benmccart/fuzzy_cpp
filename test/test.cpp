@@ -1,11 +1,17 @@
 #include "../include/fuzzy.hpp"
 #include "./test.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <limits>
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+constexpr bool equivelant(float v0, float v1)
+{
+    return std::abs(v1 - v0) < 0.00001f;
+}
 
 
 using namespace fuzzy;
@@ -589,6 +595,37 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bp_rl.membership(21) == 0.0f);
 }
 
+TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
+{
+    set a_even = make_triangle<float>(16, 24, 32);
+    set b_even = make_triangle<float>(24, 32, 40);
+    set c1_even = set_intersection(a_even, b_even);
+    REQUIRE(c1_even.size() == 3);
+    REQUIRE(c1_even.membership(24) == 0.0f);
+    REQUIRE(c1_even.membership(28) == 0.5f);
+    REQUIRE(c1_even.membership(32) == 0.0f);
+
+    set c2_even = set_intersection(b_even, a_even);
+    REQUIRE(c2_even.size() == 3);
+    REQUIRE(c2_even.membership(24) == 0.0f);
+    REQUIRE(c2_even.membership(28) == 0.5f);
+    REQUIRE(c2_even.membership(32) == 0.0f);
+
+    set a_minor = make_triangle<float>(16, 24, 32);
+    set b_minor = make_triangle<float>(28, 36, 44);
+    set c1_minor = set_intersection(a_minor, b_minor);
+    REQUIRE(c1_minor.size() == 3);
+    REQUIRE(c1_minor.membership(28) == 0.0f);
+    REQUIRE(c1_minor.membership(30) == 0.25f);
+    REQUIRE(c1_minor.membership(32) == 0.0f);
+
+    set c2_minor = set_intersection(b_minor, a_minor);
+    REQUIRE(c2_minor.size() == 3);
+    REQUIRE(c2_minor.membership(28) == 0.0f);
+    REQUIRE(c2_minor.membership(30) == 0.25f);
+    REQUIRE(c2_minor.membership(32) == 0.0f);
+}
+
 TEST_CASE("SET-union", "[SET_union]")
 {
     // Common case 
@@ -717,100 +754,100 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
 {
     // Common case 
     set cc = somewhat(make_triangle<float>(4, 12, 20));
-    REQUIRE(cc.membership(4) == 0.0f);
-    REQUIRE(cc.membership(6) == 0.5f);
-    REQUIRE(cc.membership(8) == 0.70710678f);
-    REQUIRE(cc.membership(10) == 0.8660254f);
-    REQUIRE(cc.membership(12) == 1.0f);
-    REQUIRE(cc.membership(14) == 0.8660254f);
-    REQUIRE(cc.membership(16) == 0.70710678f);
-    REQUIRE(cc.membership(18) == 0.5f);
-    REQUIRE(cc.membership(20) == 0.0f);
+    REQUIRE(equivelant(cc.membership(4), 0.0f));
+    REQUIRE(equivelant(cc.membership(6), 0.5f));
+    REQUIRE(equivelant(cc.membership(8),0.7071069f));
+    REQUIRE(equivelant(cc.membership(10), 0.8660254f));
+    REQUIRE(equivelant(cc.membership(12), 1.0f));
+    REQUIRE(equivelant(cc.membership(14), 0.8660254f));
+    REQUIRE(equivelant(cc.membership(16), 0.7071067f));
+    REQUIRE(equivelant(cc.membership(18), 0.5f));
+    REQUIRE(equivelant(cc.membership(20), 0.0f));
 
     // Compact case
     set cpc = somewhat(make_triangle<float>(4, 8, 12));
-    REQUIRE(cpc.membership(4) == 0.0f);
-    REQUIRE(cpc.membership(5) == 0.5f);
-    REQUIRE(cpc.membership(6) == 0.70710678f);
-    REQUIRE(cpc.membership(7) == 0.8660254f);
-    REQUIRE(cpc.membership(8) == 1.0f);
-    REQUIRE(cpc.membership(9) == 0.8660254f);
-    REQUIRE(cpc.membership(10) == 0.70710678f);
-    REQUIRE(cpc.membership(11) == 0.5f);
-    REQUIRE(cpc.membership(12) == 0.0f);
+    REQUIRE(equivelant(cpc.membership(4), 0.0f));
+    REQUIRE(equivelant(cpc.membership(5), 0.5f));
+    REQUIRE(equivelant(cpc.membership(6), 0.7071067f));
+    REQUIRE(equivelant(cpc.membership(7), 0.866025f));
+    REQUIRE(equivelant(cpc.membership(8), 1.0f));
+    REQUIRE(equivelant(cpc.membership(9), 0.866025f));
+    REQUIRE(equivelant(cpc.membership(10), 0.7071067f));
+    REQUIRE(equivelant(cpc.membership(11), 0.5f));
+    REQUIRE(equivelant(cpc.membership(12), 0.0f));
 
     // Constrained case
     set csc = somewhat(make_triangle<float>(4, 6, 8));
-    REQUIRE(csc.membership(4) == 0.0f);
-    REQUIRE(csc.membership(5) == 0.70710678f);
-    REQUIRE(csc.membership(6) == 1.0f);
-    REQUIRE(csc.membership(7) == 0.70710678f);
-    REQUIRE(csc.membership(8) == 0.0f);
+    REQUIRE(equivelant(csc.membership(4), 0.0f));
+    REQUIRE(equivelant(csc.membership(5), 0.7071067f));
+    REQUIRE(equivelant(csc.membership(6), 1.0f));
+    REQUIRE(equivelant(csc.membership(7), 0.7071067f));
+    REQUIRE(equivelant(csc.membership(8), 0.0f));
 
     // Extreme case
     set ec = somewhat(make_triangle<float>(4, 5, 6));
-    REQUIRE(ec.membership(4) == 0.0f);
-    REQUIRE(ec.membership(5) == 1.0f);
-    REQUIRE(ec.membership(6) == 0.0f);
+    REQUIRE(equivelant(ec.membership(4), 0.0f));
+    REQUIRE(equivelant(ec.membership(5), 1.0f));
+    REQUIRE(equivelant(ec.membership(6), 0.0f));
 
     // Non-uniform case.
     set nu = somewhat(set{ element{ 0, 0.0f },element{ 4, 0.25f },element{ 8, 0.5f },element{ 12, 0.75f },element{ 16, 0.4f },element{ 18, 0.0f } });
-    REQUIRE(nu.membership(0) == 0.0f);
-    REQUIRE(nu.membership(4) == 0.5f);
-    REQUIRE(nu.membership(8) == 0.70710678f);
-    REQUIRE(nu.membership(12) == 0.8660254f);
-    REQUIRE(nu.membership(16) == 0.63245553f);
-    REQUIRE(nu.membership(18) == 0.0f);
+    REQUIRE(equivelant(nu.membership(0), 0.0f));
+    REQUIRE(equivelant(nu.membership(4), 0.5f));
+    REQUIRE(equivelant(nu.membership(8), 0.7071067f));
+    REQUIRE(equivelant(nu.membership(12), 0.8660254f));
+    REQUIRE(equivelant(nu.membership(16), 0.6324555f));
+    REQUIRE(equivelant(nu.membership(18), 0.0f));
 }
 
 TEST_CASE("SET-very", "[SET_very]")
 {
     // Common case 
     set cc = very(make_triangle<float>(4, 12, 20));
-    REQUIRE(cc.membership(4) == 0.0f);
-    REQUIRE(cc.membership(6) == 0.0625f);
-    REQUIRE(cc.membership(8) == 0.25f);
-    REQUIRE(cc.membership(10) == 0.5625f);
-    REQUIRE(cc.membership(12) == 1.0f);
-    REQUIRE(cc.membership(14) == 0.5625f);
-    REQUIRE(cc.membership(16) == 0.25f);
-    REQUIRE(cc.membership(18) == 0.0625f);
-    REQUIRE(cc.membership(20) == 0.0f);
+    REQUIRE(equivelant(cc.membership(4), 0.0f));
+    REQUIRE(equivelant(cc.membership(6), 0.0625f));
+    REQUIRE(equivelant(cc.membership(8), 0.25f));
+    REQUIRE(equivelant(cc.membership(10), 0.5625f));
+    REQUIRE(equivelant(cc.membership(12), 1.0f));
+    REQUIRE(equivelant(cc.membership(14), 0.5625f));
+    REQUIRE(equivelant(cc.membership(16), 0.25f));
+    REQUIRE(equivelant(cc.membership(18), 0.0625f));
+    REQUIRE(equivelant(cc.membership(20), 0.0f));
 
     // Compact case
     set cpc = very(make_triangle<float>(4, 8, 12));
-    REQUIRE(cpc.membership(4) == 0.0f);
-    REQUIRE(cpc.membership(5) == 0.0625f);
-    REQUIRE(cpc.membership(6) == 0.25f);
-    REQUIRE(cpc.membership(7) == 0.5625f);
-    REQUIRE(cpc.membership(8) == 1.0f);
-    REQUIRE(cpc.membership(9) == 0.5625f);
-    REQUIRE(cpc.membership(10) == 0.25f);
-    REQUIRE(cpc.membership(11) == 0.0625f);
-    REQUIRE(cpc.membership(12) == 0.0f);
+    REQUIRE(equivelant(cpc.membership(4), 0.0f));
+    REQUIRE(equivelant(cpc.membership(5), 0.0625f));
+    REQUIRE(equivelant(cpc.membership(6), 0.25f));
+    REQUIRE(equivelant(cpc.membership(7), 0.5625f));
+    REQUIRE(equivelant(cpc.membership(8), 1.0f));
+    REQUIRE(equivelant(cpc.membership(9), 0.5625f));
+    REQUIRE(equivelant(cpc.membership(10), 0.25f));
+    REQUIRE(equivelant(cpc.membership(11), 0.0625f));
+    REQUIRE(equivelant(cpc.membership(12), 0.0f));
 
     // Constrained case
     set csc = very(make_triangle<float>(4, 6, 8));
-    REQUIRE(csc.membership(4) == 0.0f);
-    REQUIRE(csc.membership(5) == 0.25f);
-    REQUIRE(csc.membership(6) == 1.0f);
-    REQUIRE(csc.membership(7) == 0.25f);
-    REQUIRE(csc.membership(8) == 0.0f);
+    REQUIRE(equivelant(csc.membership(4), 0.0f));
+    REQUIRE(equivelant(csc.membership(5), 0.25f));
+    REQUIRE(equivelant(csc.membership(6), 1.0f));
+    REQUIRE(equivelant(csc.membership(7), 0.25f));
+    REQUIRE(equivelant(csc.membership(8), 0.0f));
 
     // Extreme case
     set ec = very(make_triangle<float>(4, 5, 6));
-    REQUIRE(ec.membership(4) == 0.0f);
-    REQUIRE(ec.membership(5) == 1.0f);
-    REQUIRE(ec.membership(6) == 0.0f);
+    REQUIRE(equivelant(ec.membership(4), 0.0f));
+    REQUIRE(equivelant(ec.membership(5), 1.0f));
+    REQUIRE(equivelant(ec.membership(6), 0.0f));
 
     // Non-uniform case.
     set nu = very(set{ element{ 0, 0.0f },element{ 4, 0.25f },element{ 8, 0.5f },element{ 12, 0.75f },element{ 16, 0.4f },element{ 18, 0.0f } });
-    REQUIRE(nu.membership(0) == 0.0f);
-    REQUIRE(nu.membership(4) == 0.0625f);
-    REQUIRE(nu.membership(8) == 0.25f);
-    REQUIRE(nu.membership(12) == 0.5625f);
-    REQUIRE(nu.membership(16) == 0.16000001f);
-    REQUIRE(nu.membership(18) == 0.0f);
+    REQUIRE(equivelant(nu.membership(0), 0.0f));
+    REQUIRE(equivelant(nu.membership(4), 0.0625f));
+    REQUIRE(equivelant(nu.membership(8), 0.25f));
+    REQUIRE(equivelant(nu.membership(12), 0.5625f));
+    REQUIRE(equivelant(nu.membership(16), 0.16f));
+    REQUIRE(equivelant(nu.membership(18), 0.0f));
 }
 
 TEST_CASE("Relation", "[Relation]")
@@ -819,13 +856,13 @@ TEST_CASE("Relation", "[Relation]")
     set strong = make_triangle<float>(1600, 2000, 2400);
     relation rel{ large, strong, minimum{} };
 
-    REQUIRE(rel.membership(1200, 1600) == 0.0f);
-    REQUIRE(rel.membership(1200, 2000) == 0.0f);
-    REQUIRE(rel.membership(1400, 1800) == 0.5f);
-    REQUIRE(rel.membership(1600, 2000) == 1.0f);
-    REQUIRE(rel.membership(1700, 1900) == 0.75f);
-    REQUIRE(rel.membership(1900, 2200) == 0.25f);
-    REQUIRE(rel.membership(1100, 1900) == 0.0f);
+    REQUIRE(equivelant(rel.membership(1200, 1600), 0.0f));
+    REQUIRE(equivelant(rel.membership(1200, 2000), 0.0f));
+    REQUIRE(equivelant(rel.membership(1400, 1800), 0.5f));
+    REQUIRE(equivelant(rel.membership(1600, 2000), 1.0f));
+    REQUIRE(equivelant(rel.membership(1700, 1900), 0.75f));
+    REQUIRE(equivelant(rel.membership(1900, 2200), 0.25f));
+    REQUIRE(equivelant(rel.membership(1100, 1900), 0.0f));
 }
 
 TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
@@ -837,13 +874,13 @@ TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
 
     set horse_weight = make_triangle<float>(1300, 1400, 1500);
     set horse_strength1 = rule1.map(horse_weight);
-    REQUIRE(horse_strength1.size() == 6);
-    REQUIRE(horse_strength1.membership(1600) == 0.0f);
-    REQUIRE(horse_strength1.membership(1700) == 0.25f);
-    REQUIRE(horse_strength1.membership(1800) == 0.5f);
-    REQUIRE(horse_strength1.membership(1900) == 0.5f);
-    REQUIRE(horse_strength1.membership(2000) == 0.5f);
-    REQUIRE(horse_strength1.membership(2400) == 0.0f);
+    REQUIRE(horse_strength1.size() == 4);
+    REQUIRE(equivelant(horse_strength1.membership(1600), 0.0f));
+    REQUIRE(equivelant(horse_strength1.membership(1700), 0.25f));
+    REQUIRE(equivelant(horse_strength1.membership(1800), 0.5f));
+    REQUIRE(equivelant(horse_strength1.membership(1900), 0.6f));
+    REQUIRE(equivelant(horse_strength1.membership(2000), 0.6f));
+    REQUIRE(equivelant(horse_strength1.membership(2400), 0.0f));
 
 
     set medium = make_triangle<float>(800, 1200, 1600);
@@ -852,13 +889,13 @@ TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
     mapping_rule rule2{ rel2, fuzzy::maximum{} };
 
     set horse_strength2 = rule2.map(horse_weight);
-    REQUIRE(horse_strength2.size() == 6);
-    REQUIRE(horse_strength2.membership(1200) == 0.0f);
-    REQUIRE(horse_strength2.membership(1600) == 0.5f);
-    REQUIRE(horse_strength2.membership(1700) == 0.5f);
-    REQUIRE(horse_strength2.membership(1800) == 0.5f);
-    REQUIRE(horse_strength2.membership(1900) == 0.25f);
-    REQUIRE(horse_strength2.membership(2000) == 0.0f);
+    REQUIRE(horse_strength2.size() == 4);
+    REQUIRE(equivelant(horse_strength2.membership(1200), 0.0f));
+    REQUIRE(equivelant(horse_strength2.membership(1600), 0.6f));
+    REQUIRE(equivelant(horse_strength2.membership(1700), 0.6f));
+    REQUIRE(equivelant(horse_strength2.membership(1800), 0.5f));
+    REQUIRE(equivelant(horse_strength2.membership(1900), 0.25f));
+    REQUIRE(equivelant(horse_strength2.membership(2000), 0.0f));
 }
 
 TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
@@ -866,17 +903,16 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     set hot = make_triangle<float>(90, 105, 120);
     set fast = make_triangle<float>(700, 900, 1100);
     relation rel1{ hot, fast, minimum{} };
-    mapping_rule rule1{ rel1, fuzzy::maximum{} };
+    mapping_rule rule1{ rel1, maximum{} };
 
     set temp = make_triangle<float>(95,100,105);
     set fan_speed1 = rule1.map(temp);
-    //REQUIRE(fan_speed1.size() == 6);
-    //REQUIRE(fan_speed1.membership(1600) == 0.0f);
-    //REQUIRE(fan_speed1.membership(1700) == 0.25f);
-    //REQUIRE(fan_speed1.membership(1800) == 0.5f);
-    //REQUIRE(fan_speed1.membership(1900) == 0.5f);
-    //REQUIRE(fan_speed1.membership(2000) == 0.5f);
-    //REQUIRE(fan_speed1.membership(2400) == 0.0f);
+    REQUIRE(fan_speed1.size() == 5);
+    REQUIRE(equivelant(fan_speed1.membership(700), 0.0f));
+    REQUIRE(equivelant(fan_speed1.membership(767), 0.335f));
+    REQUIRE(equivelant(fan_speed1.membership(833), 0.665f));
+    REQUIRE(equivelant(fan_speed1.membership(900), 0.7333333f));
+    REQUIRE(equivelant(fan_speed1.membership(1100), 0.0f));
 
 
     set warm = make_triangle<float>(75,90,105);
@@ -885,13 +921,12 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     mapping_rule rule2{ rel2, fuzzy::maximum{} };
 
     set fan_speed2 = rule2.map(temp);
-    //REQUIRE(fan_speed2.size() == 6);
-    //REQUIRE(fan_speed2.membership(1200) == 0.0f);
-    //REQUIRE(fan_speed2.membership(1600) == 0.5f);
-    //REQUIRE(fan_speed2.membership(1700) == 0.5f);
-    //REQUIRE(fan_speed2.membership(1800) == 0.5f);
-    //REQUIRE(fan_speed2.membership(1900) == 0.25f);
-    //REQUIRE(fan_speed2.membership(2000) == 0.0f);
+    REQUIRE(fan_speed2.size() == 5);
+    REQUIRE(equivelant(fan_speed2.membership(500), 0.0f));
+    REQUIRE(equivelant(fan_speed2.membership(700), 0.4f));
+    REQUIRE(equivelant(fan_speed2.membership(793), 0.4f));
+    REQUIRE(equivelant(fan_speed2.membership(833), 0.335f));
+    REQUIRE(equivelant(fan_speed2.membership(900), 0.0f));
 }
 
 TEST_CASE("Consequent", "[Consequent]")
@@ -908,13 +943,13 @@ TEST_CASE("Consequent", "[Consequent]")
 
     set const& horse_strength3 = cons1;
 
-    REQUIRE(horse_strength3.membership(1200) == 0.0f);
-    REQUIRE(horse_strength3.membership(1600) == 0.5f);
-    REQUIRE(horse_strength3.membership(1700) == 0.5f);
-    REQUIRE(horse_strength3.membership(1800) == 0.5f);
-    REQUIRE(horse_strength3.membership(1900) == 0.5f);
-    REQUIRE(horse_strength3.membership(2000) == 0.5f);
-    REQUIRE(horse_strength3.membership(2400) == 0.0f);
+    REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
+    REQUIRE(equivelant(horse_strength3.membership(1600), 0.5f));
+    REQUIRE(equivelant(horse_strength3.membership(1700), 0.5f));
+    REQUIRE(equivelant(horse_strength3.membership(1800), 0.5f));
+    REQUIRE(equivelant(horse_strength3.membership(1900), 0.5f));
+    REQUIRE(equivelant(horse_strength3.membership(2000), 0.5f));
+    REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
 }
 
 

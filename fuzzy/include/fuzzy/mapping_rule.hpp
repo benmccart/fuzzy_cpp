@@ -101,6 +101,7 @@ namespace fuzzy
 	{
 		using math::promote;
 		using element_pair_t = std::pair<element_type, element_type>;
+		using promote_value_t = decltype(promote(static_cast<V>(0)));
 
 		// Check for special cases first.
 		if (rel_.domain().empty())
@@ -120,35 +121,36 @@ namespace fuzzy
 
 		// Populate the set with variables calculated for domain as long as they are in range of [first,last].
 		auto const delta_domain = promote(rel_.domain().back().value()) - promote(rel_.domain().front().value());
-		V const range_first_v = promote(rel_.range().front().value());
+		promote_value_t const range_first_v = promote(rel_.range().front().value());
 		M const delta_range = static_cast<M>(promote(rel_.range().back().value()) - promote(range_first_v));
 		set_type mapped_range_values;
-		for (element_type e : variable)
+
+		// Find the first/last domain iterator.
+		fuzzy::detail::set_operation_value_sequence const domain_seq{ variable, rel_.domain() };
+		auto const itr_domain_beg = std::find_if(domain_seq.begin(), domain_seq.end(), [=](element_pair_t pair) { return pair.first.value() >= domain_first_v; });
+		auto const itr_domain_end = std::find_if(itr_domain_beg, domain_seq.end(), [=](element_pair_t pair) { return pair.first.value() > domain_last_v; });
+		for (auto itr = itr_domain_beg; itr != itr_domain_end; ++itr)
 		{
-			if (e.value() < domain_first_v || domain_last_v < e.value())
+			element_pair_t const pair = *itr;
+			if (pair.first.value() < domain_first_v || domain_last_v < pair.first.value())
 				continue;
 
-			auto const delta = promote(e.value()) - promote(rel_.domain().front().value());
+			auto const delta = promote(pair.first.value()) - promote(rel_.domain().front().value());
 			M const ratio = static_cast<M>(delta) / static_cast<M>(delta_domain);
-			V const offset = static_cast<V>(std::round(ratio* delta_range));
-			V const value = range_first_v + offset;
+			promote_value_t const offset = static_cast<promote_value_t>(std::round(ratio* delta_range));
+			V const value = static_cast<V>( range_first_v + offset );
 			mapped_range_values.insert(element_type{ value, static_cast<M>(0.0)});
 		}
 
-		// Find the first/last domain iterator.
-		fuzzy::detail::set_operation_value_sequence domain_seq{ variable, rel_.domain() };
-		auto itr_domain_beg = std::find_if(domain_seq.begin(), domain_seq.end(), [=](element_pair_t pair) { return pair.first.value() >= domain_first_v; });
-		auto itr_domain_end = std::find_if(itr_domain_beg, domain_seq.end(), [=](element_pair_t pair) { return pair.first.value() > domain_last_v; });
-
-		// FUTURE: Consider using cache for domain_intersection?  Or would that not actually be faster?
+		// Performance improvement: trim out leading/trailing sequence values with zero memberhsip as they won't contribute to results.
+		auto const trimmed_range = detail::trim::apply<V,M,Container>(itr_domain_beg, itr_domain_end);
 
 		// Iterate the range, calculate Tconom 'sum' for every pass of the domain.
 		fuzzy::detail::set_operation_value_sequence range_seq{ mapped_range_values, rel_.range() };
 		for (element_pair_t range_v : range_seq)
 		{
-			M const m = std::accumulate(itr_domain_beg, itr_domain_end, static_cast<M>(0.0), [&](M sum, element_pair_t pair)
+			M const m = std::accumulate(trimmed_range.first, trimmed_range.second, static_cast<M>(0.0), [&](M sum, element_pair_t pair)
 			{
-				
 				M const domain_intersection = Tnorm::apply(pair.first.membership(), pair.second.membership());
 				M const cartesian_product = rel_.membership(pair.first.value(), range_v.first.value());
 				M const pairwise_product = Tnorm::apply(domain_intersection, cartesian_product);
@@ -157,7 +159,7 @@ namespace fuzzy
 
 			result.insert(element_type{ range_v.first.value(), m });
 		}
-		detail::trim::apply(result);
+		detail::simplify_impl::apply(result);
 
 		return result;
 	}
