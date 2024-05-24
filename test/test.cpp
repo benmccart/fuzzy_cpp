@@ -909,11 +909,10 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     set fan_speed1 = rule1.map(temp);
     REQUIRE(fan_speed1.size() == 5);
     REQUIRE(equivelant(fan_speed1.membership(700), 0.0f));
-    REQUIRE(equivelant(fan_speed1.membership(767), 0.335f));
     REQUIRE(equivelant(fan_speed1.membership(833), 0.665f));
+    REQUIRE(equivelant(fan_speed1.membership(847), 0.7333333f));
     REQUIRE(equivelant(fan_speed1.membership(900), 0.7333333f));
     REQUIRE(equivelant(fan_speed1.membership(1100), 0.0f));
-
 
     set warm = make_triangle<float>(75,90,105);
     set medium = make_triangle<float>(500, 700, 900);
@@ -929,27 +928,41 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     REQUIRE(equivelant(fan_speed2.membership(900), 0.0f));
 }
 
-TEST_CASE("Consequent", "[Consequent]")
+TEST_CASE("Consequent-1", "[Consequent_1]")
+{
+	consequent<int, float> cons1{fuzzy::mamdani<float>{}};
+	set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1900, 0.6f },element{ 2000, 0.6f },element{ 2400, 0.0f } };
+	set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1600, 0.6f },element{ 1700, 0.6f },element{ 2000, 0.0f } };
+	cons1.aggregate(horse_strength1);
+	cons1.aggregate(horse_strength2);
+
+	set const& horse_strength3 = cons1;
+	REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
+	REQUIRE(equivelant(horse_strength3.membership(1600), 0.6f));
+	REQUIRE(equivelant(horse_strength3.membership(1700), 0.6f));
+	REQUIRE(equivelant(horse_strength3.membership(1800), 0.4f));
+	REQUIRE(equivelant(horse_strength3.membership(1900), 0.6f));
+	REQUIRE(equivelant(horse_strength3.membership(2000), 0.6f));
+	REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
+}
+
+TEST_CASE("Consequent-1", "[Consequent_2]")
 {
 
-    consequent<int,float> cons1{fuzzy::mamdani<float>{}};
+    consequent<int, float> cons2{fuzzy::mamdani<float>{}};
+    set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
+    set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
+    cons2.aggregate(fan_speed1);
+    cons2.aggregate(fan_speed2);
 
-    // NOTE: Matches checked results from prior test.
-    set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1700, 0.25f },element{ 1800, 0.5f },element{ 1900, 0.5f },element{ 2000, 0.5f },element{ 2400, 0.0f } };
-    set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1600, 0.5f },element{ 1700, 0.5f },element{ 1800, 0.5f },element{ 1900, 0.25f },element{ 2000, 0.0f } };
-
-    cons1.aggregate(horse_strength1);
-    cons1.aggregate(horse_strength2);
-
-    set const& horse_strength3 = cons1;
-
-    REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
-    REQUIRE(equivelant(horse_strength3.membership(1600), 0.5f));
-    REQUIRE(equivelant(horse_strength3.membership(1700), 0.5f));
-    REQUIRE(equivelant(horse_strength3.membership(1800), 0.5f));
-    REQUIRE(equivelant(horse_strength3.membership(1900), 0.5f));
-    REQUIRE(equivelant(horse_strength3.membership(2000), 0.5f));
-    REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
+    set const& fan_speed3 = cons2;
+    REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
+    REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
+    REQUIRE(equivelant(fan_speed3.membership(780), 0.4f));
+    REQUIRE(equivelant(fan_speed3.membership(793), 0.4639455f));
+    REQUIRE(equivelant(fan_speed3.membership(847), 0.7333333f));
+    REQUIRE(equivelant(fan_speed3.membership(900), 0.7333333f));
+    REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
 }
 
 

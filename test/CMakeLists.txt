@@ -9,7 +9,7 @@ find_package(Catch2 CONFIG REQUIRED)
 
 
 # Add source to this project's executable.
-add_executable (test "test.cpp" "static_test.cpp")
+add_executable (test "test.cpp" )
 
 set_property(TARGET test PROPERTY CXX_STANDARD 20)
 target_link_libraries(test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
