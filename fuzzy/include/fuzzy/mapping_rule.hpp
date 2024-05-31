@@ -54,10 +54,10 @@ namespace fuzzy
 
 		mapping_rule() = delete;
 		constexpr mapping_rule(relation_type);
-		constexpr mapping_rule(relation_type, Tconorm tconorm);
+		constexpr mapping_rule(relation_type, Tconorm);
 
 
-		constexpr set_type map(set_type const&) const;
+		constexpr set_type apply(set_type const&) const;
 	private:
 
 		relation_type rel_;
@@ -97,7 +97,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container, class Tnorm, class Tconorm>
 	requires std::integral<V>&& std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
-	constexpr typename mapping_rule<V, M, Container, Tnorm, Tconorm>::set_type mapping_rule<V, M, Container, Tnorm, Tconorm>::map(set_type const &variable) const
+	constexpr typename mapping_rule<V, M, Container, Tnorm, Tconorm>::set_type mapping_rule<V, M, Container, Tnorm, Tconorm>::apply(set_type const &variable) const
 	{
 		using math::promote;
 		using element_pair_t = std::pair<element_type, element_type>;

@@ -873,7 +873,7 @@ TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
     mapping_rule rule1{ rel1, fuzzy::maximum{} };
 
     set horse_weight = make_triangle<float>(1300, 1400, 1500);
-    set horse_strength1 = rule1.map(horse_weight);
+    set horse_strength1 = rule1.apply(horse_weight);
     REQUIRE(horse_strength1.size() == 4);
     REQUIRE(equivelant(horse_strength1.membership(1600), 0.0f));
     REQUIRE(equivelant(horse_strength1.membership(1700), 0.25f));
@@ -888,7 +888,7 @@ TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
     relation rel2{ medium, moderate, minimum{} };
     mapping_rule rule2{ rel2, fuzzy::maximum{} };
 
-    set horse_strength2 = rule2.map(horse_weight);
+    set horse_strength2 = rule2.apply(horse_weight);
     REQUIRE(horse_strength2.size() == 4);
     REQUIRE(equivelant(horse_strength2.membership(1200), 0.0f));
     REQUIRE(equivelant(horse_strength2.membership(1600), 0.6f));
@@ -906,7 +906,7 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     mapping_rule rule1{ rel1, maximum{} };
 
     set temp = make_triangle<float>(95,100,105);
-    set fan_speed1 = rule1.map(temp);
+    set fan_speed1 = rule1.apply(temp);
     REQUIRE(fan_speed1.size() == 5);
     REQUIRE(equivelant(fan_speed1.membership(700), 0.0f));
     REQUIRE(equivelant(fan_speed1.membership(833), 0.665f));
@@ -919,12 +919,64 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     relation rel2{ warm, medium, minimum{} };
     mapping_rule rule2{ rel2, fuzzy::maximum{} };
 
-    set fan_speed2 = rule2.map(temp);
+    set fan_speed2 = rule2.apply(temp);
     REQUIRE(fan_speed2.size() == 5);
     REQUIRE(equivelant(fan_speed2.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed2.membership(700), 0.4f));
     REQUIRE(equivelant(fan_speed2.membership(793), 0.4f));
     REQUIRE(equivelant(fan_speed2.membership(833), 0.335f));
+    REQUIRE(equivelant(fan_speed2.membership(900), 0.0f));
+}
+
+TEST_CASE("Scaling-Inference-Rule-1", "[Scaling_Inference_Rule_1]")
+{
+    set large = make_triangle<float>(1200, 1600, 2000);
+    set strong = make_triangle<float>(1600, 2000, 2400);
+    scaling_inference rule1{ large, fuzzy::minimum{} };
+
+    int const horse_weight = 1400;
+    set horse_strength1 = rule1.apply(horse_weight, strong);
+    REQUIRE(horse_strength1.size() == 3);
+    REQUIRE(equivelant(horse_strength1.membership(1600), 0.0f));
+    REQUIRE(equivelant(horse_strength1.membership(1700), 0.25f));
+    REQUIRE(equivelant(horse_strength1.membership(1800), 0.5f));
+    REQUIRE(equivelant(horse_strength1.membership(2100), 0.25f));
+    REQUIRE(equivelant(horse_strength1.membership(2400), 0.0f));
+
+    set medium = make_triangle<float>(800, 1200, 1600);
+    set moderate = make_triangle<float>(1200, 1600, 2000);
+    scaling_inference rule2{ medium, fuzzy::minimum{} };
+
+    set horse_strength2 = rule2.apply(horse_weight, moderate);
+    REQUIRE(horse_strength2.size() == 3);
+    REQUIRE(equivelant(horse_strength2.membership(1200), 0.0f));
+    REQUIRE(equivelant(horse_strength2.membership(1500), 0.25f));
+    REQUIRE(equivelant(horse_strength2.membership(1800), 0.5f));
+    REQUIRE(equivelant(horse_strength2.membership(1900), 0.25f));
+    REQUIRE(equivelant(horse_strength2.membership(2000), 0.0f));
+}
+
+TEST_CASE("Scaling-Inference-Rule-2", "[Scaling_Inference_Rule_2]")
+{
+    set hot = make_triangle<float>(90, 105, 120);
+    set fast = make_triangle<float>(700, 900, 1100);
+    scaling_inference rule1{ hot };
+
+    int temp = 100;
+    set fan_speed1 = rule1.apply(temp, fast);
+    REQUIRE(fan_speed1.size() == 3);
+    REQUIRE(equivelant(fan_speed1.membership(700), 0.0f));
+    REQUIRE(equivelant(fan_speed1.membership(833), 0.665f));
+    REQUIRE(equivelant(fan_speed1.membership(1100), 0.0f));
+
+    set warm = make_triangle<float>(75, 90, 105);
+    set medium = make_triangle<float>(500, 700, 900);
+    scaling_inference rule2{ warm };
+
+    set fan_speed2 = rule2.apply(temp, medium);
+    REQUIRE(fan_speed2.size() == 3);
+    REQUIRE(equivelant(fan_speed2.membership(500), 0.0f));
+    REQUIRE(equivelant(fan_speed2.membership(833), 0.333333f));
     REQUIRE(equivelant(fan_speed2.membership(900), 0.0f));
 }
 
