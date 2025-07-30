@@ -3,6 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.12)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS true)
+
 project ("fuzzy_cpp_all")
 
 # Add source to this project's executable.

@@ -15,6 +15,8 @@ set_property(TARGET test PROPERTY CXX_STANDARD 20)
 target_link_libraries(test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
 target_link_libraries(test PRIVATE fuzzy_cpp)
 
+set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+
 include(Catch)
 catch_discover_tests(test)
 

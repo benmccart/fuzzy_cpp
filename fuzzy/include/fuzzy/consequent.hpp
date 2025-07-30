@@ -41,7 +41,7 @@ namespace fuzzy
 
 		constexpr Tconorm_converter() = default;
 		constexpr Tconorm_converter(Tconorm) {}
-		constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
+		[[nodiscard]] constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
 		{
 			return Tconorm::apply(a, b);
 		}
@@ -71,7 +71,7 @@ namespace fuzzy
 		constexpr explicit consequent(AggregatorFunc func) : func_(func) {}
 
 		constexpr void aggregate(set_type const&);
-		constexpr operator set_type const& ();
+		constexpr operator set_type ();
 
 	private:
 		set_type set_;
@@ -112,7 +112,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, class Container, class AggregatorFunc>
 	requires std::integral<V>&& std::floating_point<M>
-	constexpr consequent<V, M, Container, AggregatorFunc>::operator set_type const& ()
+	constexpr consequent<V, M, Container, AggregatorFunc>::operator set_type ()
 	{
 		if (dirty_)
 		{
@@ -136,6 +136,21 @@ namespace fuzzy
 
 	template <class M>
 	using mamdani = Tconorm_converter<fuzzy::maximum<M>>;
+
+	template <class M>
+	struct standard_additive_model
+	{
+		using membership_type = M;
+
+		constexpr standard_additive_model() = default;
+		constexpr standard_additive_model(M) {}
+		[[nodiscard]] constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
+		{
+			return a + b;
+		}
+	};
+
+
 
 	template <class M>
 	requires std::floating_point<M>

@@ -998,9 +998,8 @@ TEST_CASE("Consequent-1", "[Consequent_1]")
 	REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
 }
 
-TEST_CASE("Consequent-1", "[Consequent_2]")
+TEST_CASE("Consequent-2", "[Consequent_2]")
 {
-
     consequent<int, float> cons2{fuzzy::mamdani<float>{}};
     set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
     set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
@@ -1013,6 +1012,42 @@ TEST_CASE("Consequent-1", "[Consequent_2]")
     REQUIRE(equivelant(fan_speed3.membership(780), 0.4f));
     REQUIRE(equivelant(fan_speed3.membership(793), 0.4639455f));
     REQUIRE(equivelant(fan_speed3.membership(847), 0.7333333f));
+    REQUIRE(equivelant(fan_speed3.membership(900), 0.7333333f));
+    REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
+}
+
+TEST_CASE("Consequent-3", "[Consequent_3]")
+{
+    consequent<int, float, std::vector<fuzzy::basic_element<int, float>>, fuzzy::standard_additive_model<float>> cons1{fuzzy::standard_additive_model<float>{}};
+    set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1700, 0.25f },element{ 1800, 0.5f },element{ 2100, 0.25f },element{ 2400, 0.0f } };
+    set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1500, 0.25f },element{ 1800, 0.5f },element{ 1900, 0.25f },element{ 2000, 0.0f } };
+    cons1.aggregate(horse_strength1);
+    cons1.aggregate(horse_strength2);
+
+    set const& horse_strength3 = cons1;
+    REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
+    REQUIRE(equivelant(horse_strength3.membership(1600), 0.33333333f));
+    REQUIRE(equivelant(horse_strength3.membership(1700), 0.66666666f));
+    REQUIRE(equivelant(horse_strength3.membership(1800), 1.0f));
+    REQUIRE(equivelant(horse_strength3.membership(1900), 0.66666666f));
+    REQUIRE(equivelant(horse_strength3.membership(2000), 0.33333333f));
+    REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
+}
+
+TEST_CASE("Consequent-4", "[Consequent_4]")
+{
+    consequent<int, float, std::vector<fuzzy::basic_element<int, float>>, fuzzy::standard_additive_model<float>> cons2{fuzzy::standard_additive_model<float>{}};
+    set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
+    set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
+    cons2.aggregate(fan_speed1);
+    cons2.aggregate(fan_speed2);
+
+    set const& fan_speed3 = cons2;
+    REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
+    REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
+    REQUIRE(equivelant(fan_speed3.membership(780), 0.7990930f));
+    REQUIRE(equivelant(fan_speed3.membership(793), 0.86394556f));
+    REQUIRE(equivelant(fan_speed3.membership(847), 0.931464f));
     REQUIRE(equivelant(fan_speed3.membership(900), 0.7333333f));
     REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
 }

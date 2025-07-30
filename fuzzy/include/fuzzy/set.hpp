@@ -92,99 +92,99 @@ namespace fuzzy
 		constexpr bool operator==(self_type const&) const = default;
 		constexpr bool operator!=(self_type const&) const = default;
 
-		constexpr allocator_type get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value);
+		[[nodiscard]] constexpr allocator_type get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value);
 
 		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
 		*   will be equal to end().
 		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
-		constexpr iterator begin() noexcept                                    { return container_.begin();            }
+		[[nodiscard]] constexpr iterator begin() noexcept                      { return container_.begin();            }
 
 		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
 		*   will be equal to end().
 		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
-		constexpr const_iterator begin() const noexcept                        { return container_.begin();            }
+		[[nodiscard]] constexpr const_iterator begin() const noexcept          { return container_.begin();            }
 
 		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
 		*   will be equal to end().
 		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
-		constexpr const_iterator cbegin() const noexcept                       { return container_.cbegin();           }
+		[[nodiscard]] constexpr const_iterator cbegin() const noexcept         { return container_.cbegin();           }
 
 		/** Returns an iterator to the element following the last element of the container.  This element acts as a
 		*   placeholder; attempting to access it results in undefined behavior.
 		* @return Iterator to one past the last element of the set. */
-		constexpr iterator end() noexcept                                      { return container_.end();              }
+		[[nodiscard]] constexpr iterator end() noexcept                        { return container_.end();              }
 
 		/** Returns an iterator to the element following the last element of the container.  This element acts as a
 		*   placeholder; attempting to access it results in undefined behavior.
 		* @return Iterator to one past the last element of the set. */
-		constexpr const_iterator end() const noexcept                          { return container_.end();              }
+		[[nodiscard]] constexpr const_iterator end() const noexcept            { return container_.end();              }
 
 		/** Returns an iterator to the element following the last element of the container.  This element acts as a
 		*   placeholder; attempting to access it results in undefined behavior.
 		* @return Iterator to one past the last element of the set. */
-		constexpr const_iterator cend() const noexcept                         { return container_.cend();             }
+		[[nodiscard]] constexpr const_iterator cend() const noexcept           { return container_.cend();             }
 
 		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
 		*   non-reversed container.
 		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
-		constexpr reverse_iterator rbegin() noexcept                           { return container_.rbegin();           }
+		[[nodiscard]] constexpr reverse_iterator rbegin() noexcept             { return container_.rbegin();           }
 
 		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
 		*   non-reversed container.
 		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
-		constexpr const_reverse_iterator rbegin() const noexcept               { return container_.rbegin();           }
+		[[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept { return container_.rbegin();           }
 
 		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
 		*   non-reversed container.
 		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
-		constexpr const_reverse_iterator crbegin() const noexcept              { return container_.crbegin();          }
+		[[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept { return container_.crbegin();          }
 
 		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
 		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
 		*   to access it results in undefined behavior.
 		* @return A reverse iterator to one past the last element of the reversed set. */
-		constexpr reverse_iterator rend() noexcept                             { return container_.rend();             }
+		[[nodiscard]] constexpr reverse_iterator rend() noexcept               { return container_.rend();             }
 
 		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
 		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
 		*   to access it results in undefined behavior.
 		* @return A reverse iterator to one past the last element of the reversed set. */
-		constexpr const_reverse_iterator rend() const noexcept                 { return container_.rend();             }
+		[[nodiscard]] constexpr const_reverse_iterator rend() const noexcept   { return container_.rend();             }
 
 		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
 		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
 		*   to access it results in undefined behavior.
 		* @return A reverse iterator to one past the last element of the reversed set. */
-		constexpr const_reverse_iterator crend() const noexcept                { return container_.crend();            }
+		[[nodiscard]] constexpr const_reverse_iterator crend() const noexcept  { return container_.crend();            }
 
 		/** Returns the first element in the set, if it exists.
 		* @return The first element in the set, an exception otherwise. */
-		constexpr element_type const& front() const                            { return container_.front();            }
+		[[nodiscard]] constexpr element_type const& front() const              { return container_.front();            }
 
 		/** Returns the first element in the set, if it exists.
 		* @return The last element in the set, an exception otherwise. */
-		constexpr element_type& front()                                        { return container_.front();            }
+		[[nodiscard]] constexpr element_type& front()                          { return container_.front();            }
 
 		/** Returns the last element in the set, if it exists.
 		* @return The first element in the set, an exception otherwise. */
-		constexpr element_type const& back() const                             { return container_.back();             }
+		[[nodiscard]] constexpr element_type const& back() const               { return container_.back();             }
 
 		/** Returns the last element in the set, if it exists.
 		* @return The last element in the set, an exception otherwise. */
-		constexpr element_type& back()                                         { return container_.back();             }
+		[[nodiscard]] constexpr element_type& back()                           { return container_.back();             }
 
 		/** Checks if the container has no elements. 
 		* @return True if the container is empty, false otherwise. */
-		constexpr bool empty() const noexcept                                  { return container_.empty();            }
+		[[nodiscard]] constexpr bool empty() const noexcept                    { return container_.empty();            }
 
 		/** Returns the number of elements in the container.
 		* @return The number of elements in the container. */
-		constexpr size_type size() const noexcept                              { return container_.size();             }
+		[[nodiscard]] constexpr size_type size() const noexcept                { return container_.size();             }
 
 		/** Returns the maximum number of elements the container is able to hold due to system or library implementation
 		*   limitations.
 		* @return Maximum number of elements. */
-		constexpr size_type max_size() const noexcept                          { return container_.max_size();         }
+		[[nodiscard]] constexpr size_type max_size() const noexcept            { return container_.max_size();         }
 
 		/** Removes all elements from the container.  Invalidates any references, pointers, or iterators referring to contained
 		*   elements. */
@@ -224,37 +224,37 @@ namespace fuzzy
 		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
 		*   or 0 since this container does not allow duplicates.
 		* @param key - key of the element to count */
-		constexpr size_type count(key_type key) const                          { return contains(key) ? 1u : 0u;       }
+		[[nodiscard]] constexpr size_type count(key_type key) const            { return contains(key) ? 1u : 0u;       }
 
 		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
 		*   or 0 since this container does not allow duplicates.
 		* @param elem - element to count */
-		constexpr size_type count(element_type elem) const                     { return contains(elem) ? 1u : 0u;       }
+		[[nodiscard]] constexpr size_type count(element_type elem) const       { return contains(elem) ? 1u : 0u;       }
 
-		constexpr membership_type membership(key_type) const;
+		[[nodiscard]] constexpr membership_type membership(key_type) const;
 		
-		constexpr iterator find(key_type);
-		constexpr const_iterator find(key_type) const;
-		constexpr iterator find(element_type);
-		constexpr const_iterator find(element_type) const;
+		[[nodiscard]] constexpr iterator find(key_type);
+		[[nodiscard]] constexpr const_iterator find(key_type) const;
+		[[nodiscard]] constexpr iterator find(element_type);
+		[[nodiscard]] constexpr const_iterator find(element_type) const;
 
 		constexpr bool contains(key_type) const;
 		constexpr bool contains(element_type) const;
 
-		constexpr std::pair<iterator, iterator> equal_range(key_type);
-		constexpr std::pair<const_iterator, const_iterator> equal_range(key_type) const;
-		constexpr std::pair<iterator, iterator> equal_range(element_type);
-		constexpr std::pair<const_iterator, const_iterator> equal_range(element_type) const;
+		[[nodiscard]] constexpr std::pair<iterator, iterator> equal_range(key_type);
+		[[nodiscard]] constexpr std::pair<const_iterator, const_iterator> equal_range(key_type) const;
+		[[nodiscard]] constexpr std::pair<iterator, iterator> equal_range(element_type);
+		[[nodiscard]] constexpr std::pair<const_iterator, const_iterator> equal_range(element_type) const;
 
-		constexpr iterator lower_bound(key_type);
-		constexpr const_iterator lower_bound(key_type) const;
-		constexpr iterator lower_bound(element_type);
-		constexpr const_iterator lower_bound(element_type) const;
+		[[nodiscard]] constexpr iterator lower_bound(key_type);
+		[[nodiscard]] constexpr const_iterator lower_bound(key_type) const;
+		[[nodiscard]] constexpr iterator lower_bound(element_type);
+		[[nodiscard]] constexpr const_iterator lower_bound(element_type) const;
 
-		constexpr iterator upper_bound(key_type);
-		constexpr const_iterator upper_bound(key_type) const;
-		constexpr iterator upper_bound(element_type);
-		constexpr const_iterator upper_bound(element_type) const;
+		[[nodiscard]] constexpr iterator upper_bound(key_type);
+		[[nodiscard]] constexpr const_iterator upper_bound(key_type) const;
+		[[nodiscard]] constexpr iterator upper_bound(element_type);
+		[[nodiscard]] constexpr const_iterator upper_bound(element_type) const;
 
 	private:
 
