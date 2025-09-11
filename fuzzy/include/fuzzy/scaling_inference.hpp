@@ -33,7 +33,7 @@ namespace fuzzy
 	* mapping from the domain to the range of the related fuzzy relation.
 	*/
 	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class Tnorm = fuzzy::minimum<M> >
-		requires std::integral<V>&& std::floating_point<M>&& tnorm_type<Tnorm>
+		requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>
 	class scaling_inference
 	{
 	public:
@@ -62,7 +62,7 @@ namespace fuzzy
 	* @param ant The antecedent set to use in scaling the inference rule.
 	*/
 	template <class V, class M, class Container, class Tnorm>
-	requires std::integral<V> && std::floating_point<M> && tnorm_type<Tnorm>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
 	constexpr scaling_inference<V, M, Container, Tnorm>::scaling_inference(set_type const &ant)
 		: antecedent_(&ant)
 	{}
@@ -72,7 +72,7 @@ namespace fuzzy
 	* @param ant The antecedent set to use in scaling the inference rule.
 	*/
 	template <class V, class M, class Container, class Tnorm>
-		requires std::integral<V> && std::floating_point<M> && tnorm_type<Tnorm>
+		requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
 	constexpr scaling_inference<V, M, Container, Tnorm>::scaling_inference(set_type const &ant, Tnorm)
 		: antecedent_(&ant)
 	{}
@@ -84,7 +84,7 @@ namespace fuzzy
 	* @return The fuzzy scaled inference.
 	*/
 	template <class V, class M, class Container, class Tnorm>
-		requires std::integral<V> && std::floating_point<M> && tnorm_type<Tnorm>
+		requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
 	constexpr typename scaling_inference<V, M, Container, Tnorm>::set_type scaling_inference<V, M, Container, Tnorm>::apply(V value, set_type const& consequent) const
 	{
 		using math::promote;

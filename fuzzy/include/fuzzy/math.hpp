@@ -60,7 +60,7 @@ namespace fuzzy { namespace math
 	* @return The linear interpolated membership.
 	*/
 	template <class V, class M>
-	requires std::integral<V> && std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr M linear_interpolate(basic_element<V, M> lhs, V key, basic_element<V, M> rhs) noexcept
 	{
 		M dy = rhs.membership() - lhs.membership();
@@ -71,7 +71,7 @@ namespace fuzzy { namespace math
 	}
 
 	template <class V, class M>
-	requires std::integral<V> && std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	struct basic_segment
 	{
 		using element_t = basic_element<V, M>;
@@ -80,7 +80,7 @@ namespace fuzzy { namespace math
 	};
 
 	template <class V, class M>
-	requires std::integral<V> && std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_element<V, M> intersection(basic_segment<V, M> const& s0, basic_segment<V, M> const& s1)
 	{
 		using element_t = basic_element<V, M>;

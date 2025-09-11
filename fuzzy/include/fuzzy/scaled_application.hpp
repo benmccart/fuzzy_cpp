@@ -23,53 +23,51 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#ifndef FUZZY_ELEMENT_HPP
-#define FUZZY_ELEMENT_HPP
+#ifndef FUZZY_SCALED_APPLICATION_HPP
+#define FUZZY_SCALED_APPLICATION_HPP
 
-#include <cassert>
-#include <concepts>
-
-#include <fuzzy/operator.hpp>
-#include <fuzzy/traits.hpp>
-
-namespace fuzzy
+namespace fuzzzy
 {
-	/**  A basic_element is the fundemental building block(as in element of a set) for fuzzy variablesand fuzzy sets. */
-	template <class V, class M>
+
+	template <class V, class M, class Container = std::vector<basic_element<V, M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	class basic_element
+	class scaled_application
 	{
 	public:
-		using value_type = V;
+		using container_type = Container;
+		using set_type = basic_set<V, M, Container>;
+		using self_type = linear_application<V, M, Container>;
+		using key_type = V;
+		using element_type = basic_element<V, M>;
 		using membership_type = M;
-		using self_type = basic_element<V, M>;
+		using value_type = element_type;
+		using size_type = typename container_type::size_type;
+		//using difference_type = typename container_type::difference_type;
+		//using key_compare = std::less<key_type>;
+		//using value_compare = std::less<element_type>;
+		//using allocator_type = typename container_type::allocator_type;
+		//using reference = element_type&;
+		//using const_reference = element_type const&;
+		//using pointer = typename container_type::pointer;
+		//using const_pointer = typename container_type::const_pointer;
+		//using iterator = typename container_type::iterator;
+		//using const_iterator = typename container_type::const_iterator;
+		//using reverse_iterator = typename container_type::reverse_iterator;
+		//using const_reverse_iterator = typename container_type::const_reverse_iterator;
 
-		constexpr basic_element(value_type val, membership_type mem = static_cast<membership_type>(0))
-			: value_(val)
-			, membership_(mem)
-		{
-			validate_range(membership_);
-		}
-
-		constexpr std::partial_ordering operator<=>(self_type const&) const noexcept = default;
-		constexpr membership_type const& membership() const noexcept    { return membership_;   }
-		constexpr membership_type& membership() noexcept                { return membership_;   }
-		constexpr void membership(membership_type m)                    { membership_ = m;      }
-
-		constexpr value_type const& value() const noexcept              { return value_;        }
-		constexpr value_type& value() noexcept                          { return value_;        }
-		constexpr void value(value_type v)                              { value_ = v;           }
 
 	private:
-		value_type value_;
-		membership_type membership_;
+		constexpr explicit scaled_application(set_type&&);
+
+
+
+
+
 	};
 
-	/** Convenience defintion for common use cases. */
-	using element = basic_element<int, float>;
 
 
-	
+
+
 }
-
-#endif  // FUZZY_ELEMENT_HPP
+#endif // FUZZY_SCALED_APPLICATION_HPP

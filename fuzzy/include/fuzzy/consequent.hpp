@@ -55,7 +55,7 @@ namespace fuzzy
 	* Models the fuzzy consequent of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
 	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class AggregatorFunc = Tconorm_converter<fuzzy::maximum<M>>>
-	requires std::integral<V> && std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	class consequent
 	{
 	public:
@@ -83,7 +83,7 @@ namespace fuzzy
 	* Template deduction guid for consequent.
 	*/
 	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class AggregatorFunc = fuzzy::maximum<M>>
-	requires std::integral<V> && std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	consequent(basic_set<V, M, Container> const&, AggregatorFunc) -> consequent<V, M, Container, AggregatorFunc>;
 
 	/**
@@ -91,7 +91,7 @@ namespace fuzzy
 	* @param input The input set  to aggregate (oputput from mapping_rule.)
 	*/
 	template <class V, class M, class Container, class AggregatorFunc>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr void consequent<V, M, Container, AggregatorFunc>::aggregate(set_type const& input)
 	{
 		using element_t = typename set_type::element_type;
@@ -111,7 +111,7 @@ namespace fuzzy
 	* Retrieves the underlying consequent fuzzy set via an implicit conversion operator.
 	*/
 	template <class V, class M, class Container, class AggregatorFunc>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr consequent<V, M, Container, AggregatorFunc>::operator set_type ()
 	{
 		if (dirty_)

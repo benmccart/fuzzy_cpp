@@ -379,7 +379,7 @@ namespace fuzzy
 			* @return A pair of iterators pointing to a subset of the original sequence.
 			*/
 			template <class V, class M, class Container>
-			requires std::integral<V>&& std::floating_point<M>
+			requires fuzzy::numeric<V> && std::floating_point<M>
 			constexpr static auto apply(typename set_operation_value_sequence<V, M, Container>::const_iterator first, typename set_operation_value_sequence<V, M, Container>::const_iterator last)
 			{
 				using const_iterator = typename set_operation_value_sequence<V, M, Container>::const_iterator;
@@ -408,7 +408,7 @@ namespace fuzzy
 		struct simplify_impl
 		{
 			template <class V, class M>
-			requires std::integral<V>&& std::floating_point<M>
+			requires fuzzy::numeric<V> && std::floating_point<M>
 			constexpr static M slope(fuzzy::basic_element<V, M> p0, fuzzy::basic_element<V, M> p1)
 			{
 				M dx = static_cast<M>(p1.value()) - static_cast<M>(p0.value());
@@ -432,7 +432,7 @@ namespace fuzzy
 			 * @param set The set to simplify in-place.
 			*/
 			template <class V, class M, class Container>
-			requires std::integral<V>&& std::floating_point<M>
+			requires fuzzy::numeric<V> &&  std::floating_point<M>
 			constexpr static void apply(fuzzy::basic_set<V, M, Container> &set)
 			{
 				using iterator = typename fuzzy::basic_set<V, M, Container>::iterator;
@@ -495,7 +495,7 @@ namespace fuzzy
 
 
 		template <class VF, class V>
-		concept ValueFunction = std::integral<V> && requires (V va, V vb, VF vf)
+		concept ValueFunction = fuzzy::numeric<V> && requires (V va, V vb, VF vf)
 		{
 			{ vf(va, vb) } -> std::same_as<V>;
 		};
@@ -592,7 +592,7 @@ namespace fuzzy
 #endif
 
 		template <class V, class M>
-		requires std::integral<V> && std::floating_point<M>
+		requires fuzzy::numeric<V> && std::floating_point<M>
 		struct edge
 		{
 			basic_element<V, M> v0;
@@ -600,7 +600,7 @@ namespace fuzzy
 		};
 
 		template <class V, class M>
-		requires std::integral<V>&& std::floating_point<M>
+		requires fuzzy::numeric<V> && std::floating_point<M>
 		constexpr std::span<fuzzy::basic_element<V, M>> calculate_linear_steps(fuzzy::basic_element<V,M> le, fuzzy::basic_element<V, M> re, std::span<fuzzy::basic_element<V, M>> steps)
 		{
 			using math::promote;
@@ -623,7 +623,7 @@ namespace fuzzy
 		};
 
 		template <class Func, class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-		requires std::integral<V>&& std::floating_point<M>
+		requires fuzzy::numeric<V> && std::floating_point<M>
 		[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> linguistic_term_impl(fuzzy::basic_set<V, M, Container> const& aset, Func const& func, std::size_t step_count = linguistic_term_default_steps)
 		{
 			using math::promote;
@@ -697,7 +697,7 @@ namespace fuzzy
 	* @return The intersection of the two fuzzy sets.
 	*/
 	template <class V, class M, class Operation = fuzzy::minimum<M>, class Container>
-	requires std::integral<V> && std::floating_point<M> && tnorm_type<Operation>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Operation>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_intersection(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
@@ -710,7 +710,7 @@ namespace fuzzy
 	* @return The union of the two fuzzy sets.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-	requires std::integral<V>&& std::floating_point<M>&& tconorm_type<Operation>
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tconorm_type<Operation>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
@@ -797,7 +797,7 @@ namespace fuzzy
 	* @return The intersection of the sets.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator&(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return set_intersection<V, M, Operation, Container>(lhs, rhs);
@@ -809,7 +809,7 @@ namespace fuzzy
 	* @return The unions of the sets.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-		requires std::integral<V>&& std::floating_point<M>
+		requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator|(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return set_union<V, M, Operation, Container>(lhs, rhs);
@@ -821,7 +821,7 @@ namespace fuzzy
 	* @return The complement of the set.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_complement(fuzzy::basic_set<V, M, Container> const& aset)
 	{
 		using set_type = fuzzy::basic_set<V, M, Container>;
@@ -879,7 +879,7 @@ namespace fuzzy
 	* @return The relaxed set.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> somewhat(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
 		constexpr auto somewhat_func = [](M m) { return std::sqrt(m); };
@@ -892,7 +892,7 @@ namespace fuzzy
 	* @return The tightened set.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> very(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
 		constexpr auto very_func = [](M m) { return m * m; };
@@ -905,7 +905,7 @@ namespace fuzzy
 	* @return The complement of the set.
 	*/
 	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
-	requires std::integral<V>&& std::floating_point<M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator~(fuzzy::basic_set<V, M, Container> const& aset)
 	{
 		return set_complement<V,M,Operation, Container>(aset);

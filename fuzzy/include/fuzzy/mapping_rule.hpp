@@ -44,7 +44,7 @@ namespace fuzzy
 	* mapping from the domain to the range of the related fuzzy relation.
 	*/
 	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class Tnorm = fuzzy::minimum<M>, class Tconorm = fuzzy::maximum<M> >
-	requires std::integral<V> && std::floating_point<M> && tnorm_type<Tnorm> && tconorm_type<Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm> && tconorm_type<Tconorm>
 	class mapping_rule
 	{
 	public:
@@ -73,7 +73,7 @@ namespace fuzzy
 	* @param rel The relation to use in generating the mapping rule.
 	*/
 	template <class V, class M, class Container, class Tnorm, class Tconorm>
-	requires std::integral<V>&& std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
 	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel)
 		: rel_(rel) 
 	{
@@ -84,7 +84,7 @@ namespace fuzzy
 	* @param rel The relation to use in generating the mapping rule.
 	*/
 	template <class V, class M, class Container, class Tnorm, class Tconorm>
-	requires std::integral<V>&& std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
 	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel, Tconorm tconorm)
 		: rel_(rel)
 	{
@@ -96,7 +96,7 @@ namespace fuzzy
 	* @return The mapped output.
 	*/
 	template <class V, class M, class Container, class Tnorm, class Tconorm>
-	requires std::integral<V>&& std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
 	constexpr typename mapping_rule<V, M, Container, Tnorm, Tconorm>::set_type mapping_rule<V, M, Container, Tnorm, Tconorm>::apply(set_type const &variable) const
 	{
 		using math::promote;

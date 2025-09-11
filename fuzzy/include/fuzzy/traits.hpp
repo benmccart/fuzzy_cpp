@@ -27,6 +27,7 @@
 #define FUZZY_TRAITS_HPP
 
 #include <array>
+#include <concepts>
 #include <type_traits>
 
 #include <fuzzy/fwd.hpp>
@@ -77,6 +78,10 @@ namespace fuzzy
 	{
 		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
 	};
+
+
+	template <typename T>
+	concept numeric = std::integral<T> || std::floating_point<T>;
 
 	
 	namespace traits

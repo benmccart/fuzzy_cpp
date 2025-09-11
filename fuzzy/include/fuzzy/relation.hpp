@@ -38,7 +38,7 @@ namespace fuzzy
 	* Forms domain relation between the two sets by creating domain cartesian product represented as the membership of the relation.
 	*/
 	template <class V, class M, class Container = std::vector<basic_element<V, M>>, class Operation = fuzzy::minimum<M>>
-	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	requires tnorm_type<Operation> && fuzzy::numeric<V> && std::floating_point<M>
 	class relation
 	{
 	public:
@@ -73,7 +73,7 @@ namespace fuzzy
 	* @param range - the range of the relation.
 	*/
 	template <class V, class M, class Container, class Operation>
-	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	requires tnorm_type<Operation> && fuzzy::numeric<V>&& std::floating_point<M>
 	constexpr relation<V, M, Container, Operation>::relation(set_type const &domain, set_type const &range) noexcept
 		: domain_(&domain)
 		, range_(&range)
@@ -88,7 +88,7 @@ namespace fuzzy
 	* @param op - the t-norm operation to employ in the construction of the relation.
 	*/
 	template <class V, class M, class Container, class Operation>
-	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	requires tnorm_type<Operation> && fuzzy::numeric<V>&& std::floating_point<M>
 	constexpr relation<V, M, Container, Operation>::relation(set_type const& domain, set_type const& range, Operation op) noexcept
 		: domain_(&domain)
 		, range_(&range)
@@ -104,7 +104,7 @@ namespace fuzzy
 	* @result The memberhsip (cartesian product) of the relation at the dv x rv.
 	*/
 	template <class V, class M, class Container, class Operation>
-	requires tnorm_type<Operation> && std::integral<V> && std::floating_point<M>
+	requires tnorm_type<Operation> && fuzzy::numeric<V>&& std::floating_point<M>
 	constexpr M relation<V, M, Container, Operation>::membership(V dv, V rv) const noexcept
 	{
 		return Operation::apply(domain_->membership(dv), range_->membership(rv));
