@@ -79,141 +79,40 @@ namespace fuzzy
 		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
 	};
 
-
 	template <typename T>
 	concept numeric = std::integral<T> || std::floating_point<T>;
 
-	
-	namespace traits
+
+
+	template <class V>
+	struct float_value_t
 	{
-		// NOTE: At this point this trait is not useful, as even basic sized buffers without allocators wouldn't be garunteed not to crash?  Maybe later?
-		//template <class Container>
-		//struct has_allocator
-		//{
-		//	static const bool value = true;
-		//};
+		using value = float;
+	};
 
-		//template <class T, std::size_t N>
-		//struct has_allocator<std::array<T, N>>
-		//{
-		//	static const bool value = false;
-		//};
+	template <>
+	struct float_value_t<long double>
+	{
+		using value = long double;
+	};
 
+	template <>
+	struct float_value_t<double>
+	{
+		using value = double;
+	};
 
+	template <>
+	struct float_value_t<std::uint64_t>
+	{
+		using value = double;
+	};
 
-		//template <has_tnorm_tag T>
-		//struct is_tnorm
-		//{
-		//	static const bool value = true;
-		//};
-
-		///** Default traits function for triangular norm classification. */
-		//template <empty_struct T>
-		//struct is_tnorm
-		//{
-		//	static const bool value = false;
-		//};
-
-
-
-		//template <>
-		//struct is_tnorm<fuzzy::algabraic_product>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tnorm<fuzzy::bounded_difference>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tnorm<fuzzy::drastic_product>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tnorm<fuzzy::einstein_product>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tnorm<fuzzy::hamacher_product>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tnorm<fuzzy::minimum>
-		//{
-		//	static const bool value = true;
-		//};
-
-		/** Default traits function for triangular conorm classification. */
-		//template <class T>
-		//struct is_tconorm
-		//{
-		//	static const bool value = false;
-		//};
-
-		//template <has_tconorm_tag T>
-		//struct is_cotnorm
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tconorm<fuzzy::algabraic_sum>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tconorm<fuzzy::bounded_sum>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tconorm<fuzzy::drastic_sum>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tconorm<fuzzy::einstein_sum>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tconorm<fuzzy::hamacher_sum>
-		//{
-		//	static const bool value = true;
-		//};
-
-		//template <>
-		//struct is_tconorm<fuzzy::maximum>
-		//{
-		//	static const bool value = true;
-		//};
-	}
-
-	//template <class T, typename M>
-	//concept TNorm = requires  std::floating_point<M> && fuzzy::traits::is_tnorm<T>::value && (T t, M m)
-	//{
-	//	M mr = t(m, m);
-	//};
-
-
-	//template <class T, typename M>
-	//concept TConorm = requires  std::floating_point<M> && fuzzy::traits::is_tconorm<T>::value && (T t, M m)
-	//{
-	//	M mr = t(m, m);
-	//};
+	template <>
+	struct float_value_t<std::int64_t>
+	{
+		using value = double;
+	};
 }
 
 #endif //FUZZY__TRAITS_HPP

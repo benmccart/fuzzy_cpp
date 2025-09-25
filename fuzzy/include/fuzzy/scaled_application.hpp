@@ -23,24 +23,74 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
+#include <cstdint>
+#include <memory>
+
+#include <fuzzy/algorithm.hpp>
+#include <fuzzy/set.hpp>
+#include <fuzzy/traits.hpp>
+
+
 #ifndef FUZZY_SCALED_APPLICATION_HPP
 #define FUZZY_SCALED_APPLICATION_HPP
 
-namespace fuzzzy
+namespace fuzzy
 {
 
-	template <class V, class M, class Container = std::vector<basic_element<V, M>>>
+
+
+
+	/**
+	* Used for determining the value type.
+	*/
+	template <class V>
+	requires fuzzy::numeric<V>
+	constexpr auto scaled_value_type(V v)
+	{
+		if constexpr (std::is_floating_point_v<V>)
+			return v;
+		else if constexpr (sizeof(int) > sizeof(V))
+			return static_cast<int>(v);
+		else if constexpr (sizeof(long) > sizeof(V))
+			return static_cast<long>(v);
+		else if constexpr (sizeof(long long) > sizeof(V))
+			return static_cast<long long>(v);
+		else
+			return v;
+	}
+
+	// Forward declaration.
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	requires fuzzy::numeric<V>&& std::floating_point<M>
+	class scaled_application;
+
+	// Forward declaration.
+	template <class Tnorm, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
+	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm>
+	constexpr scaled_application<V, M, Container> is(fuzzy::basic_set<V, M, Container<fuzzy::basic_element<V,M>>> const&, fuzzy::basic_set<V, M, Container<fuzzy::basic_element<V, M>>> const&);
+
+	/**
+	 * @brief Represents a scaled application of a fuzzy value to a fuzzy variable.
+	 * @tparam V Fuzzy value type.
+	 * @tparam M Fuzzy membership type.
+	 * @tparam Container Container type to use for basic_set.
+	*/
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class scaled_application
 	{
 	public:
-		using container_type = Container;
-		using set_type = basic_set<V, M, Container>;
-		using self_type = linear_application<V, M, Container>;
-		using key_type = V;
-		using element_type = basic_element<V, M>;
+		using container_type = Container<fuzzy::basic_element<V,M>>;
+		
+		//using value_type = float_value_t<V>::value;
+		using key_type = typename fuzzy::float_value_t<V>::value;
+		using inner_container_type = Container<fuzzy::basic_element<key_type, M>>;
+		using set_type = fuzzy::basic_set<key_type, M, inner_container_type>;
+		using self_type = scaled_application<V, M, Container>;
+		
+		//using element_type = basic_element<V, M>;
 		using membership_type = M;
-		using value_type = element_type;
+		//using value_type = element_type;
 		using size_type = typename container_type::size_type;
 		//using difference_type = typename container_type::difference_type;
 		//using key_compare = std::less<key_type>;
@@ -55,15 +105,71 @@ namespace fuzzzy
 		//using reverse_iterator = typename container_type::reverse_iterator;
 		//using const_reverse_iterator = typename container_type::const_reverse_iterator;
 
+		constexpr explicit scaled_application(self_type const&) = default;
+		constexpr explicit scaled_application(self_type&&) noexcept = default;
+
+		constexpr self_type& operator=(self_type const&) = default;
+		constexpr self_type& operator=(self_type&&) noexcept = default;
+
 
 	private:
-		constexpr explicit scaled_application(set_type&&);
+		/**
+		 * @brief Ctor.
+		 * @param set The scaled fuzzy set to construct things from.
+		*/
+		constexpr explicit scaled_application(set_type&& set)
+			: set_(std::move(set))
+		{
 
+		}
 
+		constexpr scaled_application() {}
 
+		template <class Tnorm, template <typename T, typename Alloc2 = std::allocator<T>> class Container2, class V2, class M2>
+		requires fuzzy::numeric<V2>&& std::floating_point<M2>&& fuzzy::tnorm_type<Tnorm>
+		friend constexpr scaled_application<V2, M2, Container2> is(fuzzy::basic_set<V2, M2, Container2<fuzzy::basic_element<V2,M2>>> const&, fuzzy::basic_set<V2, M2, Container2<fuzzy::basic_element<V2, M2>>> const&);
 
-
+		set_type set_;
 	};
+
+
+	/**
+	 * @brief Applies the fuzzy value to the fuzzy variable.  i.e. is(tempurature, hot)
+	 * @tparam M The fuzzy element membership type.
+	 * @tparam Tnorm The T-norm to use in the application.
+	 * @tparam Container The container type to use for the fuzzy basic_set.
+	 * @tparam V The fuzzy element value type.
+	 * @param value The fuzzy value to apply.
+	 * @param variable The fuzzy variable to apply the value against.
+	 * @return A scaled application of a fuzzy value to a fuzzy variable.
+	*/
+	template <class Tnorm, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
+	requires fuzzy::numeric<V> && std::floating_point<M> && fuzzy::tnorm_type<Tnorm>
+	constexpr scaled_application<V, M, Container> is(fuzzy::basic_set<V, M, Container<fuzzy::basic_element<V,M>>> const& value, fuzzy::basic_set<V, M, Container<fuzzy::basic_element<V, M>>> const& variable)
+	{
+		using key_type = typename fuzzy::float_value_t<V>::value;
+		using outer_container_t = Container<fuzzy::basic_element<V,M>>;
+		using inner_container_t = Container<fuzzy::basic_element<key_type,M>>;
+
+		if (variable.empty())
+			return scaled_application<V, M, Container>{ };
+
+		key_type const d0 = static_cast<key_type>(variable.front().value());
+		key_type const d1 = static_cast<key_type>(variable.back().value());
+		key_type const domain_ratio = static_cast<key_type>(1) / d1 - d0;
+		fuzzy::basic_set<V, M, outer_container_t> const set = fuzzy::set_intersection<V, M, outer_container_t, Tnorm>(value, variable);
+		fuzzy::basic_set<key_type, M, inner_container_t> scaled_set;
+		for (fuzzy::basic_element<V, M> const& e : set)
+		{
+			key_type const offset = static_cast<key_type>(e.value()) - d0;
+			key_type const scaled_value = offset * domain_ratio;
+			scaled_set.insert(fuzzy::basic_element<key_type, M>{ scaled_value, e.membership() });
+		}
+
+		return scaled_application<V, M, Container>{ std::move(scaled_set) };
+	}
+
+
 
 
 

@@ -613,7 +613,7 @@ namespace fuzzy
 			M step_x = step_size + static_cast<M>(le.value());
 			for (auto itr = begin(steps); itr != end(steps); ++itr, step_x += step_size)
 			{
-				const M x = std::round(step_x);
+				const M x = fuzzy::math::round<V>(step_x);
 				const M m = (lm * x) + lb;
 				const V v = static_cast<V>(x);
 				*itr = fuzzy::basic_element<V, M>{ v, m };
@@ -696,7 +696,7 @@ namespace fuzzy
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The intersection of the two fuzzy sets.
 	*/
-	template <class V, class M, class Operation = fuzzy::minimum<M>, class Container>
+	template <class V, class M, class Container, class Operation = fuzzy::minimum<M>>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Operation>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_intersection(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
@@ -709,7 +709,7 @@ namespace fuzzy
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The union of the two fuzzy sets.
 	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, class Container>
+	template <class V, class M, class Container, class Operation = fuzzy::maximum<M>>
 	requires fuzzy::numeric<V> && std::floating_point<M>&& tconorm_type<Operation>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{

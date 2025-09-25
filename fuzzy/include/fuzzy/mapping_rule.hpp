@@ -137,7 +137,7 @@ namespace fuzzy
 
 			auto const delta = promote(pair.first.value()) - promote(rel_.domain().front().value());
 			M const ratio = static_cast<M>(delta) / static_cast<M>(delta_domain);
-			promote_value_t const offset = static_cast<promote_value_t>(std::round(ratio* delta_range));
+			promote_value_t const offset = static_cast<promote_value_t>(fuzzy::math::round<V>(ratio* delta_range));
 			V const value = static_cast<V>( range_first_v + offset );
 			mapped_range_values.insert(element_type{ value, static_cast<M>(0.0)});
 		}

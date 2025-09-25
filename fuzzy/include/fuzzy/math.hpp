@@ -36,7 +36,7 @@ namespace fuzzy { namespace math
 	* exceeding the total range/ of the underlying type.
 	*/
 	template <class V>
-	requires std::integral<V>
+	requires fuzzy::numeric<V>
 	constexpr auto promote(V v)
 	{
 		if constexpr (std::is_floating_point_v<V> || std::is_unsigned_v<V>)
@@ -49,6 +49,21 @@ namespace fuzzy { namespace math
 			return static_cast<long long>(v);
 		else
 			return v;
+	}
+
+	/**
+	* Performs rounding of floating point membership type only if value is integral, otherwise performs a simple static conversion.
+	* @param number The number to round.
+	* @return The 'rounded' number (which will not actually be rounded for floating point value types).
+	*/
+	template <class V, class M>
+	requires fuzzy::numeric<V> && std::floating_point<M>
+	constexpr M round(M number) noexcept
+	{
+		if constexpr (std::is_floating_point_v<V>)
+			return static_cast<M>(number);
+		else
+			return std::round(number);
 	}
 
 	/**
@@ -96,7 +111,7 @@ namespace fuzzy { namespace math
 		M const t = (s1_deltax * (s0.v0.membership() - s1.v0.membership()) - s1_deltay * static_cast<M>(s0.v0.value() - s1.v0.value())) / (-s1_deltax * s0_deltay + s0_deltax * s1_deltay);
 		if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
 		{
-			V const v = s0.v0.value() + std::round(t * s0_deltax);
+			V const v = s0.v0.value() + fuzzy::math::round<V>(t * s0_deltax);
 			if ((s0.v0.value() <= v && v <= s0.v1.value()) && (s1.v0.value() <= v && v <= s1.v1.value()))
 			{
 				M const m = linear_interpolate(s0.v0, v, s0.v1);

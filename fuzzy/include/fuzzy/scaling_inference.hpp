@@ -105,7 +105,7 @@ namespace fuzzy
 		V const rmin = consequent.front().value();
 		V const rmax = consequent.back().value();
 		M const range = static_cast<M>(rmax - rmin);
-		V const range_value = std::clamp(rmin + static_cast<V>(std::round(domain_scale * range)), rmin, rmax);
+		V const range_value = std::clamp(rmin + static_cast<V>(fuzzy::math::round<V>(domain_scale * range)), rmin, rmax);
 		M const range_membership = Tnorm::apply(antecedent_->membership(value), consequent.membership(range_value));
 		result.insert(element_type{ range_value, range_membership });
 		result.insert(element_type{ rmin, static_cast<M>(0) });
