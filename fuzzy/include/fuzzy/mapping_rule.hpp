@@ -43,8 +43,8 @@ namespace fuzzy
 	* A mapping rule uses a relation to map a supplied fuzzy input to a mapped fuzzy output.  Abstractly it is a functional
 	* mapping from the domain to the range of the related fuzzy relation.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm = fuzzy::minimum<M>, class Tconorm = fuzzy::maximum<M> >
-	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm> && tconorm_type<Tconorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template<typename> class Tconorm = fuzzy::maximum >
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
 	class mapping_rule
 	{
 	public:
@@ -54,7 +54,7 @@ namespace fuzzy
 
 		mapping_rule() = delete;
 		constexpr mapping_rule(relation_type);
-		constexpr mapping_rule(relation_type, Tconorm);
+		constexpr mapping_rule(relation_type, Tconorm<M>);
 
 
 		constexpr set_type apply(set_type const&) const;
@@ -64,16 +64,16 @@ namespace fuzzy
 	};
 
 	/** Deduction guide to help construct the mapping_rule without having to explicitly specify the Tnorm or container parameters explicity. */
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm = fuzzy::minimum<M>, class Tconorm = fuzzy::maximum<M>>
-	mapping_rule(relation<V, M, Container, Tnorm> rel, Tconorm tconorm) -> mapping_rule<V, M, Container, Tnorm, Tconorm>;
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template <typename> class Tconorm = fuzzy::maximum>
+	mapping_rule(relation<V, M, Container, Tnorm> rel, Tconorm<M> tconorm) -> mapping_rule<V, M, Container, Tnorm, Tconorm>;
 
 
 	/**
 	* Constructs a mapping rule using the provided relation.
 	* @param rel The relation to use in generating the mapping rule.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm, class Tconorm>
-	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm<M>>&& tconorm_type<Tconorm<M>>
 	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel)
 		: rel_(rel) 
 	{
@@ -83,9 +83,9 @@ namespace fuzzy
 	* Constructs a mapping rule using the provided relation.
 	* @param rel The relation to use in generating the mapping rule.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm, class Tconorm>
-	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
-	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel, Tconorm tconorm)
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
+	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel, Tconorm<M> tconorm)
 		: rel_(rel)
 	{
 	}
@@ -95,8 +95,8 @@ namespace fuzzy
 	* @param variable The fuzzy input to map.
 	* @return The mapped output.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm, class Tconorm>
-	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>&& tconorm_type<Tconorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
 	constexpr typename mapping_rule<V, M, Container, Tnorm, Tconorm>::set_type mapping_rule<V, M, Container, Tnorm, Tconorm>::apply(set_type const &variable) const
 	{
 		using math::promote;
@@ -151,10 +151,10 @@ namespace fuzzy
 		{
 			M const m = std::accumulate(trimmed_range.first, trimmed_range.second, static_cast<M>(0.0), [&](M sum, element_pair_t pair)
 			{
-				M const domain_intersection = Tnorm::apply(pair.first.membership(), pair.second.membership());
+				M const domain_intersection = Tnorm<M>::apply(pair.first.membership(), pair.second.membership());
 				M const cartesian_product = rel_.membership(pair.first.value(), range_v.first.value());
-				M const pairwise_product = Tnorm::apply(domain_intersection, cartesian_product);
-				return Tconorm::apply(sum, pairwise_product);
+				M const pairwise_product = Tnorm<M>::apply(domain_intersection, cartesian_product);
+				return Tconorm<M>::apply(sum, pairwise_product);
 			});
 
 			result.insert(element_type{ range_v.first.value(), m });

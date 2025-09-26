@@ -37,8 +37,8 @@ namespace fuzzy
 	/**
 	* Forms domain relation between the two sets by creating domain cartesian product represented as the membership of the relation.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Operation = fuzzy::minimum<M>>
-	requires tnorm_type<Operation> && fuzzy::numeric<V> && std::floating_point<M>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Operation = fuzzy::minimum>
+	requires tnorm_type<Operation<M>> && fuzzy::numeric<V> && std::floating_point<M>
 	class relation
 	{
 	public:
@@ -47,7 +47,7 @@ namespace fuzzy
 
 		relation() = delete;
 		constexpr relation(set_type const&, set_type const&) noexcept;
-		constexpr relation(set_type const&, set_type const&, Operation op) noexcept;
+		constexpr relation(set_type const&, set_type const&, Operation<M> op) noexcept;
 
 		constexpr M membership(V, V) const noexcept;
 
@@ -60,7 +60,7 @@ namespace fuzzy
 	};
 	
 	/** Deduction guide to help construct the relation without having to explicitly specify the operation template parameter. */
-	template<class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Operation> relation(basic_set<V,M,Container> const&, basic_set<V, M, Container> const&, Operation op) ->
+	template<class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Operation> relation(basic_set<V,M,Container> const&, basic_set<V, M, Container> const&, Operation<M> op) ->
 	relation<V,M, Container, Operation>;
 
 	/** 
@@ -68,8 +68,8 @@ namespace fuzzy
 	* @param domain - the domain the relation is to operate on.
 	* @param range - the range of the relation.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Operation>
-	requires tnorm_type<Operation> && fuzzy::numeric<V>&& std::floating_point<M>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Operation>
+	requires tnorm_type<Operation<M>> && fuzzy::numeric<V> && std::floating_point<M>
 	constexpr relation<V, M, Container, Operation>::relation(set_type const &domain, set_type const &range) noexcept
 		: domain_(&domain)
 		, range_(&range)
@@ -81,11 +81,11 @@ namespace fuzzy
 	* Constructs the relation from the two provided sets.
 	* @param domain - the domain the relation is to operate on.
 	* @param range - the range of the relation.
-	* @param op - the t-norm operation to employ in the construction of the relation.
+	* @param tnorm - the t-norm operation to employ in the construction of the relation.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Operation>
-	requires tnorm_type<Operation> && fuzzy::numeric<V>&& std::floating_point<M>
-	constexpr relation<V, M, Container, Operation>::relation(set_type const& domain, set_type const& range, Operation op) noexcept
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm>
+	requires tnorm_type<Tnorm<M>> && fuzzy::numeric<V> && std::floating_point<M>
+	constexpr relation<V, M, Container, Tnorm>::relation(set_type const& domain, set_type const& range, Tnorm<M> tnorm) noexcept
 		: domain_(&domain)
 		, range_(&range)
 	{
@@ -99,11 +99,11 @@ namespace fuzzy
 	* @param rv - range value.
 	* @result The memberhsip (cartesian product) of the relation at the dv x rv.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Operation>
-	requires tnorm_type<Operation> && fuzzy::numeric<V>&& std::floating_point<M>
-	constexpr M relation<V, M, Container, Operation>::membership(V dv, V rv) const noexcept
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm>
+	requires tnorm_type<Tnorm<M>> && fuzzy::numeric<V>&& std::floating_point<M>
+	constexpr M relation<V, M, Container, Tnorm>::membership(V dv, V rv) const noexcept
 	{
-		return Operation::apply(domain_->membership(dv), range_->membership(rv));
+		return Tnorm<M>::apply(domain_->membership(dv), range_->membership(rv));
 	}
 }
 
