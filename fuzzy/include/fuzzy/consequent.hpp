@@ -54,7 +54,7 @@ namespace fuzzy
 	/** 
 	* Models the fuzzy consequent of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
-	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class AggregatorFunc = Tconorm_converter<fuzzy::maximum<M>>>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class AggregatorFunc = Tconorm_converter<fuzzy::maximum<M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class consequent
 	{
@@ -82,7 +82,7 @@ namespace fuzzy
 	/**
 	* Template deduction guid for consequent.
 	*/
-	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class AggregatorFunc = fuzzy::maximum<M>>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class AggregatorFunc = fuzzy::maximum<M>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	consequent(basic_set<V, M, Container> const&, AggregatorFunc) -> consequent<V, M, Container, AggregatorFunc>;
 
@@ -90,7 +90,7 @@ namespace fuzzy
 	* Aggregates the specified input to the consequent set.
 	* @param input The input set  to aggregate (oputput from mapping_rule.)
 	*/
-	template <class V, class M, class Container, class AggregatorFunc>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class AggregatorFunc>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr void consequent<V, M, Container, AggregatorFunc>::aggregate(set_type const& input)
 	{
@@ -110,7 +110,7 @@ namespace fuzzy
 	/**
 	* Retrieves the underlying consequent fuzzy set via an implicit conversion operator.
 	*/
-	template <class V, class M, class Container, class AggregatorFunc>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class AggregatorFunc>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr consequent<V, M, Container, AggregatorFunc>::operator set_type ()
 	{

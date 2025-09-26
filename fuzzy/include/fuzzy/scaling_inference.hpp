@@ -32,8 +32,8 @@ namespace fuzzy
 	* A mapping rule uses a relation to map a supplied fuzzy input to a mapped fuzzy output.  Abstractly it is a functional
 	* mapping from the domain to the range of the related fuzzy relation.
 	*/
-	template <class V, class M, class Container = std::vector<fuzzy::basic_element<V, M>>, class Tnorm = fuzzy::minimum<M> >
-		requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm = fuzzy::minimum<M> >
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>
 	class scaling_inference
 	{
 	public:
@@ -53,7 +53,7 @@ namespace fuzzy
 
 
 	/** Deduction guide to help construct the mapping_rule without having to explicitly specify the Tnorm or container parameters explicity. */
-	template <class V, class M, class Container = std::vector<basic_element<V, M>>, class Tnorm = fuzzy::minimum<M>>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm = fuzzy::minimum<M>>
 	scaling_inference(basic_set<V, M, Container> set, Tnorm tnorm) -> scaling_inference<V, M, Container, Tnorm>;
 
 
@@ -61,7 +61,7 @@ namespace fuzzy
 	* Constructs a scaling inference rule using the provided set.
 	* @param ant The antecedent set to use in scaling the inference rule.
 	*/
-	template <class V, class M, class Container, class Tnorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
 	constexpr scaling_inference<V, M, Container, Tnorm>::scaling_inference(set_type const &ant)
 		: antecedent_(&ant)
@@ -71,7 +71,7 @@ namespace fuzzy
 	* Constructs a scaling inference rule using the provided set.
 	* @param ant The antecedent set to use in scaling the inference rule.
 	*/
-	template <class V, class M, class Container, class Tnorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm>
 		requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
 	constexpr scaling_inference<V, M, Container, Tnorm>::scaling_inference(set_type const &ant, Tnorm)
 		: antecedent_(&ant)
@@ -83,7 +83,7 @@ namespace fuzzy
 	* @param consequent The inferred fuzzy output to scale to.
 	* @return The fuzzy scaled inference.
 	*/
-	template <class V, class M, class Container, class Tnorm>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm>
 		requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
 	constexpr typename scaling_inference<V, M, Container, Tnorm>::set_type scaling_inference<V, M, Container, Tnorm>::apply(V value, set_type const& consequent) const
 	{

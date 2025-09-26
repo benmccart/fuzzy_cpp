@@ -42,18 +42,19 @@ namespace fuzzy
 	* std::vector as a default storage contianer as sets are expected to remain relatively small for the overwelming majory of
 	* use cases. Alternate storage container types (with custom allocators) may be used for constrained environments.
 	*/
-	template <class V, class M, class Container = std::vector<basic_element<V,M>>>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class basic_set
 	{
 	public:
-		using container_type = Container;
+		using element_type = fuzzy::basic_element<V, M>;
+		using container_type = Container<element_type>;
 		using self_type = basic_set<V, M, Container>;
 		using key_type = V;
-		using element_type = basic_element<V, M>;
+		
 		using membership_type = M;
 		using value_type = element_type;
-		using container_type = container_type;
+//		using container_type = container_type;
 		using size_type = typename container_type::size_type;
 		using difference_type = typename container_type::difference_type;
 		using key_compare = std::less<key_type>;
@@ -282,7 +283,7 @@ namespace fuzzy
 	* @param lhs - 	sets whose contents to compare
 	* @param rhs - 	sets whose contents to compare
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	constexpr V operator<=>(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
 	{
 		return lhs.container_ <=> rhs.container_;
@@ -294,7 +295,7 @@ namespace fuzzy
 	* @param pred - predicate that returns true if the element should be erased
 	* @return The number of erased elements.
 	*/
-	template <class V, class M, class Container, class Predicate>
+	template <class V, class M, template <typename T, typename Alloc> class Container, class Predicate>
 	constexpr typename basic_set<V,M,Container>::size_type erase_if(basic_set<V, M, Container> &set, Predicate pred)
 	{
 		using self_type = basic_set<V, M, Container>;
@@ -309,7 +310,7 @@ namespace fuzzy
 	/** Constructs an empty basic_set using the supplied allocator.
 	 * @param alloc - allocator to use for all memory allocations of this container
 	 */
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container>::basic_set(allocator_type const &alloc)
 		: container_(alloc) {}
@@ -320,7 +321,7 @@ namespace fuzzy
 	* @param last - first element past the range to copy from.
 	* @param alloc - allocator to use for all memory allocations of this container
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	template <class InputIt>
 	constexpr basic_set<V, M, Container>::basic_set(InputIt first, InputIt last, allocator_type const &alloc)
@@ -334,7 +335,7 @@ namespace fuzzy
 	* @param other - another container to be used as source to initialize the elements of the container with
 	* @param alloc - allocator to use for all memory allocations of this container
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container>::basic_set(self_type const &other, allocator_type const &alloc)
 		: container_(other.container_, alloc) {}
@@ -342,7 +343,7 @@ namespace fuzzy
 	/** Move constructor.Constructs the container with the contents of other using move semantics.  The supplied
 	*   allocator is used.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container>::basic_set(self_type &&other, allocator_type const &alloc)
 		: container_(std::move(other.container_), alloc) {}
@@ -351,7 +352,7 @@ namespace fuzzy
 	*    multiple elements in the range have keys that compare equivalent, it is unspecified which element is inserted.
 	* @param ilist - initializer list to use as data source
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container>::basic_set(std::initializer_list<element_type> ilist, allocator_type const &alloc)
 		: container_(std::move(ilist), alloc)
@@ -363,7 +364,7 @@ namespace fuzzy
 	* Replaces the contents with those identified by initializer list ilist.
 	* @param init - initializer list to use as data source
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container>& basic_set<V, M, Container>::operator=(std::initializer_list<element_type> ilist)
 	{
@@ -379,7 +380,7 @@ namespace fuzzy
 	* Returns the allocator associated with the container.
 	* @return The associated allocator.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::allocator_type basic_set<V, M, Container>::get_allocator() const noexcept(std::is_nothrow_copy_constructible<allocator_type>::value)
 	{
@@ -392,7 +393,7 @@ namespace fuzzy
 	* @return A pair containing an interator to the position where the element either was inserted, or would have been inserted if
 	*         the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert(element_type elem)
 	{
@@ -413,7 +414,7 @@ namespace fuzzy
 	* @return A pair containing an interator to the position where the element either was inserted, or would have been inserted
 	*          if the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::insert([[maybe_unused]] const_iterator hint, element_type elem)
 	{
@@ -425,7 +426,7 @@ namespace fuzzy
 	* @param first The first element in the range to insert.
 	* @param last One past the last element in the range to insert.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	template< class InputIt >
 	constexpr void basic_set<V, M, Container>::insert(InputIt first, InputIt last)
@@ -439,7 +440,7 @@ namespace fuzzy
 	/** Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
 	* @param initializer List containing elements to insert.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr void basic_set<V, M, Container>::insert(std::initializer_list<element_type> ilist)
 	{
@@ -455,7 +456,7 @@ namespace fuzzy
 	 * @return A pair containing an interator to the position where the element either was emplaced, or would have been emplaced
 	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully emplaced.
 	 */
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	template <class... Args>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace(Args&& ...args)
@@ -478,7 +479,7 @@ namespace fuzzy
 	* @return A pair containing an interator to the position where the element either was emplaced, or would have been emplaced
 	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully emplaced.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	template <class... Args>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, bool> basic_set<V, M, Container>::emplace_hint([[maybe_unused]] const_iterator hint, Args&& ...args)
@@ -490,7 +491,7 @@ namespace fuzzy
 	 * @param elem - element to remove. 
 	 * @return Number of elements removed.
 	 */
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr bool basic_set<V, M, Container>::erase(element_type elem)
 	{
@@ -508,7 +509,7 @@ namespace fuzzy
 	 * @param key -  key of the element to remove.
 	 * @return Number of elements removed.
 	 */
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr bool basic_set<V, M, Container>::erase(key_type key)
 	{
@@ -522,7 +523,7 @@ namespace fuzzy
 		return false;
 	}
 
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::membership_type basic_set<V, M, Container>::membership(key_type key) const
 	{
@@ -544,7 +545,7 @@ namespace fuzzy
 	* @param key - key to compare elements against for equivalence.
 	* @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(key_type key)
 	{
@@ -560,7 +561,7 @@ namespace fuzzy
 	* @param key - key to compare elements against for equivalence.
 	* @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(key_type key) const
 	{
@@ -575,7 +576,7 @@ namespace fuzzy
 	* @param elem - element to compare elements against for equivalence.
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::find(element_type elem)
 	{
@@ -590,7 +591,7 @@ namespace fuzzy
 	* @param elem - element to compare elements against for equivalence.
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::find(element_type elem) const
 	{
@@ -605,7 +606,7 @@ namespace fuzzy
 	* @param key - key to compare against
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr bool basic_set<V, M, Container>::contains(key_type key) const
 	{
@@ -616,7 +617,7 @@ namespace fuzzy
 	* @param elem - element with key to search for.
 	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr bool basic_set<V, M, Container>::contains(element_type elem) const
 	{
@@ -631,7 +632,7 @@ namespace fuzzy
 	* @param key - key to compare elements to
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator>
 	basic_set<V, M, Container>::equal_range(key_type key)
@@ -646,7 +647,7 @@ namespace fuzzy
 	* @param key - key to compare elements to
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator>
 	basic_set<V, M, Container>::equal_range(key_type key) const
@@ -662,7 +663,7 @@ namespace fuzzy
 	* @param element - element with key to compare against
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::iterator, typename basic_set<V, M, Container>::iterator>
 	basic_set<V, M, Container>::equal_range(element_type elem)
@@ -678,7 +679,7 @@ namespace fuzzy
 	* @param element - element with key to compare against
 	* @return std::pair containing a pair of iterators defining the wanted range.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container>::const_iterator, typename basic_set<V, M, Container>::const_iterator>
 	basic_set<V, M, Container>::equal_range(element_type elem) const
@@ -690,7 +691,7 @@ namespace fuzzy
 	* @param elem - element to compare against.
 	* @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(element_type elem)
 	{
@@ -701,7 +702,7 @@ namespace fuzzy
 	* @param elem - element to compare against.
 	* @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(element_type elem) const
 	{
@@ -712,7 +713,7 @@ namespace fuzzy
 	* @param  - key to compare the element to.
 	* @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::lower_bound(key_type key)
 	{
@@ -723,7 +724,7 @@ namespace fuzzy
 	* @param  - key to compare the element to.
 	* @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::lower_bound(key_type key) const
 	{
@@ -735,7 +736,7 @@ namespace fuzzy
 	* @param elem - element to compare to.
 	* @return iterator pointing to the first element that is greater than key, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(element_type elem)
 	{
@@ -747,7 +748,7 @@ namespace fuzzy
 	* @param elem - element to compare to.
 	* @return iterator pointing to the first element that is greater than the supplied key, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(element_type elem) const
 	{
@@ -759,7 +760,7 @@ namespace fuzzy
 	* @param key - key to compare the elements to.
 	* @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator basic_set<V, M, Container>::upper_bound(key_type key)
 	{
@@ -771,7 +772,7 @@ namespace fuzzy
 	* @param key - key to compare the elements to.
 	* @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator basic_set<V, M, Container>::upper_bound(key_type key) const
 	{
@@ -782,7 +783,7 @@ namespace fuzzy
 	* @param set - the set to get the beginning of.
 	* @param An iterator pointing to the beginning of the set.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator begin(basic_set<V, M, Container> &set)
 	{
@@ -793,7 +794,7 @@ namespace fuzzy
 	* @param set - the set to get the beginning of.
 	* @param An cons_iterator pointing to the beginning of the set.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator begin(basic_set<V, M, Container> const &set)
 	{
@@ -804,7 +805,7 @@ namespace fuzzy
 	* @param set - the set to get the beginning of.
 	* @param An const_iterator pointing to the beginning of the set.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator cbegin(basic_set<V, M, Container> const& set)
 	{
@@ -815,7 +816,7 @@ namespace fuzzy
 	* @param set - the set to get the end of.
 	* @param An iterator pointing to the end of the set.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::iterator end(basic_set<V, M, Container>& set)
 	{
@@ -826,7 +827,7 @@ namespace fuzzy
 	* @param set - the set to get the end of.
 	* @param An const_iterator pointing to the end of the set.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator end(basic_set<V, M, Container> const& set)
 	{
@@ -837,7 +838,7 @@ namespace fuzzy
 	* @param set - the set to get the end of.
 	* @param An const_iterator pointing to the end of the set.
 	*/
-	template <class V, class M, class Container>
+	template <class V, class M, template <typename T, typename Alloc> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container>::const_iterator cend(basic_set<V, M, Container> const& set)
 	{
@@ -851,7 +852,7 @@ namespace fuzzy
 	* @param v3 - the highest value.
 	* @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
 	*/
-	template <class M, class V, class Container = std::vector<basic_element<V, M>>>
+	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container> make_triangle(V v1, V v2, V v3)
 	{
@@ -875,7 +876,7 @@ namespace fuzzy
 	* @param v3 - the highest value.
 	* @return A set with trapezoid shape of {v1, 0}, {v2, 1}, {v3, 1}, {v4, 0}.
 	*/
-	template <class M, class V, class Container = std::vector<basic_element<V, M>>>
+	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container> make_trapezoid(V v1, V v2, V v3, V v4)
 	{
@@ -893,6 +894,6 @@ namespace fuzzy
 	}
 
 	/** Convenience defintion for common use cases. */
-	typedef basic_set<int, float> set;
+	using set = basic_set<int, float, std::vector>;
 }
 #endif
