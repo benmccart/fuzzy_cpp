@@ -1058,10 +1058,22 @@ TEST_CASE("Scaled-Application", "[Scaled_Application]")
     set fan_speed2 = set{ element{ 750, 0.0f },element{ 800, 1.0f },element{ 850, 0.0f } };
     set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
 
-    auto sa1 = is<fuzzy::minimum<float>, std::vector, int, float>(fan_speed1,fast);
-    //fuzzy::scaled_application<int, float, std::vector> sa{};
-    
-    //REQUIRE(sa1.set().size() == 3u);
+    auto sa1 = is(fan_speed1,fast);
+    REQUIRE(sa1.set().size() == 3u);
+    REQUIRE(equivelant(sa1.set().membership(0.0f), 0.0f));
+    REQUIRE(equivelant(sa1.set().membership(0.1f), 0.2f));
+    REQUIRE(equivelant(sa1.set().membership(0.125f), 0.0f));
+
+    auto sa2 = is(fan_speed2,fast);
+    REQUIRE(sa2.set().size() == 5u);
+    REQUIRE(equivelant(sa2.set().membership(0.125f), 0.0f));
+    REQUIRE(equivelant(sa2.set().membership(0.1675f), 0.335f));
+    REQUIRE(equivelant(sa2.set().membership(0.25f), 0.5f));
+    REQUIRE(equivelant(sa2.set().membership(0.3f), 0.6f));
+    REQUIRE(equivelant(sa2.set().membership(0.375f), 0.0f));
+
+    auto sa3 = is<fuzzy::algabraic_product>(fan_speed2, fast);
+    REQUIRE(sa3.set().size() == 5u);
 }
 
 

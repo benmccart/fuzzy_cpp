@@ -467,16 +467,16 @@ namespace fuzzy
 			}
 		};
 
-		template <class Operation>
-		requires fuzzy::tnorm_type<Operation> || fuzzy::tconorm_type<Operation>
+		template <template <typename> class Operation>
 		struct operation
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container>
+			requires (fuzzy::tnorm_type<Operation<M>> || fuzzy::tconorm_type<Operation<M>>) && std::floating_point<M>
 			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& a, fuzzy::basic_set<V, M, Container> const& b)
 			{
 				using set_t = fuzzy::basic_set<V, M, Container>;
 				using element_t = typename set_t::element_type;
-				using op_t = Operation;
+				using op_t = Operation<M>;
 				using pair_t = typename set_operation_value_sequence<V, M, Container>::value_t;
 
 				set_t result;
@@ -696,8 +696,8 @@ namespace fuzzy
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The intersection of the two fuzzy sets.
 	*/
-	template <class V, class M, template <typename T, typename Alloc> class Container, class Operation = fuzzy::minimum<M>>
-	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Operation>
+	template <class V, class M, template <typename T, typename Alloc> class Container, template<typename> class Operation = fuzzy::minimum>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Operation<M>>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_intersection(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
@@ -709,8 +709,8 @@ namespace fuzzy
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The union of the two fuzzy sets.
 	*/
-	template <class V, class M, template <typename T, typename Alloc> class Container, class Operation = fuzzy::maximum<M>>
-	requires fuzzy::numeric<V> && std::floating_point<M>&& tconorm_type<Operation>
+	template <class V, class M, template <typename T, typename Alloc> class Container, template <typename> class Operation = fuzzy::maximum>
+	requires fuzzy::numeric<V> && std::floating_point<M>&& tconorm_type<Operation<M>>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
