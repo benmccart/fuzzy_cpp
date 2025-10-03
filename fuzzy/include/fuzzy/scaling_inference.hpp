@@ -29,12 +29,11 @@
 namespace fuzzy
 {
 	/**
-	* A mapping rule uses a relation to map a supplied fuzzy input to a mapped fuzzy output.  Abstractly it is a functional
-	* mapping from the domain to the range of the related fuzzy relation.
+	* Scaling inference is used for fuzzy implication, but functionally behaves as mapping rule.
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm = fuzzy::minimum<M> >
 	requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm>
-	class scaling_inference
+	class [[deprecated("inference not currently supported in lib fuzzy")]] scaling_inference
 	{
 	public:
 		using set_type = basic_set<V,M,Container>;

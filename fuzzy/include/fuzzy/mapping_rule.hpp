@@ -41,7 +41,8 @@ namespace fuzzy
 {
 	/**
 	* A mapping rule uses a relation to map a supplied fuzzy input to a mapped fuzzy output.  Abstractly it is a functional
-	* mapping from the domain to the range of the related fuzzy relation.
+	* mapping from the domain to the range of the related fuzzy relation.  Essentially it is the implementation mechanism for
+	* Mamdani fuzzy modelling.
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template<typename> class Tconorm = fuzzy::maximum >
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
