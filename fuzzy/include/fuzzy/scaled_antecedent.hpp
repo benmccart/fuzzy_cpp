@@ -62,12 +62,12 @@ namespace fuzzy
 	// Forward declaration.
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V>&& std::floating_point<M>
-	class scaled_application;
+	class scaled_antecedent;
 
 	// Forward declaration.
 	template <template <typename> class Tnorm, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
 	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_application<V, M, Container> is(fuzzy::basic_set<V, M, Container> const&, fuzzy::basic_set<V, M, Container> const&);
+	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container> const&, fuzzy::basic_set<V, M, Container> const&);
 
 	/**
 	 * @brief Represents a scaled application of a fuzzy value to a fuzzy variable.
@@ -77,7 +77,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	class scaled_application
+	class scaled_antecedent
 	{
 	public:
 		using container_type = Container<fuzzy::basic_element<V,M>>;
@@ -86,7 +86,7 @@ namespace fuzzy
 		using key_type = typename fuzzy::float_value_t<V>::value;
 		//using inner_container_type = Container<fuzzy::basic_element<key_type, M>>;
 		using set_type = fuzzy::basic_set<key_type, M, Container>;
-		using self_type = scaled_application<V, M, Container>;
+		using self_type = scaled_antecedent<V, M, Container>;
 		
 		//using element_type = basic_element<V, M>;
 		using membership_type = M;
@@ -105,8 +105,8 @@ namespace fuzzy
 		//using reverse_iterator = typename container_type::reverse_iterator;
 		//using const_reverse_iterator = typename container_type::const_reverse_iterator;
 
-		constexpr explicit scaled_application(self_type const&) = default;
-		constexpr explicit scaled_application(self_type&&) noexcept = default;
+		constexpr explicit scaled_antecedent(self_type const&) = default;
+		constexpr explicit scaled_antecedent(self_type&&) noexcept = default;
 
 		constexpr self_type& operator=(self_type const&) = default;
 		constexpr self_type& operator=(self_type&&) noexcept = default;
@@ -120,17 +120,17 @@ namespace fuzzy
 		 * @brief Ctor.
 		 * @param set The scaled fuzzy set to construct things from.
 		*/
-		constexpr explicit scaled_application(set_type&& set)
+		constexpr explicit scaled_antecedent(set_type&& set)
 			: set_(std::move(set))
 		{
 
 		}
 
-		constexpr scaled_application() {}
+		constexpr scaled_antecedent() {}
 
 		template <template <typename> class Tnorm, template <typename T, typename Alloc2 = std::allocator<T>> class Container2, class V2, class M2>
 		requires fuzzy::numeric<V2>&& std::floating_point<M2>&& fuzzy::tnorm_type<Tnorm<M2>>
-		friend constexpr scaled_application<V2, M2, Container2> is(fuzzy::basic_set<V2, M2, Container2> const&, fuzzy::basic_set<V2, M2, Container2> const&);
+		friend constexpr scaled_antecedent<V2, M2, Container2> is(fuzzy::basic_set<V2, M2, Container2> const&, fuzzy::basic_set<V2, M2, Container2> const&);
 
 		set_type set_;
 	};
@@ -148,14 +148,14 @@ namespace fuzzy
 	*/
 	template <template<typename> class Tnorm = fuzzy::minimum, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
 	requires fuzzy::numeric<V> && std::floating_point<M> && fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_application<V, M, Container> is(fuzzy::basic_set<V, M, Container> const& value, fuzzy::basic_set<V, M, Container> const& variable)
+	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container> const& value, fuzzy::basic_set<V, M, Container> const& variable)
 	{
 		using key_type = typename fuzzy::float_value_t<V>::value;
 		//using outer_container_t = Container<fuzzy::basic_element<V,M>>;
 		//using inner_container_t = Container<fuzzy::basic_element<key_type,M>>;
 
 		if (variable.empty())
-			return scaled_application<V, M, Container>{ };
+			return scaled_antecedent<V, M, Container>{ };
 
 		key_type const d0 = static_cast<key_type>(variable.front().value());
 		key_type const d1 = static_cast<key_type>(variable.back().value());
@@ -169,7 +169,7 @@ namespace fuzzy
 			scaled_set.insert(fuzzy::basic_element<key_type, M>{ scaled_value, e.membership() });
 		}
 
-		return scaled_application<V, M, Container>{ std::move(scaled_set) };
+		return scaled_antecedent<V, M, Container>{ std::move(scaled_set) };
 	}
 
 

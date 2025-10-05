@@ -34,7 +34,7 @@
 #include <fuzzy/operator.hpp>
 #include <fuzzy/relation.hpp>
 #include <fuzzy/set.hpp>
-#include <fuzzy/scaled_application.hpp>
+#include <fuzzy/scaled_antecedent.hpp>
 #include <fuzzy/scaling_inference.hpp>
 #include <fuzzy/traits.hpp>
 
