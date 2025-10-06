@@ -27,8 +27,8 @@
 #include <fuzzy/operator.hpp>
 #include <fuzzy/set.hpp>
 
-#ifndef FUZZY_CONSEQUENT_HPP
-#define FUZZY_CONSEQUENT_HPP
+#ifndef FUZZY_AGGREGATOR_HPP
+#define FUZZY_AGGREGATOR_HPP
 
 namespace fuzzy
 {
@@ -53,23 +53,23 @@ namespace fuzzy
 
 
 	/** 
-	* Models the fuzzy consequent of a fuzzy antecedant, namely a fuzzy mapping_rule.	
+	* Models the fuzzy aggregator of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	class consequent
+	class aggregator
 	{
 	public:
 		using set_type = basic_set<V, M, Container>;
 
-		consequent() = delete;
+		aggregator() = delete;
 
 		/**
-		* Constructs a fuzzy consequent that will aggregate the output of multiple fuzzy rules to the supplied set, using the supplied aggregator function.
-		* @param set The output consequent set for multiple mapping rules.
+		* Constructs a fuzzy aggregator that will aggregate the output of multiple fuzzy rules to the supplied set, using the supplied aggregator function.
+		* @param set The output aggregator set for multiple mapping rules.
 		* @param func The function to use to aggregate outputs from individual mapping rules.
 		*/
-		constexpr explicit consequent(AggregatorFunc<M> func) : func_(func) {}
+		constexpr explicit aggregator(AggregatorFunc<M> func) : func_(func) {}
 
 		constexpr void aggregate(set_type const&);
 		constexpr operator set_type ();
@@ -81,19 +81,19 @@ namespace fuzzy
 	};
 
 	/**
-	* Template deduction guid for consequent.
+	* Template deduction guid for aggregator.
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	consequent(basic_set<V, M, Container> const&, AggregatorFunc<M>) -> consequent<V, M, AggregatorFunc, Container>;
+	aggregator(basic_set<V, M, Container> const&, AggregatorFunc<M>) -> aggregator<V, M, AggregatorFunc, Container>;
 
 	/**
-	* Aggregates the specified input to the consequent set.
+	* Aggregates the specified input to the aggregator set.
 	* @param input The input set  to aggregate (oputput from mapping_rule.)
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr void consequent<V, M, AggregatorFunc, Container>::aggregate(set_type const& input)
+	constexpr void aggregator<V, M, AggregatorFunc, Container>::aggregate(set_type const& input)
 	{
 		using element_t = typename set_type::element_type;
 		using pair_t = std::pair<element_t, element_t>;
@@ -109,11 +109,11 @@ namespace fuzzy
 	}
 
 	/**
-	* Retrieves the underlying consequent fuzzy set via an implicit conversion operator.
+	* Retrieves the underlying aggregator fuzzy set via an implicit conversion operator.
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr consequent<V, M, AggregatorFunc, Container>::operator set_type ()
+	constexpr aggregator<V, M, AggregatorFunc, Container>::operator set_type ()
 	{
 		if (dirty_)
 		{
@@ -168,4 +168,4 @@ namespace fuzzy
 }
 
 
-#endif // FUZZY_CONSEQUENT_HPP
+#endif // FUZZY_AGGREGATOR_HPP

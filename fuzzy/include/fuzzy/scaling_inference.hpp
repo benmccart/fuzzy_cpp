@@ -79,12 +79,12 @@ namespace fuzzy
 	/**
 	* Scales the crisp input to a fuzzy output using the antecedent this inference rule was constructed with.
 	* @param value The crisp input to scale.
-	* @param consequent The inferred fuzzy output to scale to.
+	* @param aggregator The inferred fuzzy output to scale to.
 	* @return The fuzzy scaled inference.
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Tnorm>
 		requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm>
-	constexpr typename scaling_inference<V, M, Container, Tnorm>::set_type scaling_inference<V, M, Container, Tnorm>::apply(V value, set_type const& consequent) const
+	constexpr typename scaling_inference<V, M, Container, Tnorm>::set_type scaling_inference<V, M, Container, Tnorm>::apply(V value, set_type const& aggregator) const
 	{
 		using math::promote;
 
@@ -93,7 +93,7 @@ namespace fuzzy
 		if (antecedent_->empty())
 			return result;
 		
-		if (consequent.empty())
+		if (aggregator.empty())
 			return result;
 
 		if (value > antecedent_->back() || antecedent_->back() < value)
@@ -101,11 +101,11 @@ namespace fuzzy
 
 		M const domain = static_cast<M>(antecedent_->back().value() - antecedent_->front().value());
 		M const domain_scale = static_cast<M>(value - antecedent_->front().value()) / domain;
-		V const rmin = consequent.front().value();
-		V const rmax = consequent.back().value();
+		V const rmin = aggregator.front().value();
+		V const rmax = aggregator.back().value();
 		M const range = static_cast<M>(rmax - rmin);
 		V const range_value = std::clamp(rmin + static_cast<V>(fuzzy::math::round<V>(domain_scale * range)), rmin, rmax);
-		M const range_membership = Tnorm::apply(antecedent_->membership(value), consequent.membership(range_value));
+		M const range_membership = Tnorm::apply(antecedent_->membership(value), aggregator.membership(range_value));
 		result.insert(element_type{ range_value, range_membership });
 		result.insert(element_type{ rmin, static_cast<M>(0) });
 		result.insert(element_type{ rmax, static_cast<M>(0) });

@@ -31,8 +31,8 @@
 #include <fuzzy/traits.hpp>
 
 
-#ifndef FUZZY_SCALED_APPLICATION_HPP
-#define FUZZY_SCALED_APPLICATION_HPP
+#ifndef FUZZY_SCALED_ANTECEDENT_HPP
+#define FUZZY_SCALED_ANTECEDENT_HPP
 
 namespace fuzzy
 {
@@ -179,4 +179,4 @@ namespace fuzzy
 
 
 }
-#endif // FUZZY_SCALED_APPLICATION_HPP
+#endif // FUZZY_SCALED_ANTECEDENT_HPP
