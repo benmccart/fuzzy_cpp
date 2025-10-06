@@ -27,7 +27,7 @@
 #define FUZZY_LIB_ALL_HPP
 
 #include <fuzzy/algorithm.hpp>
-#include <fuzzy/aggregator.hpp>
+#include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/element.hpp>
 #include <fuzzy/mapping_rule.hpp>
 #include <fuzzy/math.hpp>

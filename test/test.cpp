@@ -982,7 +982,7 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
 
 TEST_CASE("Consequent-1", "[Consequent_1]")
 {
-	aggregator<int, float, fuzzy::mamdani> cons1{fuzzy::mamdani<float>{}};
+	result_aggregator<int, float, fuzzy::mamdani> cons1{fuzzy::mamdani<float>{}};
 	set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1900, 0.6f },element{ 2000, 0.6f },element{ 2400, 0.0f } };
 	set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1600, 0.6f },element{ 1700, 0.6f },element{ 2000, 0.0f } };
 	cons1.aggregate(horse_strength1);
@@ -1000,7 +1000,7 @@ TEST_CASE("Consequent-1", "[Consequent_1]")
 
 TEST_CASE("Consequent-2", "[Consequent_2]")
 {
-    aggregator<int, float, mamdani> cons2{fuzzy::mamdani<float>{}};
+    result_aggregator<int, float, mamdani> cons2{fuzzy::mamdani<float>{}};
     set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
     set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
@@ -1018,7 +1018,7 @@ TEST_CASE("Consequent-2", "[Consequent_2]")
 
 TEST_CASE("Consequent-3", "[Consequent_3]")
 {
-    aggregator<int, float, fuzzy::standard_additive_model> cons1{fuzzy::standard_additive_model<float>{}};
+    result_aggregator<int, float, fuzzy::standard_additive_model> cons1{fuzzy::standard_additive_model<float>{}};
     set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1700, 0.25f },element{ 1800, 0.5f },element{ 2100, 0.25f },element{ 2400, 0.0f } };
     set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1500, 0.25f },element{ 1800, 0.5f },element{ 1900, 0.25f },element{ 2000, 0.0f } };
     cons1.aggregate(horse_strength1);
@@ -1036,7 +1036,7 @@ TEST_CASE("Consequent-3", "[Consequent_3]")
 
 TEST_CASE("Consequent-4", "[Consequent_4]")
 {
-    aggregator<int, float, fuzzy::standard_additive_model> cons2{fuzzy::standard_additive_model<float>{}};
+    result_aggregator<int, float, fuzzy::standard_additive_model> cons2{fuzzy::standard_additive_model<float>{}};
     set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
     set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
