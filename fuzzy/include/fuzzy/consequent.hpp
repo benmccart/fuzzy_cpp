@@ -33,28 +33,29 @@
 namespace fuzzy
 {
 
-	template <class Tconorm>
-	requires tconorm_type<Tconorm>
-	struct Tconorm_converter
+	template <typename M, template <typename> class Tconorm>
+	requires std::floating_point<M> && fuzzy::tconorm_type<Tconorm<M>>
+	class Tconorm_converter
 	{
-		using membership_type = typename Tconorm::value_type;
+	public:
+		using membership_type = M;
 
 		constexpr Tconorm_converter() = default;
-		constexpr Tconorm_converter(Tconorm) {}
+		constexpr Tconorm_converter(Tconorm<M>) {}
 		[[nodiscard]] constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
 		{
-			return Tconorm::apply(a, b);
+			return Tconorm<M>::apply(a, b);
 		}
 	};
 
-	template <class Tconorm>
-	Tconorm_converter(Tconorm) -> Tconorm_converter<Tconorm>;
+	//template <typename M, template <typename> class Tconorm>
+	//Tconorm_converter(Tconorm<M>) -> Tconorm_converter<M,Tconorm>;
 
 
 	/** 
 	* Models the fuzzy consequent of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class AggregatorFunc = Tconorm_converter<fuzzy::maximum<M>>>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class consequent
 	{
@@ -68,31 +69,31 @@ namespace fuzzy
 		* @param set The output consequent set for multiple mapping rules.
 		* @param func The function to use to aggregate outputs from individual mapping rules.
 		*/
-		constexpr explicit consequent(AggregatorFunc func) : func_(func) {}
+		constexpr explicit consequent(AggregatorFunc<M> func) : func_(func) {}
 
 		constexpr void aggregate(set_type const&);
 		constexpr operator set_type ();
 
 	private:
 		set_type set_;
-		AggregatorFunc func_;
+		AggregatorFunc<M> func_;
 		bool dirty_ = false;
 	};
 
 	/**
 	* Template deduction guid for consequent.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class AggregatorFunc = fuzzy::maximum<M>>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	consequent(basic_set<V, M, Container> const&, AggregatorFunc) -> consequent<V, M, Container, AggregatorFunc>;
+	consequent(basic_set<V, M, Container> const&, AggregatorFunc<M>) -> consequent<V, M, AggregatorFunc, Container>;
 
 	/**
 	* Aggregates the specified input to the consequent set.
 	* @param input The input set  to aggregate (oputput from mapping_rule.)
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class AggregatorFunc>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr void consequent<V, M, Container, AggregatorFunc>::aggregate(set_type const& input)
+	constexpr void consequent<V, M, AggregatorFunc, Container>::aggregate(set_type const& input)
 	{
 		using element_t = typename set_type::element_type;
 		using pair_t = std::pair<element_t, element_t>;
@@ -110,9 +111,9 @@ namespace fuzzy
 	/**
 	* Retrieves the underlying consequent fuzzy set via an implicit conversion operator.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class AggregatorFunc>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr consequent<V, M, Container, AggregatorFunc>::operator set_type ()
+	constexpr consequent<V, M, AggregatorFunc, Container>::operator set_type ()
 	{
 		if (dirty_)
 		{
@@ -135,9 +136,10 @@ namespace fuzzy
 	}
 
 	template <class M>
-	using mamdani = Tconorm_converter<fuzzy::maximum<M>>;
+	using mamdani = Tconorm_converter<M, fuzzy::maximum>;
 
 	template <class M>
+	requires std::floating_point<M>
 	struct standard_additive_model
 	{
 		using membership_type = M;
