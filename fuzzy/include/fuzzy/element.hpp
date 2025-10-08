@@ -1,4 +1,4 @@
-//  Copyright (c) 2022, Ben McCart
+//  Copyright (c) 2025, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -27,8 +27,8 @@
 #define FUZZY_ELEMENT_HPP
 
 #include <cassert>
-#include <concepts>
 
+#include <fuzzy/concepts.hpp>
 #include <fuzzy/operator.hpp>
 #include <fuzzy/traits.hpp>
 

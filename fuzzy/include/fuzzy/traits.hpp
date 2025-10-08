@@ -1,4 +1,4 @@
-//  Copyright (c) 2022, Ben McCart
+//  Copyright (c) 2025, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -27,29 +27,14 @@
 #define FUZZY_TRAITS_HPP
 
 #include <array>
-#include <concepts>
 #include <type_traits>
 
+#include <fuzzy/concepts.hpp>
 #include <fuzzy/fwd.hpp>
 
 
 namespace fuzzy 
 {
-	//template <class T>
-	//concept empty_struct = std::is_empty_v<T>;
-
-	//template <class T>
-	//concept has_tnorm_tag = empty_struct<T> && requires (T)
-	//{
-	//	typename T::tnorm;
-	//};
-
-	//template <class T>
-	//concept has_tconorm_tag = empty_struct<T> && requires (T)
-	//{
-	//	typename T::tconorm;
-	//};
-
 	template <class V>
 	struct float_value_t
 	{

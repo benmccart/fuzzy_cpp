@@ -1,4 +1,4 @@
-//  Copyright (c) 2022, Ben McCart
+//  Copyright (c) 2025, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -27,6 +27,7 @@
 #define FUZZY_LIB_ALL_HPP
 
 #include <fuzzy/algorithm.hpp>
+#include <fuzzy/concepts.hpp>
 #include <fuzzy/consequent.hpp>
 #include <fuzzy/element.hpp>
 #include <fuzzy/mapping_rule.hpp>
@@ -36,7 +37,7 @@
 #include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/scaled_antecedent.hpp>
-#include <fuzzy/scaling_inference.hpp>
+// #include <fuzzy/scaling_inference.hpp> DEPRECATED
 #include <fuzzy/traits.hpp>
 
 #endif

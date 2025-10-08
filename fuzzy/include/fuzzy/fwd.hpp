@@ -1,4 +1,4 @@
-//  Copyright (c) 2022, Ben McCart
+//  Copyright (c) 2025, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -25,11 +25,8 @@
 #ifndef FUZZY_FWD_HPP
 #define FUZZY_FWD_HPP
 
-//#include <fuzzy/traits.hpp>
-#include <concepts>
 #include <vector>
-
-// FIXME: Move concepts out of traits & here and put it in a concepts file.
+#include <fuzzy/concepts.hpp>
 
 namespace fuzzy
 {
@@ -80,50 +77,6 @@ namespace fuzzy
 	template <typename M>
 	requires std::floating_point<M>
 	struct maximum;
-
-	struct tnorm_tag {};
-	struct tconorm_tag {};
-
-	template <class T>
-	concept tnorm_typenames = requires (T)
-	{
-		typename T::tnorm;
-		typename T::value_type;
-	};
-
-	template <class T>
-	concept tnorm_type = tnorm_typenames<T> && std::is_same_v<typename T::tnorm, tnorm_tag>&& std::is_floating_point_v<typename T::value_type>&& requires (T)
-	{
-		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
-	};
-
-	template <class T>
-	concept tconorm_typenames = requires (T)
-	{
-		typename T::tconorm;
-		typename T::value_type;
-	};
-
-	template <class T>
-	concept tconorm_type = tconorm_typenames<T> && std::is_same_v<typename T::tconorm, tconorm_tag>&& std::is_floating_point_v<typename T::value_type>&& requires (T)
-	{
-		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
-	};
-
-	template <typename T>
-	concept numeric = std::integral<T> || std::floating_point<T>;
-
-	template <class VF, class V>
-	concept ValueFunction = fuzzy::numeric<V> && requires (V va, V vb, VF vf)
-	{
-		{ vf(va, vb) } -> std::same_as<V>;
-	};
-
-	template <class MF, class M>
-	concept MembershipFunction = std::floating_point<M> && requires (M m, MF mf)
-	{
-		{ mf(m) } -> std::same_as<M>;
-	};
 
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V>&& std::floating_point<M>

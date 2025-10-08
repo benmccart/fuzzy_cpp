@@ -22,33 +22,59 @@
 //  FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
+#ifndef FUZZY_CONCEPTS_HPP
+#define FUZZY_CONCEPTS_HPP
 
-#ifndef FUZZY_TEST_TEST_HPP_
-#define FUZZY_TEST_TEST_HPP_
+//#include <fuzzy/traits.hpp>
+#include <concepts>
+#include <vector>
 
-#include "../include/fuzzy.hpp"
+// FIXME: Move concepts out of traits & here and put it in a concepts file.
 
 namespace fuzzy
 {
-	constexpr bool all_ranges_valid(set const& s)
+	struct tnorm_tag {};
+	struct tconorm_tag {};
+
+	template <class T>
+	concept tnorm_typenames = requires (T)
 	{
-		size_t size = s.size();
-		if (s.end() - s.begin() != size)
-			return false;
+		typename T::tnorm;
+		typename T::value_type;
+	};
 
-		if (s.cend() - s.cbegin() != size)
-			return false;
+	template <class T>
+	concept tnorm_type = tnorm_typenames<T> && std::is_same_v<typename T::tnorm, tnorm_tag>&& std::is_floating_point_v<typename T::value_type>&& requires (T)
+	{
+		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
+	};
 
-		if (s.rend() - s.rbegin() != size)
-			return false;
+	template <class T>
+	concept tconorm_typenames = requires (T)
+	{
+		typename T::tconorm;
+		typename T::value_type;
+	};
 
-		if (s.crend() - s.crbegin() != size)
-			return false;
+	template <class T>
+	concept tconorm_type = tconorm_typenames<T> && std::is_same_v<typename T::tconorm, tconorm_tag>&& std::is_floating_point_v<typename T::value_type>&& requires (T)
+	{
+		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
+	};
 
-		return true;
-	}
+	template <typename T>
+	concept numeric = std::integral<T> || std::floating_point<T>;
+
+	template <class VF, class V>
+	concept ValueFunction = fuzzy::numeric<V> && requires (V va, V vb, VF vf)
+	{
+		{ vf(va, vb) } -> std::same_as<V>;
+	};
+
+	template <class MF, class M>
+	concept MembershipFunction = std::floating_point<M> && requires (M m, MF mf)
+	{
+		{ mf(m) } -> std::same_as<M>;
+	};
 }
-
-
-
-#endif
+#endif // FUZZY_CONCEPTS_HPP
