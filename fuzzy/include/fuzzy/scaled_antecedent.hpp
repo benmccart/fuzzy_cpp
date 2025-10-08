@@ -107,17 +107,15 @@ namespace fuzzy
 
 
 	private:
+
+		constexpr scaled_antecedent() {}
+
 		/**
 		 * @brief Ctor.
 		 * @param set The scaled fuzzy set to construct things from.
 		*/
 		constexpr explicit scaled_antecedent(set_type&& set)
-			: set_(std::move(set))
-		{
-
-		}
-
-		constexpr scaled_antecedent() {}
+			: set_(std::move(set)) {}
 
 		template <template <typename> class Tnorm, template <typename T, typename Alloc2 = std::allocator<T>> class Container2, class V2, class M2>
 		requires fuzzy::numeric<V2>&& std::floating_point<M2>&& fuzzy::tnorm_type<Tnorm<M2>>

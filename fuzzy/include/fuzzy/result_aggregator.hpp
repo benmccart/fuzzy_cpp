@@ -61,8 +61,10 @@ namespace fuzzy
 	{
 	public:
 		using set_type = basic_set<V, M, Container>;
+		using consequent_type = consequent<V,M,AggregatorFunc, Container>;
 
 		result_aggregator() = delete;
+		consequent_type shall_be(set_type&&) = delete;
 
 		/**
 		* Constructs a fuzzy result_aggregator that will aggregate the output of multiple fuzzy rules to the supplied set, using the supplied result_aggregator function.
@@ -72,7 +74,8 @@ namespace fuzzy
 		constexpr explicit result_aggregator(AggregatorFunc<M> func) : func_(func) {}
 
 		constexpr void aggregate(set_type const&);
-		constexpr set_type& result();
+		constexpr consequent_type shall_be(set_type const&) noexcept;
+		constexpr set_type& result() noexcept;
 
 	private:
 		set_type set_;
@@ -108,12 +111,22 @@ namespace fuzzy
 		dirty_ = true;
 	}
 
+
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	requires fuzzy::numeric<V>&& std::floating_point<M>
+	constexpr typename result_aggregator<V, M, AggregatorFunc, Container>::consequent_type result_aggregator<V, M, AggregatorFunc, Container>::shall_be(set_type const& target) noexcept
+	{
+		return consequent_type{ *this, target };
+	}
+
+	
+
 	/**
 	* Retrieves the underlying result_aggregator fuzzy set via an implicit conversion operator.
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr typename result_aggregator<V, M, AggregatorFunc, Container>::set_type& result_aggregator<V, M, AggregatorFunc, Container>::result()
+	constexpr typename result_aggregator<V, M, AggregatorFunc, Container>::set_type& result_aggregator<V, M, AggregatorFunc, Container>::result() noexcept
 	{
 		if (dirty_)
 		{

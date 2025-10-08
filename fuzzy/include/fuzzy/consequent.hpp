@@ -55,8 +55,6 @@ namespace fuzzy
 		* @param set The output consequent set for multiple mapping rules.
 		* @param func The function to use to aggregate outputs from individual mapping rules.
 		*/
-		constexpr consequent(aggregator_type&& aggregator, set_type const &target) noexcept : aggregator_(&aggregator), target_(&target) {}
-
 		consequent() = delete;
 		consequent(aggregator_type&& aggregator, set_type&& target) = delete;
 		consequent(self_type const&) = delete;
@@ -68,64 +66,18 @@ namespace fuzzy
 		constexpr aggregator_type& aggregator() const noexcept    { return *aggregator_; }
 
 	private:
+
+		constexpr consequent(aggregator_type&& aggregator, set_type const& target) noexcept : aggregator_(&aggregator), target_(&target) {}
+
+		template <class V2, class M2, template <typename> class AggregatorFunc2, template <typename T2, typename Alloc2 = std::allocator<T2>> class Container2>
+		requires fuzzy::numeric<V2>&& std::floating_point<M2>
+		friend class result_aggregator;
+
 		aggregator_type *aggregator_;
 		set_type const *target_;
 	};
 
-	///**
-	//* Template deduction guid for consequent.
-	//*/
-	//template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
-	//requires fuzzy::numeric<V> && std::floating_point<M>
-	//consequent(basic_set<V, M, Container> const&, AggregatorFunc<M>) -> consequent<V, M, AggregatorFunc, Container>;
 
-	///**
-	//* Aggregates the specified input to the consequent set.
-	//* @param input The input set  to aggregate (oputput from mapping_rule.)
-	//*/
-	//template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	//requires fuzzy::numeric<V> && std::floating_point<M>
-	//constexpr void consequent<V, M, AggregatorFunc, Container>::aggregate(set_type const& input)
-	//{
-	//	using element_t = typename set_type::element_type;
-	//	using pair_t = std::pair<element_t, element_t>;
-
-	//	set_type result;
-	//	detail::set_operation_value_sequence<V, M, Container> seq{ set_, input };
-	//	for (pair_t const& pair : seq)
-	//	{
-	//		result.insert(element_t{ pair.first.value(), func_(pair.first.membership(), pair.second.membership()) });
-	//	}
-	//	set_.swap(result);
-	//	dirty_ = true;
-	//}
-
-	///**
-	//* Retrieves the underlying consequent fuzzy set via an implicit conversion operator.
-	//*/
-	//template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	//requires fuzzy::numeric<V> && std::floating_point<M>
-	//constexpr typename consequent<V, M, AggregatorFunc, Container>::set_type& consequent<V, M, AggregatorFunc, Container>::result()
-	//{
-	//	if (dirty_)
-	//	{
-	//		auto itr = std::max_element(begin(set_), end(set_), [](auto l, auto r) { return l.membership() < r.membership(); });
-	//		if (itr != end(set_))
-	//		{
-	//			M const max = itr->membership();
-	//			if (max > static_cast<M>(1))
-	//			{
-	//				for (auto& element : set_)
-	//				{
-	//					element.membership(element.membership() / max);
-	//				}
-	//			}
-	//		}
-	//		dirty_ = false;
-	//	}
-
-	//	return set_;
-	//}
 }
 
 
