@@ -988,7 +988,7 @@ TEST_CASE("Consequent-1", "[Consequent_1]")
 	cons1.aggregate(horse_strength1);
 	cons1.aggregate(horse_strength2);
 
-	set const& horse_strength3 = cons1;
+	set const& horse_strength3 = cons1.result();
 	REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
 	REQUIRE(equivelant(horse_strength3.membership(1600), 0.6f));
 	REQUIRE(equivelant(horse_strength3.membership(1700), 0.6f));
@@ -1006,7 +1006,7 @@ TEST_CASE("Consequent-2", "[Consequent_2]")
     cons2.aggregate(fan_speed1);
     cons2.aggregate(fan_speed2);
 
-    set const& fan_speed3 = cons2;
+    set const& fan_speed3 = cons2.result();
     REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
     REQUIRE(equivelant(fan_speed3.membership(780), 0.4f));
@@ -1024,7 +1024,7 @@ TEST_CASE("Consequent-3", "[Consequent_3]")
     cons1.aggregate(horse_strength1);
     cons1.aggregate(horse_strength2);
 
-    set const& horse_strength3 = cons1;
+    set const& horse_strength3 = cons1.result();
     REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
     REQUIRE(equivelant(horse_strength3.membership(1600), 0.33333333f));
     REQUIRE(equivelant(horse_strength3.membership(1700), 0.66666666f));
@@ -1042,7 +1042,7 @@ TEST_CASE("Consequent-4", "[Consequent_4]")
     cons2.aggregate(fan_speed1);
     cons2.aggregate(fan_speed2);
 
-    set const& fan_speed3 = cons2;
+    set const& fan_speed3 = cons2.result();
     REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
     REQUIRE(equivelant(fan_speed3.membership(780), 0.7990930f));

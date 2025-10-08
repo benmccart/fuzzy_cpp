@@ -27,6 +27,7 @@
 #include <memory>
 
 #include <fuzzy/algorithm.hpp>
+#include <fuzzy/fwd.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/traits.hpp>
 
@@ -58,16 +59,6 @@ namespace fuzzy
 		else
 			return v;
 	}
-
-	// Forward declaration.
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V>&& std::floating_point<M>
-	class scaled_antecedent;
-
-	// Forward declaration.
-	template <template <typename> class Tnorm, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
-	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container> const&, fuzzy::basic_set<V, M, Container> const&);
 
 	/**
 	 * @brief Represents a scaled application of a fuzzy value to a fuzzy variable.

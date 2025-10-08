@@ -27,12 +27,13 @@
 #define FUZZY_LIB_ALL_HPP
 
 #include <fuzzy/algorithm.hpp>
-#include <fuzzy/result_aggregator.hpp>
+#include <fuzzy/consequent.hpp>
 #include <fuzzy/element.hpp>
 #include <fuzzy/mapping_rule.hpp>
 #include <fuzzy/math.hpp>
 #include <fuzzy/operator.hpp>
 #include <fuzzy/relation.hpp>
+#include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/scaled_antecedent.hpp>
 #include <fuzzy/scaling_inference.hpp>

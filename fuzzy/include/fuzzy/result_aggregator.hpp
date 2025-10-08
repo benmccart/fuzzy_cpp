@@ -48,14 +48,14 @@ namespace fuzzy
 		}
 	};
 
-	//template <typename M, template <typename> class Tconorm>
-	//Tconorm_converter(Tconorm<M>) -> Tconorm_converter<M,Tconorm>;
+	template <typename M, template <typename> class Tconorm>
+	Tconorm_converter(Tconorm<M>) -> Tconorm_converter<M,Tconorm>;
 
 
 	/** 
 	* Models the fuzzy result_aggregator of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class result_aggregator
 	{
@@ -72,7 +72,7 @@ namespace fuzzy
 		constexpr explicit result_aggregator(AggregatorFunc<M> func) : func_(func) {}
 
 		constexpr void aggregate(set_type const&);
-		constexpr operator set_type ();
+		constexpr set_type& result();
 
 	private:
 		set_type set_;
@@ -83,7 +83,7 @@ namespace fuzzy
 	/**
 	* Template deduction guid for result_aggregator.
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	result_aggregator(basic_set<V, M, Container> const&, AggregatorFunc<M>) -> result_aggregator<V, M, AggregatorFunc, Container>;
 
@@ -113,7 +113,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr result_aggregator<V, M, AggregatorFunc, Container>::operator set_type ()
+	constexpr typename result_aggregator<V, M, AggregatorFunc, Container>::set_type& result_aggregator<V, M, AggregatorFunc, Container>::result()
 	{
 		if (dirty_)
 		{

@@ -35,9 +35,6 @@
 
 namespace fuzzy 
 {
-	struct tnorm_tag {};
-	struct tconorm_tag {};
-
 	//template <class T>
 	//concept empty_struct = std::is_empty_v<T>;
 
@@ -52,37 +49,6 @@ namespace fuzzy
 	//{
 	//	typename T::tconorm;
 	//};
-
-	template <class T>
-	concept tnorm_typenames = requires (T)
-	{
-		typename T::tnorm;
-		typename T::value_type;
-	};
-
-	template <class T>
-	concept tnorm_type = tnorm_typenames<T> && std::is_same_v<typename T::tnorm, tnorm_tag> && std::is_floating_point_v<typename T::value_type> && requires (T)
-	{
-		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
-	};
-
-	template <class T>
-	concept tconorm_typenames = requires (T)
-	{
-		typename T::tconorm;
-		typename T::value_type;
-	};
-
-	template <class T>
-	concept tconorm_type = tconorm_typenames<T> && std::is_same_v<typename T::tconorm, tconorm_tag> && std::is_floating_point_v<typename T::value_type> && requires (T)
-	{
-		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
-	};
-
-	template <typename T>
-	concept numeric = std::integral<T> || std::floating_point<T>;
-
-
 
 	template <class V>
 	struct float_value_t

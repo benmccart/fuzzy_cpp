@@ -493,20 +493,6 @@ namespace fuzzy
 			}
 		};
 
-
-		template <class VF, class V>
-		concept ValueFunction = fuzzy::numeric<V> && requires (V va, V vb, VF vf)
-		{
-			{ vf(va, vb) } -> std::same_as<V>;
-		};
-
-		template <class MF, class M>
-		concept MembershipFunction = std::floating_point<M> && requires (M m, MF mf)
-		{
-			{ mf(m) } -> std::same_as<M>;
-		};
-
-
 		template <class V, class VF>
 		requires ValueFunction<VF, V>
 		V values(V a, V b, VF vf)
