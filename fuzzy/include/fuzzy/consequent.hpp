@@ -57,6 +57,8 @@ namespace fuzzy
 		*/
 		consequent() = delete;
 		consequent(aggregator_type&& aggregator, set_type&& target) = delete;
+		consequent(aggregator_type& aggregator, set_type&& target) = delete;
+		consequent(aggregator_type&& aggregator, set_type const& target) = delete;
 		consequent(self_type const&) = delete;
 		consequent(self_type&&) = delete;
 		self_type& operator=(self_type const&) = delete;
@@ -67,7 +69,7 @@ namespace fuzzy
 
 	private:
 
-		constexpr consequent(aggregator_type&& aggregator, set_type const& target) noexcept : aggregator_(&aggregator), target_(&target) {}
+		constexpr consequent(aggregator_type& aggregator, set_type const& target) noexcept : aggregator_(&aggregator), target_(&target) {}
 
 		template <class V2, class M2, template <typename> class AggregatorFunc2, template <typename T2, typename Alloc2 = std::allocator<T2>> class Container2>
 		requires fuzzy::numeric<V2>&& std::floating_point<M2>

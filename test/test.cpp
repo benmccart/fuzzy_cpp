@@ -1077,7 +1077,7 @@ TEST_CASE("Consequent-4", "[Consequent_4]")
     REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
 }
 
-TEST_CASE("Scaled-Application", "[Scaled_Application]")
+TEST_CASE("Scaled-Antecedent", "[Scaled_Antecedent]")
 {
     set fan_speed1 = set{ element{ 650, 0.0f },element{ 700, 1.0f },element{ 750, 0.0f }};
     set fan_speed2 = set{ element{ 750, 0.0f },element{ 800, 1.0f },element{ 850, 0.0f } };
@@ -1099,6 +1099,23 @@ TEST_CASE("Scaled-Application", "[Scaled_Application]")
 
     auto sa3 = is<fuzzy::algabraic_product>(fan_speed2, fast);
     REQUIRE(sa3.set().size() == 5u);
+}
+
+
+
+
+
+
+TEST_CASE("Result-Aggregator", "[Result_Aggregator]")
+{
+    result_aggregator<int, float, sam> fan_speed{ sam<float>{} };
+
+    set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
+    auto consequent = fan_speed.shall_be(fast);
+
+    REQUIRE(&consequent.target() == &fast);
+    REQUIRE(&consequent.aggregator() == &fan_speed);
+    REQUIRE(consequent.aggregator().result().empty());
 }
 
 

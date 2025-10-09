@@ -67,11 +67,10 @@ namespace fuzzy
 		consequent_type shall_be(set_type&&) = delete;
 
 		/**
-		* Constructs a fuzzy result_aggregator that will aggregate the output of multiple fuzzy rules to the supplied set, using the supplied result_aggregator function.
-		* @param set The output result_aggregator set for multiple mapping rules.
-		* @param func The function to use to aggregate outputs from individual mapping rules.
+		* Constructs a fuzzy result_aggregator which will use the supplied aggregation function.
+		* @param func The function to use to aggregate fuzzy mapping consequents.
 		*/
-		constexpr explicit result_aggregator(AggregatorFunc<M> func) : func_(func) {}
+		constexpr result_aggregator(AggregatorFunc<M> func) : func_(func) {}
 
 		constexpr void aggregate(set_type const&);
 		constexpr consequent_type shall_be(set_type const&) noexcept;
@@ -165,18 +164,19 @@ namespace fuzzy
 		}
 	};
 
-
-
 	template <class M>
-	requires std::floating_point<M>
-	struct additive
-	{
-		constexpr additive() = default;
-		constexpr M operator()(M a, M b)
-		{
-			return a + b;
-		}
-	};
+	using sam = standard_additive_model<M>;
+
+	//template <class M>
+	//requires std::floating_point<M>
+	//struct additive
+	//{
+	//	constexpr additive() = default;
+	//	constexpr M operator()(M a, M b)
+	//	{
+	//		return a + b;
+	//	}
+	//};
 
 }
 
