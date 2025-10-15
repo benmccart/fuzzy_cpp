@@ -37,7 +37,8 @@
 #include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/scaled_antecedent.hpp>
-// #include <fuzzy/scaling_inference.hpp> DEPRECATED
+#include <fuzzy/scaling_inference.hpp>
+#include <fuzzy/scaled_mapping.hpp>
 #include <fuzzy/traits.hpp>
 
 #endif

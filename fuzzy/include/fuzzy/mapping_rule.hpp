@@ -46,7 +46,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template<typename> class Tconorm = fuzzy::maximum >
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
-	class mapping_rule
+	class [[deprecated("mapping_rule is very ineficient")]] mapping_rule
 	{
 	public:
 		using relation_type = relation<V, M, Container, Tnorm>;

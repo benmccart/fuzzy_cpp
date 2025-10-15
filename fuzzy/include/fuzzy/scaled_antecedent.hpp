@@ -37,10 +37,6 @@
 
 namespace fuzzy
 {
-
-
-
-
 	/**
 	* Used for determining the value type.
 	*/
@@ -73,28 +69,11 @@ namespace fuzzy
 	public:
 		using container_type = Container<fuzzy::basic_element<V,M>>;
 		
-		//using value_type = float_value_t<V>::value;
 		using key_type = typename fuzzy::float_value_t<V>::value;
-		//using inner_container_type = Container<fuzzy::basic_element<key_type, M>>;
 		using set_type = fuzzy::basic_set<key_type, M, Container>;
 		using self_type = scaled_antecedent<V, M, Container>;
-		
-		//using element_type = basic_element<V, M>;
 		using membership_type = M;
-		//using value_type = element_type;
 		using size_type = typename container_type::size_type;
-		//using difference_type = typename container_type::difference_type;
-		//using key_compare = std::less<key_type>;
-		//using value_compare = std::less<element_type>;
-		//using allocator_type = typename container_type::allocator_type;
-		//using reference = element_type&;
-		//using const_reference = element_type const&;
-		//using pointer = typename container_type::pointer;
-		//using const_pointer = typename container_type::const_pointer;
-		//using iterator = typename container_type::iterator;
-		//using const_iterator = typename container_type::const_iterator;
-		//using reverse_iterator = typename container_type::reverse_iterator;
-		//using const_reverse_iterator = typename container_type::const_reverse_iterator;
 
 		constexpr explicit scaled_antecedent(self_type const&) = default;
 		constexpr explicit scaled_antecedent(self_type&&) noexcept = default;
@@ -104,7 +83,6 @@ namespace fuzzy
 
 		constexpr set_type& set() noexcept             { return set_; }
 		constexpr set_type const& set() const noexcept { return set_; }
-
 
 	private:
 
@@ -160,12 +138,5 @@ namespace fuzzy
 
 		return scaled_antecedent<V, M, Container>{ std::move(scaled_set) };
 	}
-
-
-
-
-
-
-
 }
 #endif // FUZZY_SCALED_ANTECEDENT_HPP
