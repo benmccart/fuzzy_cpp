@@ -38,132 +38,32 @@
 
 namespace fuzzy
 {
-	///**
-	//* A mapping rule uses a relation to map a supplied fuzzy input to a mapped fuzzy output.  Abstractly it is a functional
-	//* mapping from the domain to the range of the related fuzzy relation.  Essentially it is the implementation mechanism for
-	//* Mamdani fuzzy modelling.
-	//*/
-	//template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template<typename> class Tconorm = fuzzy::maximum >
-	//requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
-	//class [[deprecated("mapping_rule is very ineficient")]] mapping_rule
-	//{
-	//public:
-	//	using relation_type = relation<V, M, Container, Tnorm>;
-	//	using set_type = typename relation_type::set_type;
-	//	using element_type = typename set_type::element_type;
 
-	//	mapping_rule() = delete;
-	//	constexpr mapping_rule(relation_type);
-	//	constexpr mapping_rule(relation_type, Tconorm<M>);
+	template <template <typename> class Tnorm, class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container>& consequent) // ??
+	{
+		using set_t = basic_set<V,M,Container>;
+		auto const &scaled_src = antecedent.set();
+		set_t const& dst = consequent.target();
+		if (scaled_src.empty() || dst.empty())
+			return; // Nothing more to do if either are empty.
 
+		// Project the scaled antecedent.
+		M const min_v = dst.front().membership();
+		M const max_v = dst.back().membership();
+		M const delta_v = max_v - min_v;
+		set_t projected_src{ dst.get_allocator() };
+		// FIXME: reserve projected_src.
+		for (auto const& ele : scaled_src)
+		{
+			M const scaled_v = min_v + (delta_v * ele.value());
+			V const rounded_v = static_cast<V>(std::round(scaled_v));
+			projected_src.insert(rounded_v);
+		}
 
-	//	constexpr set_type apply(set_type const&) const;
-	//private:
-
-	//	relation_type rel_;
-	//};
-
-	///** Deduction guide to help construct the mapping_rule without having to explicitly specify the Tnorm or container parameters explicity. */
-	//template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template <typename> class Tconorm = fuzzy::maximum>
-	//mapping_rule(relation<V, M, Container, Tnorm> rel, Tconorm<M> tconorm) -> mapping_rule<V, M, Container, Tnorm, Tconorm>;
-
-
-	///**
-	//* Constructs a mapping rule using the provided relation.
-	//* @param rel The relation to use in generating the mapping rule.
-	//*/
-	//template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
-	//requires fuzzy::numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm<M>>&& tconorm_type<Tconorm<M>>
-	//constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel)
-	//	: rel_(rel) 
-	//{
-	//}
-
-	///**
-	//* Constructs a mapping rule using the provided relation.
-	//* @param rel The relation to use in generating the mapping rule.
-	//*/
-	//template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
-	//requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
-	//constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel, Tconorm<M> tconorm)
-	//	: rel_(rel)
-	//{
-	//}
-
-	///**
-	//* Maps the fuzzy input to a fuzzy output using the relation this mapping rule was constructed with.
-	//* @param variable The fuzzy input to map.
-	//* @return The mapped output.
-	//*/
-	//template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
-	//requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
-	//constexpr typename mapping_rule<V, M, Container, Tnorm, Tconorm>::set_type mapping_rule<V, M, Container, Tnorm, Tconorm>::apply(set_type const &variable) const
-	//{
-	//	using math::promote;
-	//	using element_pair_t = std::pair<element_type, element_type>;
-	//	using promote_value_t = decltype(promote(static_cast<V>(0)));
-
-	//	// Check for special cases first.
-	//	if (rel_.domain().empty())
-	//		return set_type{};
-	//	if (rel_.range().empty())
-	//		return set_type{};
-	//	if (variable.empty())
-	//		return set_type{};
-
-	//	if (variable.front().value() > rel_.domain().back() || variable.back() < rel_.domain().front())
-	//		return set_type{};
-
-	//	// Calculate the front/back domain values.
-	//	set_type result;
-	//	V const domain_first_v = std::max(rel_.domain().front().value(), variable.front().value());
-	//	V const domain_last_v = std::min(rel_.domain().back().value(), variable.back().value());
-
-	//	// Populate the set with variables calculated for domain as long as they are in range of [first,last].
-	//	auto const delta_domain = promote(rel_.domain().back().value()) - promote(rel_.domain().front().value());
-	//	promote_value_t const range_first_v = promote(rel_.range().front().value());
-	//	M const delta_range = static_cast<M>(promote(rel_.range().back().value()) - promote(range_first_v));
-	//	set_type mapped_range_values;
-
-	//	// Find the first/last domain iterator.
-	//	fuzzy::detail::set_operation_value_sequence const domain_seq{ variable, rel_.domain() };
-	//	auto const itr_domain_beg = std::find_if(domain_seq.begin(), domain_seq.end(), [=](element_pair_t pair) { return pair.first.value() >= domain_first_v; });
-	//	auto const itr_domain_end = std::find_if(itr_domain_beg, domain_seq.end(), [=](element_pair_t pair) { return pair.first.value() > domain_last_v; });
-	//	for (auto itr = itr_domain_beg; itr != itr_domain_end; ++itr)
-	//	{
-	//		element_pair_t const pair = *itr;
-	//		if (pair.first.value() < domain_first_v || domain_last_v < pair.first.value())
-	//			continue;
-
-	//		auto const delta = promote(pair.first.value()) - promote(rel_.domain().front().value());
-	//		M const ratio = static_cast<M>(delta) / static_cast<M>(delta_domain);
-	//		promote_value_t const offset = static_cast<promote_value_t>(fuzzy::math::round<V>(ratio* delta_range));
-	//		V const value = static_cast<V>( range_first_v + offset );
-	//		mapped_range_values.insert(element_type{ value, static_cast<M>(0.0)});
-	//	}
-
-	//	// Performance improvement: trim out leading/trailing sequence values with zero memberhsip as they won't contribute to results.
-	//	auto const trimmed_range = detail::trim::apply<V,M,Container>(itr_domain_beg, itr_domain_end);
-
-	//	// Iterate the range, calculate Tconom 'sum' for every pass of the domain.
-	//	fuzzy::detail::set_operation_value_sequence range_seq{ mapped_range_values, rel_.range() };
-	//	for (element_pair_t range_v : range_seq)
-	//	{
-	//		M const m = std::accumulate(trimmed_range.first, trimmed_range.second, static_cast<M>(0.0), [&](M sum, element_pair_t pair)
-	//		{
-	//			M const domain_intersection = Tnorm<M>::apply(pair.first.membership(), pair.second.membership());
-	//			M const cartesian_product = rel_.membership(pair.first.value(), range_v.first.value());
-	//			M const pairwise_product = Tnorm<M>::apply(domain_intersection, cartesian_product);
-	//			return Tconorm<M>::apply(sum, pairwise_product);
-	//		});
-
-	//		result.insert(element_type{ range_v.first.value(), m });
-	//	}
-	//	detail::simplify_impl::apply(result);
-
-	//	return result;
-	//}
-
+		set_t result = set_intersection<V,M,Container,Tnorm>(projected_src, dst);
+		consequent.aggregator().aggregate(result);
+	}
 }
 
 

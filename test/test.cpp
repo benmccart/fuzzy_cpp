@@ -1046,7 +1046,7 @@ TEST_CASE("Consequent-2", "[Consequent_2]")
 
 TEST_CASE("Consequent-3", "[Consequent_3]")
 {
-    result_aggregator<int, float, fuzzy::standard_additive_model> cons1{fuzzy::standard_additive_model<float>{}};
+    result_aggregator<int, float, fuzzy::additive_function> cons1{fuzzy::additive_function<float>{}};
     set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1700, 0.25f },element{ 1800, 0.5f },element{ 2100, 0.25f },element{ 2400, 0.0f } };
     set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1500, 0.25f },element{ 1800, 0.5f },element{ 1900, 0.25f },element{ 2000, 0.0f } };
     cons1.aggregate(horse_strength1);
@@ -1064,7 +1064,7 @@ TEST_CASE("Consequent-3", "[Consequent_3]")
 
 TEST_CASE("Consequent-4", "[Consequent_4]")
 {
-    result_aggregator<int, float, fuzzy::standard_additive_model> cons2{fuzzy::standard_additive_model<float>{}};
+    result_aggregator<int, float, fuzzy::additive_function> cons2{fuzzy::additive_function<float>{}};
     set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
     set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
@@ -1104,14 +1104,9 @@ TEST_CASE("Scaled-Antecedent", "[Scaled_Antecedent]")
     REQUIRE(sa3.set().size() == 5u);
 }
 
-
-
-
-
-
 TEST_CASE("Result-Aggregator", "[Result_Aggregator]")
 {
-    result_aggregator<int, float, sam> fan_speed{ sam<float>{} };
+    result_aggregator<int, float, additive_function> fan_speed{ additive_function<float>{} };
 
     set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
     auto consequent = fan_speed.shall_be(fast);
@@ -1119,6 +1114,26 @@ TEST_CASE("Result-Aggregator", "[Result_Aggregator]")
     REQUIRE(&consequent.target() == &fast);
     REQUIRE(&consequent.aggregator() == &fan_speed);
     REQUIRE(consequent.aggregator().result().empty());
+}
+
+TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
+{
+    result_aggregator<int, float, additive_function> fan_speed{ additive_function<float>{} };
+
+    set tempurature = set{ element{ 72, 0.0f },element{ 78, 1.0f },element{ 84, 0.0f } };
+    set warm = set{ element{ 70, 0.0f },element{ 85, 1.0f },element{ 100, 0.0f } };
+
+    auto sa1 = is(tempurature, warm);
+
+    set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
+    auto consequent = fan_speed.shall_be(fast);
+
+    fuzzy::scaled_mapping<fuzzy::algabraic_product>(sa1, consequent);
+
+
+    /*REQUIRE(&consequent.target() == &fast);
+    REQUIRE(&consequent.aggregator() == &fan_speed);
+    REQUIRE(consequent.aggregator().result().empty());*/
 }
 
 

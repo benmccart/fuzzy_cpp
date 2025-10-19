@@ -479,7 +479,8 @@ namespace fuzzy
 				using op_t = Operation<M>;
 				using pair_t = typename set_operation_value_sequence<V, M, Container>::value_t;
 
-				set_t result;
+				set_t result{ b.get_allocator() };
+				// FIXME: reserve result.
 				set_operation_value_sequence<V, M, Container> seq{ a, b };
 				for (pair_t pair : seq)
 				{

@@ -152,20 +152,17 @@ namespace fuzzy
 
 	template <class M>
 	requires std::floating_point<M>
-	struct standard_additive_model
+	struct additive_function
 	{
 		using membership_type = M;
 
-		constexpr standard_additive_model() = default;
-		constexpr standard_additive_model(M) {}
+		constexpr additive_function() = default;
+		constexpr additive_function(M) {}
 		[[nodiscard]] constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
 		{
 			return a + b;
 		}
 	};
-
-	template <class M>
-	using sam = standard_additive_model<M>;
 
 	//template <class M>
 	//requires std::floating_point<M>

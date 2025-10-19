@@ -118,9 +118,6 @@ namespace fuzzy
 	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container> const& value, fuzzy::basic_set<V, M, Container> const& variable)
 	{
 		using key_type = typename fuzzy::float_value_t<V>::value;
-		//using outer_container_t = Container<fuzzy::basic_element<V,M>>;
-		//using inner_container_t = Container<fuzzy::basic_element<key_type,M>>;
-
 		if (variable.empty())
 			return scaled_antecedent<V, M, Container>{ };
 
