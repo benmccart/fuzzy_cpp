@@ -898,6 +898,6 @@ namespace fuzzy
 	}
 
 	/** Convenience defintion for common use cases. */
-	using set = basic_set<int, float, std::vector>;
+	using set = basic_set<int, float>;
 }
 #endif

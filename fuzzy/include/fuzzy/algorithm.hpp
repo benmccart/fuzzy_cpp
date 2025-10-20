@@ -898,7 +898,6 @@ namespace fuzzy
 		return set_complement<V,M,Operation, Container>(aset);
 	}
 
-
 }
 
 #endif // FUZZY_ALGORITHM_HPP

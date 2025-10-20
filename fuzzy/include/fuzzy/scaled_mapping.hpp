@@ -32,6 +32,7 @@
 #include <fuzzy/concepts.hpp>
 #include <fuzzy/consequent.hpp>
 #include <fuzzy/element.hpp>
+#include <fuzzy/math.hpp>
 #include <fuzzy/scaled_antecedent.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/traits.hpp>
@@ -57,7 +58,7 @@ namespace fuzzy
 		for (auto const& ele : scaled_src)
 		{
 			M const scaled_v = min_v + (delta_v * ele.value());
-			V const rounded_v = static_cast<V>(std::round(scaled_v));
+			V const rounded_v = static_cast<V>(fuzzy::math::round<V>(scaled_v));
 			projected_src.insert(rounded_v);
 		}
 
