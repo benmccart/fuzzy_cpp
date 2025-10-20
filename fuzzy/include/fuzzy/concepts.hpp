@@ -25,11 +25,8 @@
 #ifndef FUZZY_CONCEPTS_HPP
 #define FUZZY_CONCEPTS_HPP
 
-//#include <fuzzy/traits.hpp>
 #include <concepts>
 #include <vector>
-
-// FIXME: Move concepts out of traits & here and put it in a concepts file.
 
 namespace fuzzy
 {
@@ -75,6 +72,12 @@ namespace fuzzy
 	concept MembershipFunction = std::floating_point<M> && requires (M m, MF mf)
 	{
 		{ mf(m) } -> std::same_as<M>;
+	};
+
+	template <class C>
+	concept Reservable = requires(C c, std::size_t n)
+	{
+		{ c.reserve(n) } -> std::same_as<void>;
 	};
 }
 #endif // FUZZY_CONCEPTS_HPP

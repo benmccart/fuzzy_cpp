@@ -25,8 +25,12 @@
 #ifndef FUZZY_FWD_HPP
 #define FUZZY_FWD_HPP
 
+#include <memory>
 #include <vector>
+
+
 #include <fuzzy/concepts.hpp>
+#include <fuzzy/element.hpp>
 
 namespace fuzzy
 {
@@ -78,7 +82,7 @@ namespace fuzzy
 	requires std::floating_point<M>
 	struct maximum;
 
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 	requires fuzzy::numeric<V>&& std::floating_point<M>
 	class basic_set;
 
@@ -86,9 +90,9 @@ namespace fuzzy
 	requires fuzzy::numeric<V>&& std::floating_point<M>
 	class scaled_antecedent;
 
-	template <template <typename> class Tnorm, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
+	template <template <typename> class Tnorm, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator, class V, class M>
 	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container> const&, fuzzy::basic_set<V, M, Container> const&);
+	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container, Allocator> const&, fuzzy::basic_set<V, M, Container, Allocator> const&);
 
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
 	requires fuzzy::numeric<V>&& std::floating_point<M>

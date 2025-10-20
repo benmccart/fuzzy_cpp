@@ -697,7 +697,7 @@ namespace fuzzy
 	* @return The union of the two fuzzy sets.
 	*/
 	template <class V, class M, template <typename T, typename Alloc> class Container, template <typename> class Operation = fuzzy::maximum>
-	requires fuzzy::numeric<V> && std::floating_point<M>&& tconorm_type<Operation<M>>
+	requires fuzzy::numeric<V> && std::floating_point<M> && tconorm_type<Operation<M>>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);

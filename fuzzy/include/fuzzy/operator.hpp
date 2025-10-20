@@ -37,31 +37,6 @@
 
 namespace fuzzy 
 {
-	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
-	template <typename M>
-	requires std::floating_point<M>
-	constexpr void validate_range(M m) noexcept
-	{
-		if (std::is_constant_evaluated())
-		{
-			if (m < static_cast<M>(0) || static_cast<M>(1) < m)
-				std::terminate();
-		}
-		else
-		{
-			assert(static_cast<M>(0) <= m && m <= static_cast<M>(1));
-		}
-	}
-
-	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
-	template <typename M>
-	requires std::floating_point<M>
-	constexpr void validate_range(M x, M y) noexcept
-	{
-		validate_range<M>(x);
-		validate_range<M>(y);
-	}
-
 	// Triangular norm function object.
 	template <typename M = float>
 	requires std::floating_point<M>

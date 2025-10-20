@@ -29,8 +29,8 @@
 #include <array>
 #include <type_traits>
 
-#include <fuzzy/concepts.hpp>
-#include <fuzzy/fwd.hpp>
+//#include <fuzzy/concepts.hpp>
+//#include <fuzzy/fwd.hpp>
 
 
 namespace fuzzy 
