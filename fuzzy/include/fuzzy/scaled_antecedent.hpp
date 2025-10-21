@@ -62,7 +62,7 @@ namespace fuzzy
 	 * @tparam M Fuzzy membership type.
 	 * @tparam Container Container type to use for basic_set.
 	*/
-	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class scaled_antecedent
 	{
@@ -70,8 +70,9 @@ namespace fuzzy
 		using container_type = Container<fuzzy::basic_element<V,M>>;
 		
 		using key_type = typename fuzzy::float_value_t<V>::value;
-		using set_type = fuzzy::basic_set<key_type, M, Container>;
-		using self_type = scaled_antecedent<V, M, Container>;
+		using key_alloc_type = typename std::allocator_traits<Allocator>::template rebind_alloc<fuzzy::basic_element<key_type, M>>;
+		using set_type = fuzzy::basic_set<key_type, M, Container, key_alloc_type>;
+		using self_type = scaled_antecedent<V, M, Container, Allocator>;
 		using membership_type = M;
 		using size_type = typename container_type::size_type;
 
@@ -95,9 +96,9 @@ namespace fuzzy
 		constexpr explicit scaled_antecedent(set_type&& set)
 			: set_(std::move(set)) {}
 
-		template <template <typename> class Tnorm, template <typename T, typename Alloc2 = std::allocator<T>> class Container2, class V2, class M2>
+		template <template <typename> class Tnorm, class V2, class M2, template <typename T, typename Alloc2 = std::allocator<T>> class Container2, class Allocator2>
 		requires fuzzy::numeric<V2>&& std::floating_point<M2>&& fuzzy::tnorm_type<Tnorm<M2>>
-		friend constexpr scaled_antecedent<V2, M2, Container2> is(fuzzy::basic_set<V2, M2, Container2> const&, fuzzy::basic_set<V2, M2, Container2> const&);
+		friend constexpr scaled_antecedent<V2, M2, Container2, Allocator2> is(fuzzy::basic_set<V2, M2, Container2, Allocator2> const&, fuzzy::basic_set<V2, M2, Container2, Allocator2> const&);
 
 		set_type set_;
 	};
@@ -113,9 +114,9 @@ namespace fuzzy
 	 * @param variable The fuzzy variable to apply the value against.
 	 * @return A scaled application of a fuzzy value to a fuzzy variable.
 	*/
-	template <template<typename> class Tnorm = fuzzy::minimum, template <typename T, typename Alloc = std::allocator<T>> class Container, class V, class M>
+	template <template<typename> class Tnorm = fuzzy::minimum, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M> && fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_antecedent<V, M, Container> is(fuzzy::basic_set<V, M, Container> const& value, fuzzy::basic_set<V, M, Container> const& variable)
+	constexpr scaled_antecedent<V, M, Container, Allocator> is(fuzzy::basic_set<V, M, Container, Allocator> const& value, fuzzy::basic_set<V, M, Container, Allocator> const& variable)
 	{
 		using key_type = typename fuzzy::float_value_t<V>::value;
 		if (variable.empty())
@@ -124,8 +125,11 @@ namespace fuzzy
 		key_type const d0 = static_cast<key_type>(variable.front().value());
 		key_type const d1 = static_cast<key_type>(variable.back().value());
 		key_type const domain_ratio = static_cast<key_type>(1) / (d1 - d0);
-		fuzzy::basic_set<V, M, Container> const set = fuzzy::set_intersection<V, M, Container, Tnorm>(value, variable);
-		fuzzy::basic_set<key_type, M, Container> scaled_set;
+		fuzzy::basic_set<V, M, Container, Allocator> const set = fuzzy::set_intersection<V, M, Container, Allocator, Tnorm>(value, variable);
+		using key_alloc_type = typename std::allocator_traits<Allocator>::template rebind_alloc<fuzzy::basic_element<key_type,M>>;
+
+		fuzzy::basic_set<key_type, M, Container, key_alloc_type> scaled_set{ key_alloc_type{variable.get_allocator()} };
+		scaled_set.reserve(set.size());
 		for (fuzzy::basic_element<V, M> const& e : set)
 		{
 			key_type const offset = static_cast<key_type>(e.value()) - d0;
@@ -133,7 +137,7 @@ namespace fuzzy
 			scaled_set.insert(fuzzy::basic_element<key_type, M>{ scaled_value, e.membership() });
 		}
 
-		return scaled_antecedent<V, M, Container>{ std::move(scaled_set) };
+		return scaled_antecedent<V, M, Container, Allocator>{ std::move(scaled_set) };
 	}
 }
 #endif // FUZZY_SCALED_ANTECEDENT_HPP

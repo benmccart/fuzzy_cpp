@@ -32,6 +32,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <span>
 #include <stack>
 
@@ -50,11 +51,11 @@ namespace fuzzy
 	namespace detail
 	{
 
-		template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
+		template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 		class set_operation_value_sequence
 		{
 		public:
-			using set_t = fuzzy::basic_set<V, M, Container>;
+			using set_t = fuzzy::basic_set<V, M, Container, Allocator>;
 			using element_t = typename set_t::element_type;
 			using value_t = std::pair<element_t,element_t>;
 
@@ -346,11 +347,11 @@ namespace fuzzy
 			set_t const& b_;
 		};
 
-		template <class V, class M, template <typename T, typename Alloc> class Container>
-		constexpr typename set_operation_value_sequence<V, M, Container>::iterator begin(set_operation_value_sequence<V, M, Container> const& set) { return set.begin(); }
+		template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+		constexpr typename set_operation_value_sequence<V, M, Container>::iterator begin(set_operation_value_sequence<V, M, Container, Allocator> const& set) { return set.begin(); }
 
-		template <class V, class M, template <typename T, typename Alloc> class Container>
-		constexpr typename set_operation_value_sequence<V, M, Container>::iterator end(set_operation_value_sequence<V, M, Container> const& set)   { return set.end();   }
+		template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+		constexpr typename set_operation_value_sequence<V, M, Container>::iterator end(set_operation_value_sequence<V, M, Container, Allocator> const& set)   { return set.end();   }
 
 		struct trim
 		{
@@ -470,17 +471,21 @@ namespace fuzzy
 		template <template <typename> class Operation>
 		struct operation
 		{
-			template <class V, class M, template <typename T, typename Alloc> class Container>
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 			requires (fuzzy::tnorm_type<Operation<M>> || fuzzy::tconorm_type<Operation<M>>) && std::floating_point<M>
-			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container> apply(fuzzy::basic_set<V, M, Container> const& a, fuzzy::basic_set<V, M, Container> const& b)
+			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container, Allocator> apply(fuzzy::basic_set<V, M, Container, Allocator> const& a, fuzzy::basic_set<V, M, Container, Allocator> const& b)
 			{
-				using set_t = fuzzy::basic_set<V, M, Container>;
+				using set_t = fuzzy::basic_set<V, M, Container, Allocator>;
 				using element_t = typename set_t::element_type;
 				using op_t = Operation<M>;
-				using pair_t = typename set_operation_value_sequence<V, M, Container>::value_t;
+				using pair_t = typename set_operation_value_sequence<V, M, Container, Allocator>::value_t;
 
 				set_t result{ b.get_allocator() };
-				// FIXME: reserve result.
+				std::size_t const max_size = std::max(a.size(), b.size());
+				std::size_t const half_max_size = max_size / 2u;
+				std::size_t const capacity = a.size() + b.size() + half_max_size;
+				result.reserve(capacity);
+
 				set_operation_value_sequence<V, M, Container> seq{ a, b };
 				for (pair_t pair : seq)
 				{
@@ -609,12 +614,12 @@ namespace fuzzy
 			return steps;
 		};
 
-		template <class Func, class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container>
+		template <class Func, class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container, class Allocator>
 		requires fuzzy::numeric<V> && std::floating_point<M>
-		[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> linguistic_term_impl(fuzzy::basic_set<V, M, Container> const& aset, Func const& func, std::size_t step_count = linguistic_term_default_steps)
+		[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> linguistic_term_impl(fuzzy::basic_set<V, M, Container, Allocator> const& aset, Func const& func, std::size_t step_count = linguistic_term_default_steps)
 		{
 			using math::promote;
-			using set_type = fuzzy::basic_set<V, M, Container>;
+			using set_type = fuzzy::basic_set<V, M, Container, Allocator>;
 			using element_type = typename set_type::element_type;
 			set_type result;
 
@@ -683,9 +688,9 @@ namespace fuzzy
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The intersection of the two fuzzy sets.
 	*/
-	template <class V, class M, template <typename T, typename Alloc> class Container, template<typename> class Operation = fuzzy::minimum>
+	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator, template<typename> class Operation = fuzzy::minimum>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Operation<M>>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_intersection(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> set_intersection(fuzzy::basic_set<V, M, Container, Allocator> const& lhs, fuzzy::basic_set<V, M, Container, Allocator> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
@@ -696,12 +701,14 @@ namespace fuzzy
 	* @param rhs The right hand side fuzzy set operand.
 	* @return The union of the two fuzzy sets.
 	*/
-	template <class V, class M, template <typename T, typename Alloc> class Container, template <typename> class Operation = fuzzy::maximum>
+	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator, template <typename> class Operation = fuzzy::maximum>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tconorm_type<Operation<M>>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_union(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> set_union(fuzzy::basic_set<V, M, Container, Allocator> const& lhs, fuzzy::basic_set<V, M, Container, Allocator> const& rhs)
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
+
+
 
 #ifdef FUZZY_USE_TLS_DEF_OPERATOR
 

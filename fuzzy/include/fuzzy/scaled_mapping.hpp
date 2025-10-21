@@ -40,10 +40,10 @@
 namespace fuzzy
 {
 
-	template <template <typename> class Tnorm, class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
-	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container>& consequent) // ??
+	template <template <typename> class Tnorm, class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
+	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container, Allocator>& consequent) // ??
 	{
-		using set_t = basic_set<V,M,Container>;
+		using set_t = basic_set<V,M,Container, Allocator>;
 		auto const &scaled_src = antecedent.set();
 		set_t const& dst = consequent.target();
 		if (scaled_src.empty() || dst.empty())
@@ -62,7 +62,7 @@ namespace fuzzy
 			projected_src.insert(rounded_v);
 		}
 
-		set_t result = set_intersection<V,M,Container,Tnorm>(projected_src, dst);
+		set_t result = set_intersection<V,M,Container, Allocator,Tnorm>(projected_src, dst);
 		consequent.aggregator().aggregate(result);
 	}
 }
