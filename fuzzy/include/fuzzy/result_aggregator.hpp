@@ -61,8 +61,8 @@ namespace fuzzy
 	class result_aggregator
 	{
 	public:
-		using set_type = basic_set<V, M, Container>;
-		using consequent_type = consequent<V,M,AggregatorFunc, Container>;
+		using set_type = basic_set<V, M, Container, Allocator>;
+		using consequent_type = consequent<V,M,AggregatorFunc, Container, Allocator>;
 
 		result_aggregator() = delete;
 		consequent_type shall_be(set_type&&) = delete;
@@ -84,9 +84,9 @@ namespace fuzzy
 	/**
 	* Template deduction guid for result_aggregator.
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	result_aggregator(basic_set<V, M, Container> const&, AggregatorFunc<M>) -> result_aggregator<V, M, AggregatorFunc, Container>;
+	result_aggregator(basic_set<V, M, Container> const&, AggregatorFunc<M>, Allocator const& = Allocator()) -> result_aggregator<V, M, AggregatorFunc, Container, Allocator>;
 
 	/**
 	* Aggregates the specified input to the result_aggregator set.

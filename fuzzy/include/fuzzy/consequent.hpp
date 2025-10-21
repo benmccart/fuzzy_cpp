@@ -41,14 +41,14 @@ namespace fuzzy
 	 * @tparam AggregatorFunc The aggregator function which defines the aggregator behavior.
 	 * @tparam Container The set container type.
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class consequent
 	{
 	public:
-		using aggregator_type = result_aggregator<V, M, AggregatorFunc, Container>;
-		using set_type = basic_set<V, M, Container>;
-		using self_type = consequent<V, M, AggregatorFunc, Container>;
+		using aggregator_type = result_aggregator<V, M, AggregatorFunc, Container, Allocator>;
+		using set_type = basic_set<V, M, Container, Allocator>;
+		using self_type = consequent<V, M, AggregatorFunc, Container, Allocator>;
 
 		/**
 		* Constructs a fuzzy consequent that will aggregate the output of multiple fuzzy rules to the supplied set, using the supplied consequent function.
