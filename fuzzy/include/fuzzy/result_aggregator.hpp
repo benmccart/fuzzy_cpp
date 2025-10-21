@@ -24,6 +24,7 @@
 //  DEALINGS IN THE SOFTWARE.
 
 #include <fuzzy/algorithm.hpp>
+#include <fuzzy/fwd.hpp>
 #include <fuzzy/operator.hpp>
 #include <fuzzy/set.hpp>
 
@@ -55,7 +56,7 @@ namespace fuzzy
 	/** 
 	* Models the fuzzy result_aggregator of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class result_aggregator
 	{
@@ -66,11 +67,8 @@ namespace fuzzy
 		result_aggregator() = delete;
 		consequent_type shall_be(set_type&&) = delete;
 
-		/**
-		* Constructs a fuzzy result_aggregator which will use the supplied aggregation function.
-		* @param func The function to use to aggregate fuzzy mapping consequents.
-		*/
-		constexpr result_aggregator(AggregatorFunc<M> func) : func_(func) {}
+
+		constexpr result_aggregator(AggregatorFunc<M> func, Allocator alloc = Allocator()) : set_(alloc), func_(func) {}
 
 		constexpr void aggregate(set_type const&);
 		constexpr consequent_type shall_be(set_type const&) noexcept;
@@ -81,6 +79,7 @@ namespace fuzzy
 		AggregatorFunc<M> func_;
 		bool dirty_ = false;
 	};
+		
 
 	/**
 	* Template deduction guid for result_aggregator.
@@ -93,9 +92,9 @@ namespace fuzzy
 	* Aggregates the specified input to the result_aggregator set.
 	* @param input The input set  to aggregate (oputput from mapping_rule.)
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr void result_aggregator<V, M, AggregatorFunc, Container>::aggregate(set_type const& input)
+	constexpr void result_aggregator<V, M, AggregatorFunc, Container, Allocator>::aggregate(set_type const& input)
 	{
 		using element_t = typename set_type::element_type;
 		using pair_t = std::pair<element_t, element_t>;
@@ -111,9 +110,9 @@ namespace fuzzy
 	}
 
 
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V>&& std::floating_point<M>
-	constexpr typename result_aggregator<V, M, AggregatorFunc, Container>::consequent_type result_aggregator<V, M, AggregatorFunc, Container>::shall_be(set_type const& target) noexcept
+	constexpr typename result_aggregator<V, M, AggregatorFunc, Container, Allocator>::consequent_type result_aggregator<V, M, AggregatorFunc, Container, Allocator>::shall_be(set_type const& target) noexcept
 	{
 		return consequent_type{ *this, target };
 	}
@@ -123,9 +122,9 @@ namespace fuzzy
 	/**
 	* Retrieves the underlying result_aggregator fuzzy set via an implicit conversion operator.
 	*/
-	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr typename result_aggregator<V, M, AggregatorFunc, Container>::set_type& result_aggregator<V, M, AggregatorFunc, Container>::result() noexcept
+	constexpr typename result_aggregator<V, M, AggregatorFunc, Container, Allocator>::set_type& result_aggregator<V, M, AggregatorFunc, Container, Allocator>::result() noexcept
 	{
 		if (dirty_)
 		{
@@ -163,18 +162,6 @@ namespace fuzzy
 			return a + b;
 		}
 	};
-
-	//template <class M>
-	//requires std::floating_point<M>
-	//struct additive
-	//{
-	//	constexpr additive() = default;
-	//	constexpr M operator()(M a, M b)
-	//	{
-	//		return a + b;
-	//	}
-	//};
-
 }
 
 

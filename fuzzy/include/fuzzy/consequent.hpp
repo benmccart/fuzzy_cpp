@@ -71,7 +71,7 @@ namespace fuzzy
 
 		constexpr consequent(aggregator_type& aggregator, set_type const& target) noexcept : aggregator_(&aggregator), target_(&target) {}
 
-		template <class V2, class M2, template <typename> class AggregatorFunc2, template <typename T2, typename Alloc2 = std::allocator<T2>> class Container2>
+		template <class V2, class M2, template <typename> class AggregatorFunc2, template <typename T2, typename Alloc2 = std::allocator<T2>> class Container2, class Allocator2>
 		requires fuzzy::numeric<V2>&& std::floating_point<M2>
 		friend class result_aggregator;
 
