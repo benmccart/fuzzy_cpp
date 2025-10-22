@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <memory>
 #include <vector>
 
 #include <fuzzy/element.hpp>
@@ -855,9 +856,9 @@ namespace fuzzy
 	* @param v3 - the highest value.
 	* @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
 	*/
-	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr basic_set<V, M, Container, std::allocator<fuzzy::basic_element<V,M>>> make_triangle(V v1, V v2, V v3)
+	constexpr basic_set<V, M, Container, Allocator> make_triangle(V v1, V v2, V v3, Allocator allocator = Allocator())
 	{
 		if (std::is_constant_evaluated())
 		{
@@ -869,7 +870,7 @@ namespace fuzzy
 			assert((v1 < v2&& v2 < v3));
 		}
 
-		return { {v1, static_cast<M>(0)}, {v2, static_cast<M>(1)}, {v3, static_cast<M>(0)} };
+		return basic_set<V, M, Container, Allocator>{{ {v1, static_cast<M>(0)}, { v2, static_cast<M>(1) }, { v3, static_cast<M>(0) } }, allocator};
 	}
 
 	// FIXME: Add allocator argument!
@@ -880,9 +881,9 @@ namespace fuzzy
 	* @param v3 - the highest value.
 	* @return A set with trapezoid shape of {v1, 0}, {v2, 1}, {v3, 1}, {v4, 0}.
 	*/
-	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector>
+	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr basic_set<V, M, Container> make_trapezoid(V v1, V v2, V v3, V v4)
+	constexpr basic_set<V, M, Container, Allocator> make_trapezoid(V v1, V v2, V v3, V v4, Allocator allocator = Allocator())
 	{
 		if (std::is_constant_evaluated())
 		{
@@ -894,7 +895,7 @@ namespace fuzzy
 			assert((v1 < v2&& v2 < v3));
 		}
 
-		return { {v1, static_cast<M>(0)}, {v2, static_cast<M>(1)}, {v3, static_cast<M>(1)}, {v4, static_cast<M>(0)} };
+		return basic_set<V, M, Container, Allocator>{{ {v1, static_cast<M>(0)}, { v2, static_cast<M>(1) }, { v3, static_cast<M>(1) }, { v4, static_cast<M>(0) } }, allocator};
 	}
 
 	/** Convenience defintion for common use cases. */
