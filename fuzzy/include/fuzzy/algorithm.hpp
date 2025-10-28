@@ -905,6 +905,42 @@ namespace fuzzy
 		return set_complement<V,M,Operation, Container>(aset);
 	}
 
+
+	/**
+	 * @brief Applies the fuzzy value to the fuzzy variable.  i.e. is(tempurature, hot)
+	 * @tparam M The fuzzy element membership type.
+	 * @tparam Tnorm The T-norm to use in the application.
+	 * @tparam Container The container type to use for the fuzzy basic_set.
+	 * @tparam V The fuzzy element value type.
+	 * @param value The fuzzy value to apply.
+	 * @param variable The fuzzy variable to apply the value against.
+	 * @return A scaled application of a fuzzy value to a fuzzy variable.
+	*/
+	template <template<typename> class Tnorm = fuzzy::minimum, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
+	constexpr scaled_antecedent<V, M, Container, Allocator> is(fuzzy::basic_set<V, M, Container, Allocator> const& value, fuzzy::basic_set<V, M, Container, Allocator> const& variable)
+	{
+		using key_type = typename fuzzy::float_value_t<V>::value;
+		if (variable.empty())
+			return scaled_antecedent<V, M, Container>{ };
+
+		key_type const d0 = static_cast<key_type>(variable.front().value());
+		key_type const d1 = static_cast<key_type>(variable.back().value());
+		key_type const domain_ratio = static_cast<key_type>(1) / (d1 - d0);
+		fuzzy::basic_set<V, M, Container, Allocator> const set = fuzzy::set_intersection<V, M, Container, Allocator, Tnorm>(value, variable);
+		using key_alloc_type = typename std::allocator_traits<Allocator>::template rebind_alloc<fuzzy::basic_element<key_type, M>>;
+
+		fuzzy::basic_set<key_type, M, Container, key_alloc_type> scaled_set{ key_alloc_type{variable.get_allocator()} };
+		scaled_set.reserve(set.size());
+		for (fuzzy::basic_element<V, M> const& e : set)
+		{
+			key_type const offset = static_cast<key_type>(e.value()) - d0;
+			key_type const scaled_value = offset * domain_ratio;
+			scaled_set.insert(fuzzy::basic_element<key_type, M>{ scaled_value, e.membership() });
+		}
+
+		return scaled_antecedent<V, M, Container, Allocator>{ std::move(scaled_set) };
+	}
 }
 
 #endif // FUZZY_ALGORITHM_HPP

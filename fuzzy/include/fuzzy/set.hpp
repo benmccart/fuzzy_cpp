@@ -848,7 +848,6 @@ namespace fuzzy
 		return set.cend();
 	}
 
-	// FIXME: Add allocator argument!
 	/** Convenience function for making a basic set in the form of a triangle.
 	* Precondition: v1 < v2 < v3.
 	* @param v1 - the lowest value.
@@ -873,7 +872,6 @@ namespace fuzzy
 		return basic_set<V, M, Container, Allocator>{{ {v1, static_cast<M>(0)}, { v2, static_cast<M>(1) }, { v3, static_cast<M>(0) } }, allocator};
 	}
 
-	// FIXME: Add allocator argument!
 	/** Convenience function for making a basic set in the form of a trapezoid.
 	* Precondition: v1 < v2 < v3 < v4.
 	* @param v1 - the lowest value.

@@ -1125,15 +1125,23 @@ TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
 
     auto sa1 = is(tempurature, warm);
 
+    REQUIRE(sa1.set().size() == 5u);
+    REQUIRE(equivelant(sa1.set().membership(0.0666667f), 0.0f));
+    REQUIRE(equivelant(sa1.set().membership(0.1f), 0.1666667f));
+    REQUIRE(equivelant(sa1.set().membership(0.2666667f), 0.5333333f));
+    REQUIRE(equivelant(sa1.set().membership(0.3333333f), 0.6666667f));
+    REQUIRE(equivelant(sa1.set().membership(0.4666667f), 0.0f));
+
+
     set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
     auto consequent = fan_speed.shall_be(fast);
 
-    fuzzy::scaled_mapping<fuzzy::algabraic_product>(sa1, consequent);
+    fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
 
 
-    /*REQUIRE(&consequent.target() == &fast);
+    REQUIRE(&consequent.target() == &fast);
     REQUIRE(&consequent.aggregator() == &fan_speed);
-    REQUIRE(consequent.aggregator().result().empty());*/
+    REQUIRE(consequent.aggregator().result().size() == 6);
 }
 
 

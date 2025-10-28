@@ -44,22 +44,22 @@ namespace fuzzy
 	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container, Allocator>& consequent) // ??
 	{
 		using set_t = basic_set<V,M,Container, Allocator>;
+		using element_t = basic_element<V,M>;
 		auto const &scaled_src = antecedent.set();
 		set_t const& dst = consequent.target();
 		if (scaled_src.empty() || dst.empty())
 			return; // Nothing more to do if either are empty.
 
 		// Project the scaled antecedent.
-		M const min_v = dst.front().membership();
-		M const max_v = dst.back().membership();
+		M const min_v = static_cast<M>(dst.front().value());
+		M const max_v = static_cast<M>(dst.back().value());
 		M const delta_v = max_v - min_v;
 		set_t projected_src{ dst.get_allocator() };
-		// FIXME: reserve projected_src.
 		for (auto const& ele : scaled_src)
 		{
 			M const scaled_v = min_v + (delta_v * ele.value());
 			V const rounded_v = static_cast<V>(fuzzy::math::round<V>(scaled_v));
-			projected_src.insert(rounded_v);
+			projected_src.insert(element_t{ rounded_v, ele.membership() });
 		}
 
 		set_t result = set_intersection<V,M,Container, Allocator,Tnorm>(projected_src, dst);
