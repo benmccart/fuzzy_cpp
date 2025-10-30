@@ -91,7 +91,8 @@ namespace fuzzy
 	};
 
 	/** Convenience defintion for common use cases. */
-	using element = basic_element<int, float>;
+	using int_element = basic_element<int, float>;
+	using element = basic_element<float, float>;
 
 
 	

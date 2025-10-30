@@ -897,6 +897,7 @@ namespace fuzzy
 	}
 
 	/** Convenience defintion for common use cases. */
-	using set = basic_set<int, float>;
+	using int_set = basic_set<int, float>;
+	using set = basic_set<float, float>;
 }
 #endif

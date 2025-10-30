@@ -30,7 +30,7 @@
 
 namespace fuzzy
 {
-	constexpr bool all_ranges_valid(set const& s)
+	constexpr bool all_ranges_valid(int_set const& s)
 	{
 		size_t size = s.size();
 		if (s.end() - s.begin() != size)

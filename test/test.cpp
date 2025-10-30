@@ -149,243 +149,243 @@ TEST_CASE("t-conorm-tests", "[tconormtests]")
 
 TEST_CASE("basic_element-tests", "[basic_elementtests]")
 {
-    element e1{ 1, 1.0f };
+    int_element e1{ 1, 1.0f };
     REQUIRE(e1.membership() == 1.0f);
     REQUIRE(e1.value() == 1);
 
-    element e0{ 0, 0.0f };
+    int_element e0{ 0, 0.0f };
     REQUIRE(e0.membership() == 0.0f);
     REQUIRE(e0.value() == 0);
     REQUIRE(e0 < e1);
 
-    element eol{ 3, 0.4f };
-    element eor{ 5, 0.4f };
-    element ea = [](element const l, element const r) constexpr
+    int_element eol{ 3, 0.4f };
+    int_element eor{ 5, 0.4f };
+    int_element ea = [](int_element const l, int_element const r) constexpr
     {
-        return element{ l.value() + r.value(), l.membership() + r.membership() };
+        return int_element{ l.value() + r.value(), l.membership() + r.membership() };
     }(eol, eor);
     REQUIRE(ea.value() == 8);
     REQUIRE(ea.membership() == 0.8f);
 
-    REQUIRE(eol == element{ 3, 0.4f });
-    REQUIRE(eol != element{ 3, 0.3999f });
-    REQUIRE(eol != element{ -3, 0.4f });
+    REQUIRE(eol == int_element{ 3, 0.4f });
+    REQUIRE(eol != int_element{ 3, 0.3999f });
+    REQUIRE(eol != int_element{ -3, 0.4f });
     
-    element ec{ e1 };
+    int_element ec{ e1 };
     REQUIRE(ec == e1);
     REQUIRE(ec != e0);
     ec = e0;
     REQUIRE(ec != e1);
     REQUIRE(ec == e0);
 
-    element em{ std::move(ec) };
-    REQUIRE(em == element{ 0, 0.0f });
-    REQUIRE(em != element{ 1, 1.0f });
+    int_element em{ std::move(ec) };
+    REQUIRE(em == int_element{ 0, 0.0f });
+    REQUIRE(em != int_element{ 1, 1.0f });
 
-    em = element{ 2, 0.2f };
-    REQUIRE(em == element{ 2, 0.2f });
-    REQUIRE(em != element{ 2, 0.1f });
+    em = int_element{ 2, 0.2f };
+    REQUIRE(em == int_element{ 2, 0.2f });
+    REQUIRE(em != int_element{ 2, 0.1f });
 
-    // FAIL element em1{ -1, -1.0f };
-    // FAIL element em1{ -1, -1.0001f };
-    // FAIL element einf{ 1, std::numeric_limits<float>::infinity() };
-    // FAIL element eninf{ -1, -std::numeric_limits<float>::infinity() };
+    // FAIL int_element em1{ -1, -1.0f };
+    // FAIL int_element em1{ -1, -1.0001f };
+    // FAIL int_element einf{ 1, std::numeric_limits<float>::infinity() };
+    // FAIL int_element eninf{ -1, -std::numeric_limits<float>::infinity() };
 }
 
-TEST_CASE("empty-set", "[empty_set]")
+TEST_CASE("empty-int_set", "[empty_set]")
 {
-    set empty;
+    int_set empty;
     REQUIRE(empty.empty());
     REQUIRE(empty.size() == 0u);
     REQUIRE(all_ranges_valid(empty));
 }
 
-TEST_CASE("one-element-set", "[one_element_set]")
+TEST_CASE("one-int_element-int_set", "[one_element_set]")
 {
-    set s1 = { {3, 1.0f} };
+    int_set s1 = { {3, 1.0f} };
     REQUIRE(!s1.empty());
     REQUIRE(s1.size() == 1u);
     REQUIRE(all_ranges_valid(s1));
 }
 
-TEST_CASE("two-element-set", "[two_element_set]")
+TEST_CASE("two-int_element-int_set", "[two_element_set]")
 {
-    set s2 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2 = { {3, 1.0f}, {5, 1.0f} };
     REQUIRE(!s2.empty());
     REQUIRE(s2.size() == 2u);
     REQUIRE(all_ranges_valid(s2));
 }
 
-TEST_CASE("set-equivalence", "[set_equivalence]")
+TEST_CASE("int_set-equivalence", "[set_equivalence]")
 {
-    set s1 = { {3, 1.0f}, {5, 1.0f} };
-    set s2 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2 = { {3, 1.0f}, {5, 1.0f} };
     REQUIRE(s1 == s2);
-    REQUIRE(s1 == set{ { {3, 1.0f}, { 5, 1.0f } } });
-    REQUIRE(s1 != set{ { {3, 1.0f} } });
-    REQUIRE(s1 != set{ { { 5, 1.0f } } });
-    REQUIRE(s1 != set{ { {3, 0.999f}, { 5, 1.0f } } });
-    REQUIRE(s1 != set{ { {3, 1.0f}, { 5, 0.999f } } });
-    REQUIRE(s1 != set{ { {4, 1.0f}, { 5, 1.0f } } });
-    REQUIRE(s1 != set{ { {3, 1.0f}, { 4, 1.0f } } });
+    REQUIRE(s1 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 1.0f} } });
+    REQUIRE(s1 != int_set{ { { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 0.999f}, { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 1.0f}, { 5, 0.999f } } });
+    REQUIRE(s1 != int_set{ { {4, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 1.0f}, { 4, 1.0f } } });
 }
 
-TEST_CASE("set-copy-construct", "[set_copy_construct]")
+TEST_CASE("int_set-copy-construct", "[set_copy_construct]")
 {
-    set s1 = { {3, 1.0f}, {5, 1.0f} };
-    set s2{ s1 };
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2{ s1 };
     REQUIRE(!s2.empty());
     REQUIRE(s2.size() == 2u);
     REQUIRE(all_ranges_valid(s2));
     REQUIRE(s2 == s1);
 
-    REQUIRE(s2 != set{ { {3, 0.0f}, { 4, 1.0f } } });
+    REQUIRE(s2 != int_set{ { {3, 0.0f}, { 4, 1.0f } } });
 }
 
-TEST_CASE("set-move-construct", "[set_move_construct]")
+TEST_CASE("int_set-move-construct", "[set_move_construct]")
 {
-    set s1 = { {3, 1.0f}, {5, 1.0f} };
-    set s2{ std::move(s1) };
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2{ std::move(s1) };
     REQUIRE(!s2.empty());
     REQUIRE(s2.size() == 2u);
     REQUIRE(all_ranges_valid(s2));
     REQUIRE(s1.empty());
-    REQUIRE(s2 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s2 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
 }
 
-TEST_CASE("set-assignment", "[set_assignment]")
+TEST_CASE("int_set-assignment", "[set_assignment]")
 {
-    set s1 = { {3, 1.0f}, {5, 1.0f} };
-    set s2;
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2;
     s2 = s1;
     REQUIRE(!s2.empty());
     REQUIRE(s2.size() == 2u);
     REQUIRE(all_ranges_valid(s2));
-    REQUIRE(s2 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s2 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
 
-    set s3;
+    int_set s3;
     s3 = std::move(s1);
     REQUIRE(!s3.empty());
     REQUIRE(s3.size() == 2u);
     REQUIRE(all_ranges_valid(s3));
-    REQUIRE(s3 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s3 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
 
-    set s4;
+    int_set s4;
     s4 = { {3, 1.0f}, { 5, 1.0f } };
     REQUIRE(!s4.empty());
     REQUIRE(s4.size() == 2u);
     REQUIRE(all_ranges_valid(s4));
-    REQUIRE(s4 == set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s4 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
 }
 
-TEST_CASE("set-lowerbound", "[set_lowerbound]")
+TEST_CASE("int_set-lowerbound", "[set_lowerbound]")
 {
-    set s = { {3, 1.0f}, {5, 0.8f} };
+    int_set s = { {3, 1.0f}, {5, 0.8f} };
 
     // lb on keys
-    REQUIRE(*s.lower_bound(0) == element{ 3, 1.0f });
-    REQUIRE(*s.lower_bound(3) == element{ 3, 1.0f });
-    REQUIRE(*s.lower_bound(4) == element{ 5, 0.8f });
-    REQUIRE(*s.lower_bound(5) == element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(3) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(4) == int_element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(5) == int_element{ 5, 0.8f });
     REQUIRE(s.lower_bound(6) == s.end());
 
     // lb on elements
-    REQUIRE(*s.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
-    REQUIRE(*s.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f });
-    REQUIRE(*s.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
-    REQUIRE(*s.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f });
-    REQUIRE(s.lower_bound(element{ 6, 0.0f }) == s.end());
+    REQUIRE(*s.lower_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(int_element{ 3, 0.7f }) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f });
+    REQUIRE(s.lower_bound(int_element{ 6, 0.0f }) == s.end());
 
-    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
     
     // lb on keys
-    REQUIRE(*cs.lower_bound(0) == element{ 3, 1.0f });
-    REQUIRE(*cs.lower_bound(3) == element{ 3, 1.0f });
-    REQUIRE(*cs.lower_bound(4) == element{ 5, 0.8f });
-    REQUIRE(*cs.lower_bound(5) == element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(3) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(4) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(5) == int_element{ 5, 0.8f });
     REQUIRE(cs.lower_bound(6) == cs.end());
 
     // lb on elements
-    REQUIRE(*cs.lower_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
-    REQUIRE(*cs.lower_bound(element{ 3, 0.7f }) == element{ 3, 1.0f });
-    REQUIRE(*cs.lower_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
-    REQUIRE(*cs.lower_bound(element{ 5, 0.8f }) == element{ 5, 0.8f });
-    REQUIRE(cs.lower_bound(element{ 6, 0.0f }) == cs.end());
+    REQUIRE(*cs.lower_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(int_element{ 3, 0.7f }) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f });
+    REQUIRE(cs.lower_bound(int_element{ 6, 0.0f }) == cs.end());
 
 }
 
-TEST_CASE("set-upperbound", "[set_upperbound]")
+TEST_CASE("int_set-upperbound", "[set_upperbound]")
 {
-    set s = { {3, 1.0f}, {5, 0.8f} };
+    int_set s = { {3, 1.0f}, {5, 0.8f} };
 
     // ub on keys
-    REQUIRE(*s.upper_bound(0) == element{ 3, 1.0f });
-    REQUIRE(*s.upper_bound(3) == element{ 5, 0.8f });
-    REQUIRE(*s.upper_bound(4) == element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*s.upper_bound(3) == int_element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(4) == int_element{ 5, 0.8f });
     REQUIRE(s.upper_bound(5) == s.end());
     REQUIRE(s.upper_bound(6) == s.end());
 
     // ub on elements
-    REQUIRE(*s.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
-    REQUIRE(*s.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f });
-    REQUIRE(*s.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
-    REQUIRE(s.upper_bound(element{ 5, 0.8f }) == s.end());
-    REQUIRE(s.upper_bound(element{ 6, 0.0f }) == s.end());
+    REQUIRE(*s.upper_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*s.upper_bound(int_element{ 3, 0.7f }) == int_element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(s.upper_bound(int_element{ 5, 0.8f }) == s.end());
+    REQUIRE(s.upper_bound(int_element{ 6, 0.0f }) == s.end());
 
-    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
 
     // ub on keys
-    REQUIRE(*cs.upper_bound(0) == element{ 3, 1.0f });
-    REQUIRE(*cs.upper_bound(3) == element{ 5, 0.8f });
-    REQUIRE(*cs.upper_bound(4) == element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.upper_bound(3) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(4) == int_element{ 5, 0.8f });
     REQUIRE(cs.upper_bound(5) == cs.end());
     REQUIRE(cs.upper_bound(6) == cs.end());
 
     // ub on elements
-    REQUIRE(*cs.upper_bound(element{ 1, 0.0f }) == element{ 3, 1.0f });
-    REQUIRE(*cs.upper_bound(element{ 3, 0.7f }) == element{ 5, 0.8f });
-    REQUIRE(*cs.upper_bound(element{ 4, 1.0f }) == element{ 5, 0.8f });
-    REQUIRE(cs.upper_bound(element{ 5, 0.8f }) == cs.end());
-    REQUIRE(cs.upper_bound(element{ 6, 0.0f }) == cs.end());
+    REQUIRE(*cs.upper_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.upper_bound(int_element{ 3, 0.7f }) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(cs.upper_bound(int_element{ 5, 0.8f }) == cs.end());
+    REQUIRE(cs.upper_bound(int_element{ 6, 0.0f }) == cs.end());
 }
 
-TEST_CASE("set-find", "[set_find]")
+TEST_CASE("int_set-find", "[set_find]")
 {
     // find on keys
-    set s = { {3, 1.0f}, {5, 0.8f} };
+    int_set s = { {3, 1.0f}, {5, 0.8f} };
     REQUIRE(s.find(0) == s.end());
-    REQUIRE(*s.find(3) == element{ 3, 1.0f });
+    REQUIRE(*s.find(3) == int_element{ 3, 1.0f });
     REQUIRE(s.find(4) == s.end());
-    REQUIRE(*s.find(5) == element{ 5, 0.8f });
+    REQUIRE(*s.find(5) == int_element{ 5, 0.8f });
     REQUIRE(s.find(6) == s.end());
 
-    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
     REQUIRE(cs.find(0) == cs.end());
-    REQUIRE(*cs.find(3) == element{ 3, 1.0f });
+    REQUIRE(*cs.find(3) == int_element{ 3, 1.0f });
     REQUIRE(cs.find(4) == cs.end());
-    REQUIRE(*cs.find(5) == element{ 5, 0.8f });
+    REQUIRE(*cs.find(5) == int_element{ 5, 0.8f });
     REQUIRE(cs.find(6) == cs.end());
 
     // find on elements
-    REQUIRE(s.find(element{ 0, 0.0f }) == s.end());
-    REQUIRE(*s.find(element{ 3, 1.0f }) == element{ 3, 1.0f });
-    REQUIRE(s.find(element{ 3, 0.0f }) == s.end());
-    REQUIRE(s.find(element{ 4, 0.0f }) == s.end());
-    REQUIRE(*s.find(element{ 5, 0.8f }) == element{ 5, 0.8f });
-    REQUIRE(s.find(element{ 6, 1.0f }) == s.end());
+    REQUIRE(s.find(int_element{ 0, 0.0f }) == s.end());
+    REQUIRE(*s.find(int_element{ 3, 1.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(s.find(int_element{ 3, 0.0f }) == s.end());
+    REQUIRE(s.find(int_element{ 4, 0.0f }) == s.end());
+    REQUIRE(*s.find(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f });
+    REQUIRE(s.find(int_element{ 6, 1.0f }) == s.end());
 
-    REQUIRE(cs.find(element{ 0, 1.0f }) == cs.end());
-    REQUIRE(*cs.find(element{ 3, 1.0f }) == element{ 3, 1.0f });
-    REQUIRE(cs.find(element{ 4, 1.0f }) == cs.end());
-    REQUIRE(*cs.find(element{ 5, 0.8f }) == element{ 5, 0.8f });
-    REQUIRE(cs.find(element{ 5, 0.7f }) == cs.end());
-    REQUIRE(cs.find(element{ 6, 0.0f }) == cs.end());
+    REQUIRE(cs.find(int_element{ 0, 1.0f }) == cs.end());
+    REQUIRE(*cs.find(int_element{ 3, 1.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(cs.find(int_element{ 4, 1.0f }) == cs.end());
+    REQUIRE(*cs.find(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f });
+    REQUIRE(cs.find(int_element{ 5, 0.7f }) == cs.end());
+    REQUIRE(cs.find(int_element{ 6, 0.0f }) == cs.end());
 }
 
-TEST_CASE("set-contains", "[set_contains]")
+TEST_CASE("int_set-contains", "[set_contains]")
 {
     // find on keys
-    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
     REQUIRE(!cs.contains(0));
     REQUIRE(cs.contains(3));
     REQUIRE(!cs.contains(4));
@@ -393,19 +393,19 @@ TEST_CASE("set-contains", "[set_contains]")
     REQUIRE(!cs.contains(6));
 
     // find on elements
-    REQUIRE(!cs.contains(element{ 0, 1.0f }));
-    REQUIRE(cs.contains(element{ 3, 1.0f }));
-    REQUIRE(!cs.contains(element{ 3, 0.7f }));
-    REQUIRE(!cs.contains(element{ 4, 1.0f }));
-    REQUIRE(cs.contains(element{ 5, 0.8f }));
-    REQUIRE(!cs.contains(element{ 5, 1.0f }));
-    REQUIRE(!cs.contains(element{ 6, 0.0f }));
+    REQUIRE(!cs.contains(int_element{ 0, 1.0f }));
+    REQUIRE(cs.contains(int_element{ 3, 1.0f }));
+    REQUIRE(!cs.contains(int_element{ 3, 0.7f }));
+    REQUIRE(!cs.contains(int_element{ 4, 1.0f }));
+    REQUIRE(cs.contains(int_element{ 5, 0.8f }));
+    REQUIRE(!cs.contains(int_element{ 5, 1.0f }));
+    REQUIRE(!cs.contains(int_element{ 6, 0.0f }));
 }
 
-TEST_CASE("set-count", "[set_count]")
+TEST_CASE("int_set-count", "[set_count]")
 {
     // count on keys
-    set const cs = { {3, 1.0f}, {5, 0.8f} };
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
     REQUIRE(cs.count(0) == 0u);
     REQUIRE(cs.count(3) == 1u);
     REQUIRE(cs.count(4) == 0u);
@@ -413,20 +413,20 @@ TEST_CASE("set-count", "[set_count]")
     REQUIRE(cs.count(6) == 0u);
 
     // count on elements
-    REQUIRE(cs.count(element{ 0, 1.0f }) == 0u);
-    REQUIRE(cs.count(element{ 3, 1.0f }) == 1u);
-    REQUIRE(cs.count(element{ 3, 0.7f }) == 0u);
-    REQUIRE(cs.count(element{ 4, 1.0f }) == 0u);
-    REQUIRE(cs.count(element{ 5, 0.8f }) == 1u);
-    REQUIRE(cs.count(element{ 5, 1.0f }) == 0u);
-    REQUIRE(cs.count(element{ 6, 0.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 0, 1.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 3, 1.0f }) == 1u);
+    REQUIRE(cs.count(int_element{ 3, 0.7f }) == 0u);
+    REQUIRE(cs.count(int_element{ 4, 1.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 5, 0.8f }) == 1u);
+    REQUIRE(cs.count(int_element{ 5, 1.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 6, 0.0f }) == 0u);
 }
 
 
-TEST_CASE("set-insert", "[set_insert]")
+TEST_CASE("int_set-insert", "[set_insert]")
 {
     // insertion of elements.
-    set cs;
+    int_set cs;
     cs.insert({ {3, 1.0f}, {5, 0.8f} });
     REQUIRE(cs.count(0) == 0u);
     REQUIRE(cs.count(3) == 1u);
@@ -434,30 +434,30 @@ TEST_CASE("set-insert", "[set_insert]")
     REQUIRE(cs.count(5) == 1u);
     REQUIRE(cs.count(6) == 0u);
 
-    cs.insert(element{ 4, 0.4f });
+    cs.insert(int_element{ 4, 0.4f });
     REQUIRE(cs.contains(4));
-    cs.insert(cs.cend(), element{ 0, 0.3f });
+    cs.insert(cs.cend(), int_element{ 0, 0.3f });
     REQUIRE(cs.contains(0));
 
-    std::vector<element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
+    std::vector<int_element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
     cs.insert(other.begin(), other.end());
-    REQUIRE(cs.contains(element{ 5, 0.8f }));
-    REQUIRE(cs.contains(element{ 6, 0.6f }));
-    REQUIRE(cs.contains(element{ 7, 1.0f }));
+    REQUIRE(cs.contains(int_element{ 5, 0.8f }));
+    REQUIRE(cs.contains(int_element{ 6, 0.6f }));
+    REQUIRE(cs.contains(int_element{ 7, 1.0f }));
 
-    auto pair1 = cs.insert(cs.begin(), element{ 4, 1.0f });
+    auto pair1 = cs.insert(cs.begin(), int_element{ 4, 1.0f });
     REQUIRE(pair1.second == false);
     REQUIRE(pair1.first != cs.end());
 
-    auto pair2 = cs.insert(cs.end(), element{ -1, 0.1f });
+    auto pair2 = cs.insert(cs.end(), int_element{ -1, 0.1f });
     REQUIRE(pair2.second == true);
     REQUIRE(pair2.first == cs.begin());
 }
 
 
-TEST_CASE("TR0-set", "[TR0_set]")
+TEST_CASE("TR0-int_set", "[TR0_set]")
 {
-    set item = make_triangle<float>(4, 8, 12);
+    int_set item = make_triangle<float>(4, 8, 12);
     REQUIRE(item.membership(2) == 0.0f);
     REQUIRE(item.membership(4) == 0.0f);
     REQUIRE(item.membership(6) == 0.5f);
@@ -469,19 +469,19 @@ TEST_CASE("TR0-set", "[TR0_set]")
     REQUIRE(!item.empty());
     REQUIRE(item.size() == 3u);
     REQUIRE(all_ranges_valid(item));
-    REQUIRE(item.find(element{ 0, 0.3f }) == item.cend());
-    REQUIRE(item.find(element{ 8, 1.0f }) != item.cend());
+    REQUIRE(item.find(int_element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(int_element{ 8, 1.0f }) != item.cend());
     REQUIRE(!item.contains(0));
     REQUIRE(item.contains(4));
     REQUIRE(item.count(0) == 0);
     REQUIRE(item.count(4) == 1);
-    REQUIRE(item.count(element{ 0, 0.3f }) == 0);
-    REQUIRE(item.count(element{ 12, 0.0f }) == 1);
+    REQUIRE(item.count(int_element{ 0, 0.3f }) == 0);
+    REQUIRE(item.count(int_element{ 12, 0.0f }) == 1);
 }
 
-TEST_CASE("TR1-set", "[TR1_set]")
+TEST_CASE("TR1-int_set", "[TR1_set]")
 {
-    set item = make_trapezoid<float>(4, 8, 12, 16);
+    int_set item = make_trapezoid<float>(4, 8, 12, 16);
     REQUIRE(item.membership(2) == 0.0f);
     REQUIRE(item.membership(4) == 0.0f);
     REQUIRE(item.membership(6) == 0.5f);
@@ -495,31 +495,31 @@ TEST_CASE("TR1-set", "[TR1_set]")
     REQUIRE(!item.empty());
     REQUIRE(item.size() == 4u);
     REQUIRE(all_ranges_valid(item));
-    REQUIRE(item.find(element{ 0, 0.3f }) == item.cend());
-    REQUIRE(item.find(element{ 8, 1.0f }) != item.cend());
-    REQUIRE(*item.find(element{ 8, 1.0f }) == element{ 8, 1.0f });
+    REQUIRE(item.find(int_element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(int_element{ 8, 1.0f }) != item.cend());
+    REQUIRE(*item.find(int_element{ 8, 1.0f }) == int_element{ 8, 1.0f });
     REQUIRE(!item.contains(0));
     REQUIRE(item.contains(4));
     REQUIRE(item.count(0) == 0);
     REQUIRE(item.count(4) == 1);
-    REQUIRE(item.count(element{ 8, 1.0f }) == 1);
-    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.3f }) == 0);
-    REQUIRE(item.count(element{ std::numeric_limits<int>::max(), 0.0f }) == 0);
+    REQUIRE(item.count(int_element{ 8, 1.0f }) == 1);
+    REQUIRE(item.count(int_element{ std::numeric_limits<int>::max(), 0.3f }) == 0);
+    REQUIRE(item.count(int_element{ std::numeric_limits<int>::max(), 0.0f }) == 0);
 }
 
 TEST_CASE("SET-complement", "[SET_complement]")
 {
     // Default case.
-    set const empty;
-    set const empty_c = ~empty;
+    int_set const empty;
+    int_set const empty_c = ~empty;
     REQUIRE(empty_c.size() == 2u);
     REQUIRE(empty_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
     REQUIRE(empty_c.membership(0) == 1.0f);
     REQUIRE(empty_c.membership(std::numeric_limits<int>::max()) == 1.0f);
     
     // Common case.
-    set const tri = make_triangle<float>(4,8,12);
-    set const tri_c = ~tri;
+    int_set const tri = make_triangle<float>(4,8,12);
+    int_set const tri_c = ~tri;
     REQUIRE(tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
     REQUIRE(tri_c.membership(4) == 1.0f);
     REQUIRE(tri_c.membership(6) == 0.5f);
@@ -529,15 +529,15 @@ TEST_CASE("SET-complement", "[SET_complement]")
     REQUIRE(tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 
     // Extreme boundary case
-    set const eb_tri = make_triangle<float>(std::numeric_limits<int>::lowest(), 0, std::numeric_limits<int>::max());
-    set const eb_tri_c = ~eb_tri;
+    int_set const eb_tri = make_triangle<float>(std::numeric_limits<int>::lowest(), 0, std::numeric_limits<int>::max());
+    int_set const eb_tri_c = ~eb_tri;
     REQUIRE(eb_tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
     REQUIRE(eb_tri_c.membership(0) == 0.0f);
     REQUIRE(eb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 
     // Near extreme boundary case
-    set const neb_tri = make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1);
-    set const neb_tri_c = ~neb_tri;
+    int_set const neb_tri = make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1);
+    int_set const neb_tri_c = ~neb_tri;
     REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
     REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::lowest() + 1) == 1.0f);
     REQUIRE(neb_tri_c.membership(0) == 0.0f);
@@ -548,7 +548,7 @@ TEST_CASE("SET-complement", "[SET_complement]")
 TEST_CASE("SET-intersection", "[SET_intersection]")
 {
     // Common case left-right
-    set si_cc_lr = set_intersection(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+    int_set si_cc_lr = set_intersection(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
     REQUIRE(si_cc_lr.membership(3) == 0.0f);
     REQUIRE(si_cc_lr.membership(4) == 0.0f);
     REQUIRE(si_cc_lr.membership(5) == 0.25f);
@@ -561,7 +561,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_cc_lr.membership(12) == 0.0f);
 
     // Common case right-left
-    set si_cc_rl = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+    int_set si_cc_rl = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
     REQUIRE(si_cc_rl.membership(3) == 0.0f);
     REQUIRE(si_cc_rl.membership(4) == 0.0f);
     REQUIRE(si_cc_rl.membership(5) == 0.25f);
@@ -574,7 +574,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_cc_rl.membership(12) == 0.0f);
 
     // Boundary case left-right
-    set si_bc_lr = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+    int_set si_bc_lr = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
     REQUIRE(si_bc_lr.membership(3) == 0.0f);
     REQUIRE(si_bc_lr.membership(4) == 0.0f);
     REQUIRE(si_bc_lr.membership(5) == 0.0f);
@@ -585,7 +585,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bc_lr.membership(20) == 0.0f);
     REQUIRE(si_bc_lr.membership(21) == 0.0f);
 
-    set si_bc_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+    int_set si_bc_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
     REQUIRE(si_bc_rl.membership(3) == 0.0f);
     REQUIRE(si_bc_rl.membership(4) == 0.0f);
     REQUIRE(si_bc_rl.membership(5) == 0.0f);
@@ -597,7 +597,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bc_rl.membership(21) == 0.0f);
 
     // Boundary past each-other case
-    set si_bp_lr = set_intersection(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
+    int_set si_bp_lr = set_intersection(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
     REQUIRE(si_bp_lr.membership(-13) == 0.0f);
     REQUIRE(si_bp_lr.membership(-12) == 0.0f);
     REQUIRE(si_bp_lr.membership(-7) == 0.0f);
@@ -608,7 +608,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bp_lr.membership(20) == 0.0f);
     REQUIRE(si_bp_lr.membership(21) == 0.0f);
 
-    set si_bp_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
+    int_set si_bp_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
     REQUIRE(si_bp_rl.membership(-13) == 0.0f);
     REQUIRE(si_bp_rl.membership(-12) == 0.0f);
     REQUIRE(si_bp_rl.membership(-7) == 0.0f);
@@ -622,29 +622,29 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
 
 TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
 {
-    set a_even = make_triangle<float>(16, 24, 32);
-    set b_even = make_triangle<float>(24, 32, 40);
-    set c1_even = set_intersection(a_even, b_even);
+    int_set a_even = make_triangle<float>(16, 24, 32);
+    int_set b_even = make_triangle<float>(24, 32, 40);
+    int_set c1_even = set_intersection(a_even, b_even);
     REQUIRE(c1_even.size() == 3);
     REQUIRE(c1_even.membership(24) == 0.0f);
     REQUIRE(c1_even.membership(28) == 0.5f);
     REQUIRE(c1_even.membership(32) == 0.0f);
 
-    set c2_even = set_intersection(b_even, a_even);
+    int_set c2_even = set_intersection(b_even, a_even);
     REQUIRE(c2_even.size() == 3);
     REQUIRE(c2_even.membership(24) == 0.0f);
     REQUIRE(c2_even.membership(28) == 0.5f);
     REQUIRE(c2_even.membership(32) == 0.0f);
 
-    set a_minor = make_triangle<float>(16, 24, 32);
-    set b_minor = make_triangle<float>(28, 36, 44);
-    set c1_minor = set_intersection(a_minor, b_minor);
+    int_set a_minor = make_triangle<float>(16, 24, 32);
+    int_set b_minor = make_triangle<float>(28, 36, 44);
+    int_set c1_minor = set_intersection(a_minor, b_minor);
     REQUIRE(c1_minor.size() == 3);
     REQUIRE(c1_minor.membership(28) == 0.0f);
     REQUIRE(c1_minor.membership(30) == 0.25f);
     REQUIRE(c1_minor.membership(32) == 0.0f);
 
-    set c2_minor = set_intersection(b_minor, a_minor);
+    int_set c2_minor = set_intersection(b_minor, a_minor);
     REQUIRE(c2_minor.size() == 3);
     REQUIRE(c2_minor.membership(28) == 0.0f);
     REQUIRE(c2_minor.membership(30) == 0.25f);
@@ -654,7 +654,7 @@ TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
 TEST_CASE("SET-union", "[SET_union]")
 {
     // Common case 
-    set su_cc_lr = set_union(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+    int_set su_cc_lr = set_union(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
     REQUIRE(su_cc_lr.membership(3) == 0.0f);
     REQUIRE(su_cc_lr.membership(4) == 0.25f);
     REQUIRE(su_cc_lr.membership(5) == 0.50f);
@@ -666,7 +666,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_cc_lr.membership(11) == 0.25f);
     REQUIRE(su_cc_lr.membership(12) == 0.0f);
 
-    set su_cc_rl = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+    int_set su_cc_rl = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
     REQUIRE(su_cc_rl.membership(3) == 0.0f);
     REQUIRE(su_cc_rl.membership(4) == 0.25f);
     REQUIRE(su_cc_rl.membership(5) == 0.50f);
@@ -679,7 +679,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_cc_rl.membership(12) == 0.0f);
 
     // Boundary case
-    set su_bc_lr = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+    int_set su_bc_lr = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
     REQUIRE(su_bc_lr.membership(3) == 0.0f);
     REQUIRE(su_bc_lr.membership(4) == 0.0f);
     REQUIRE(su_bc_lr.membership(5) == 0.25f);
@@ -691,7 +691,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_bc_lr.membership(21) == 0.0f);
 
     // Boundaries past each-other case
-    set su_bp_lr = set_union(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
+    int_set su_bp_lr = set_union(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
     REQUIRE(su_bp_lr.membership(-13) == 0.0f);
     REQUIRE(su_bp_lr.membership(-12) == 0.0f);
     REQUIRE(su_bp_lr.membership(-5) == 0.25f);
@@ -703,7 +703,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_bp_lr.membership(20) == 0.0f);
     REQUIRE(su_bp_lr.membership(21) == 0.0f);
 
-    set su_bp_rl = set_union(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
+    int_set su_bp_rl = set_union(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
     REQUIRE(su_bp_rl.membership(-13) == 0.0f);
     REQUIRE(su_bp_rl.membership(-12) == 0.0f);
     REQUIRE(su_bp_rl.membership(-5) == 0.25f);
@@ -778,7 +778,7 @@ TEST_CASE("current-tconorm")
 TEST_CASE("SET-somewhat", "[SET_somewhat]")
 {
     // Common case 
-    set cc = somewhat(make_triangle<float>(4, 12, 20));
+    int_set cc = somewhat(make_triangle<float>(4, 12, 20));
     REQUIRE(equivelant(cc.membership(4), 0.0f));
     REQUIRE(equivelant(cc.membership(6), 0.5f));
     REQUIRE(equivelant(cc.membership(8),0.7071069f));
@@ -790,7 +790,7 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
     REQUIRE(equivelant(cc.membership(20), 0.0f));
 
     // Compact case
-    set cpc = somewhat(make_triangle<float>(4, 8, 12));
+    int_set cpc = somewhat(make_triangle<float>(4, 8, 12));
     REQUIRE(equivelant(cpc.membership(4), 0.0f));
     REQUIRE(equivelant(cpc.membership(5), 0.5f));
     REQUIRE(equivelant(cpc.membership(6), 0.7071067f));
@@ -802,7 +802,7 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
     REQUIRE(equivelant(cpc.membership(12), 0.0f));
 
     // Constrained case
-    set csc = somewhat(make_triangle<float>(4, 6, 8));
+    int_set csc = somewhat(make_triangle<float>(4, 6, 8));
     REQUIRE(equivelant(csc.membership(4), 0.0f));
     REQUIRE(equivelant(csc.membership(5), 0.7071067f));
     REQUIRE(equivelant(csc.membership(6), 1.0f));
@@ -810,13 +810,13 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
     REQUIRE(equivelant(csc.membership(8), 0.0f));
 
     // Extreme case
-    set ec = somewhat(make_triangle<float>(4, 5, 6));
+    int_set ec = somewhat(make_triangle<float>(4, 5, 6));
     REQUIRE(equivelant(ec.membership(4), 0.0f));
     REQUIRE(equivelant(ec.membership(5), 1.0f));
     REQUIRE(equivelant(ec.membership(6), 0.0f));
 
     // Non-uniform case.
-    set nu = somewhat(set{ element{ 0, 0.0f },element{ 4, 0.25f },element{ 8, 0.5f },element{ 12, 0.75f },element{ 16, 0.4f },element{ 18, 0.0f } });
+    int_set nu = somewhat(int_set{ int_element{ 0, 0.0f },int_element{ 4, 0.25f },int_element{ 8, 0.5f },int_element{ 12, 0.75f },int_element{ 16, 0.4f },int_element{ 18, 0.0f } });
     REQUIRE(equivelant(nu.membership(0), 0.0f));
     REQUIRE(equivelant(nu.membership(4), 0.5f));
     REQUIRE(equivelant(nu.membership(8), 0.7071067f));
@@ -828,7 +828,7 @@ TEST_CASE("SET-somewhat", "[SET_somewhat]")
 TEST_CASE("SET-very", "[SET_very]")
 {
     // Common case 
-    set cc = very(make_triangle<float>(4, 12, 20));
+    int_set cc = very(make_triangle<float>(4, 12, 20));
     REQUIRE(equivelant(cc.membership(4), 0.0f));
     REQUIRE(equivelant(cc.membership(6), 0.0625f));
     REQUIRE(equivelant(cc.membership(8), 0.25f));
@@ -840,7 +840,7 @@ TEST_CASE("SET-very", "[SET_very]")
     REQUIRE(equivelant(cc.membership(20), 0.0f));
 
     // Compact case
-    set cpc = very(make_triangle<float>(4, 8, 12));
+    int_set cpc = very(make_triangle<float>(4, 8, 12));
     REQUIRE(equivelant(cpc.membership(4), 0.0f));
     REQUIRE(equivelant(cpc.membership(5), 0.0625f));
     REQUIRE(equivelant(cpc.membership(6), 0.25f));
@@ -852,7 +852,7 @@ TEST_CASE("SET-very", "[SET_very]")
     REQUIRE(equivelant(cpc.membership(12), 0.0f));
 
     // Constrained case
-    set csc = very(make_triangle<float>(4, 6, 8));
+    int_set csc = very(make_triangle<float>(4, 6, 8));
     REQUIRE(equivelant(csc.membership(4), 0.0f));
     REQUIRE(equivelant(csc.membership(5), 0.25f));
     REQUIRE(equivelant(csc.membership(6), 1.0f));
@@ -860,13 +860,13 @@ TEST_CASE("SET-very", "[SET_very]")
     REQUIRE(equivelant(csc.membership(8), 0.0f));
 
     // Extreme case
-    set ec = very(make_triangle<float>(4, 5, 6));
+    int_set ec = very(make_triangle<float>(4, 5, 6));
     REQUIRE(equivelant(ec.membership(4), 0.0f));
     REQUIRE(equivelant(ec.membership(5), 1.0f));
     REQUIRE(equivelant(ec.membership(6), 0.0f));
 
     // Non-uniform case.
-    set nu = very(set{ element{ 0, 0.0f },element{ 4, 0.25f },element{ 8, 0.5f },element{ 12, 0.75f },element{ 16, 0.4f },element{ 18, 0.0f } });
+    int_set nu = very(int_set{ int_element{ 0, 0.0f },int_element{ 4, 0.25f },int_element{ 8, 0.5f },int_element{ 12, 0.75f },int_element{ 16, 0.4f },int_element{ 18, 0.0f } });
     REQUIRE(equivelant(nu.membership(0), 0.0f));
     REQUIRE(equivelant(nu.membership(4), 0.0625f));
     REQUIRE(equivelant(nu.membership(8), 0.25f));
@@ -877,8 +877,8 @@ TEST_CASE("SET-very", "[SET_very]")
 
 TEST_CASE("Relation", "[Relation]")
 {
-    set large = make_triangle<float>(1200, 1600, 2000);
-    set strong = make_triangle<float>(1600, 2000, 2400);
+    int_set large = make_triangle<float>(1200, 1600, 2000);
+    int_set strong = make_triangle<float>(1600, 2000, 2400);
     relation rel{ large, strong, minimum{} };
 
     REQUIRE(equivelant(rel.membership(1200, 1600), 0.0f));
@@ -893,13 +893,13 @@ TEST_CASE("Relation", "[Relation]")
 #if ENABLE_DEPRECATED_TESTS
 TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
 {
-    set large = make_triangle<float>(1200, 1600, 2000);
-    set strong = make_triangle<float>(1600, 2000, 2400);
+    int_set large = make_triangle<float>(1200, 1600, 2000);
+    int_set strong = make_triangle<float>(1600, 2000, 2400);
     relation rel1{ large, strong, minimum{} };
     mapping_rule rule1{ rel1, fuzzy::maximum{} };
 
-    set horse_weight = make_triangle<float>(1300, 1400, 1500);
-    set horse_strength1 = rule1.apply(horse_weight);
+    int_set horse_weight = make_triangle<float>(1300, 1400, 1500);
+    int_set horse_strength1 = rule1.apply(horse_weight);
     REQUIRE(horse_strength1.size() == 4);
     REQUIRE(equivelant(horse_strength1.membership(1600), 0.0f));
     REQUIRE(equivelant(horse_strength1.membership(1700), 0.25f));
@@ -909,12 +909,12 @@ TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
     REQUIRE(equivelant(horse_strength1.membership(2400), 0.0f));
 
 
-    set medium = make_triangle<float>(800, 1200, 1600);
-    set moderate = make_triangle<float>(1200, 1600, 2000);
+    int_set medium = make_triangle<float>(800, 1200, 1600);
+    int_set moderate = make_triangle<float>(1200, 1600, 2000);
     relation rel2{ medium, moderate, minimum{} };
     mapping_rule rule2{ rel2, fuzzy::maximum{} };
 
-    set horse_strength2 = rule2.apply(horse_weight);
+    int_set horse_strength2 = rule2.apply(horse_weight);
     REQUIRE(horse_strength2.size() == 4);
     REQUIRE(equivelant(horse_strength2.membership(1200), 0.0f));
     REQUIRE(equivelant(horse_strength2.membership(1600), 0.6f));
@@ -926,13 +926,13 @@ TEST_CASE("Mapping-Rule-1", "[Mapping_Rule_1]")
 
 TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
 {
-    set hot = make_triangle<float>(90, 105, 120);
-    set fast = make_triangle<float>(700, 900, 1100);
+    int_set hot = make_triangle<float>(90, 105, 120);
+    int_set fast = make_triangle<float>(700, 900, 1100);
     relation rel1{ hot, fast, minimum{} };
     mapping_rule rule1{ rel1, maximum{} };
 
-    set temp = make_triangle<float>(95,100,105);
-    set fan_speed1 = rule1.apply(temp);
+    int_set temp = make_triangle<float>(95,100,105);
+    int_set fan_speed1 = rule1.apply(temp);
     REQUIRE(fan_speed1.size() == 5);
     REQUIRE(equivelant(fan_speed1.membership(700), 0.0f));
     REQUIRE(equivelant(fan_speed1.membership(833), 0.665f));
@@ -940,12 +940,12 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
     REQUIRE(equivelant(fan_speed1.membership(900), 0.7333333f));
     REQUIRE(equivelant(fan_speed1.membership(1100), 0.0f));
 
-    set warm = make_triangle<float>(75,90,105);
-    set medium = make_triangle<float>(500, 700, 900);
+    int_set warm = make_triangle<float>(75,90,105);
+    int_set medium = make_triangle<float>(500, 700, 900);
     relation rel2{ warm, medium, minimum{} };
     mapping_rule rule2{ rel2, fuzzy::maximum{} };
 
-    set fan_speed2 = rule2.apply(temp);
+    int_set fan_speed2 = rule2.apply(temp);
     REQUIRE(fan_speed2.size() == 5);
     REQUIRE(equivelant(fan_speed2.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed2.membership(700), 0.4f));
@@ -956,12 +956,12 @@ TEST_CASE("Mapping-Rule-2", "[Mapping_Rule_2]")
 
 TEST_CASE("Scaling-Inference-Rule-1", "[Scaling_Inference_Rule_1]")
 {
-    set large = make_triangle<float>(1200, 1600, 2000);
-    set strong = make_triangle<float>(1600, 2000, 2400);
+    int_set large = make_triangle<float>(1200, 1600, 2000);
+    int_set strong = make_triangle<float>(1600, 2000, 2400);
     scaling_inference rule1{ large, fuzzy::minimum{} };
 
     int const horse_weight = 1400;
-    set horse_strength1 = rule1.apply(horse_weight, strong);
+    int_set horse_strength1 = rule1.apply(horse_weight, strong);
     REQUIRE(horse_strength1.size() == 3);
     REQUIRE(equivelant(horse_strength1.membership(1600), 0.0f));
     REQUIRE(equivelant(horse_strength1.membership(1700), 0.25f));
@@ -969,11 +969,11 @@ TEST_CASE("Scaling-Inference-Rule-1", "[Scaling_Inference_Rule_1]")
     REQUIRE(equivelant(horse_strength1.membership(2100), 0.25f));
     REQUIRE(equivelant(horse_strength1.membership(2400), 0.0f));
 
-    set medium = make_triangle<float>(800, 1200, 1600);
-    set moderate = make_triangle<float>(1200, 1600, 2000);
+    int_set medium = make_triangle<float>(800, 1200, 1600);
+    int_set moderate = make_triangle<float>(1200, 1600, 2000);
     scaling_inference rule2{ medium, fuzzy::minimum{} };
 
-    set horse_strength2 = rule2.apply(horse_weight, moderate);
+    int_set horse_strength2 = rule2.apply(horse_weight, moderate);
     REQUIRE(horse_strength2.size() == 3);
     REQUIRE(equivelant(horse_strength2.membership(1200), 0.0f));
     REQUIRE(equivelant(horse_strength2.membership(1500), 0.25f));
@@ -984,22 +984,22 @@ TEST_CASE("Scaling-Inference-Rule-1", "[Scaling_Inference_Rule_1]")
 
 TEST_CASE("Scaling-Inference-Rule-2", "[Scaling_Inference_Rule_2]")
 {
-    set hot = make_triangle<float>(90, 105, 120);
-    set fast = make_triangle<float>(700, 900, 1100);
+    int_set hot = make_triangle<float>(90, 105, 120);
+    int_set fast = make_triangle<float>(700, 900, 1100);
     scaling_inference rule1{ hot };
 
     int temp = 100;
-    set fan_speed1 = rule1.apply(temp, fast);
+    int_set fan_speed1 = rule1.apply(temp, fast);
     REQUIRE(fan_speed1.size() == 3);
     REQUIRE(equivelant(fan_speed1.membership(700), 0.0f));
     REQUIRE(equivelant(fan_speed1.membership(833), 0.665f));
     REQUIRE(equivelant(fan_speed1.membership(1100), 0.0f));
 
-    set warm = make_triangle<float>(75, 90, 105);
-    set medium = make_triangle<float>(500, 700, 900);
+    int_set warm = make_triangle<float>(75, 90, 105);
+    int_set medium = make_triangle<float>(500, 700, 900);
     scaling_inference rule2{ warm };
 
-    set fan_speed2 = rule2.apply(temp, medium);
+    int_set fan_speed2 = rule2.apply(temp, medium);
     REQUIRE(fan_speed2.size() == 3);
     REQUIRE(equivelant(fan_speed2.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed2.membership(833), 0.333333f));
@@ -1011,12 +1011,12 @@ TEST_CASE("Scaling-Inference-Rule-2", "[Scaling_Inference_Rule_2]")
 TEST_CASE("Consequent-1", "[Consequent_1]")
 {
 	result_aggregator<int, float, fuzzy::mamdani> cons1{fuzzy::mamdani<float>{}};
-	set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1900, 0.6f },element{ 2000, 0.6f },element{ 2400, 0.0f } };
-	set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1600, 0.6f },element{ 1700, 0.6f },element{ 2000, 0.0f } };
+	int_set horse_strength1 = int_set{ int_element{ 1600, 0.0f },int_element{ 1900, 0.6f },int_element{ 2000, 0.6f },int_element{ 2400, 0.0f } };
+	int_set horse_strength2 = int_set{ int_element{ 1200, 0.0f },int_element{ 1600, 0.6f },int_element{ 1700, 0.6f },int_element{ 2000, 0.0f } };
 	cons1.aggregate(horse_strength1);
 	cons1.aggregate(horse_strength2);
 
-	set const& horse_strength3 = cons1.result();
+	int_set const& horse_strength3 = cons1.result();
 	REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
 	REQUIRE(equivelant(horse_strength3.membership(1600), 0.6f));
 	REQUIRE(equivelant(horse_strength3.membership(1700), 0.6f));
@@ -1029,12 +1029,12 @@ TEST_CASE("Consequent-1", "[Consequent_1]")
 TEST_CASE("Consequent-2", "[Consequent_2]")
 {
     result_aggregator<int, float, mamdani> cons2{fuzzy::mamdani<float>{}};
-    set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
-    set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
+    int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
+    int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
     cons2.aggregate(fan_speed2);
 
-    set const& fan_speed3 = cons2.result();
+    int_set const& fan_speed3 = cons2.result();
     REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
     REQUIRE(equivelant(fan_speed3.membership(780), 0.4f));
@@ -1047,12 +1047,12 @@ TEST_CASE("Consequent-2", "[Consequent_2]")
 TEST_CASE("Consequent-3", "[Consequent_3]")
 {
     result_aggregator<int, float, fuzzy::additive_function> cons1{fuzzy::additive_function<float>{}};
-    set horse_strength1 = set{ element{ 1600, 0.0f },element{ 1700, 0.25f },element{ 1800, 0.5f },element{ 2100, 0.25f },element{ 2400, 0.0f } };
-    set horse_strength2 = set{ element{ 1200, 0.0f },element{ 1500, 0.25f },element{ 1800, 0.5f },element{ 1900, 0.25f },element{ 2000, 0.0f } };
+    int_set horse_strength1 = int_set{ int_element{ 1600, 0.0f },int_element{ 1700, 0.25f },int_element{ 1800, 0.5f },int_element{ 2100, 0.25f },int_element{ 2400, 0.0f } };
+    int_set horse_strength2 = int_set{ int_element{ 1200, 0.0f },int_element{ 1500, 0.25f },int_element{ 1800, 0.5f },int_element{ 1900, 0.25f },int_element{ 2000, 0.0f } };
     cons1.aggregate(horse_strength1);
     cons1.aggregate(horse_strength2);
 
-    set const& horse_strength3 = cons1.result();
+    int_set const& horse_strength3 = cons1.result();
     REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
     REQUIRE(equivelant(horse_strength3.membership(1600), 0.33333333f));
     REQUIRE(equivelant(horse_strength3.membership(1700), 0.66666666f));
@@ -1065,12 +1065,12 @@ TEST_CASE("Consequent-3", "[Consequent_3]")
 TEST_CASE("Consequent-4", "[Consequent_4]")
 {
     result_aggregator<int, float, fuzzy::additive_function> cons2{fuzzy::additive_function<float>{}};
-    set fan_speed1 = set{ element{ 700, 0.0f },element{ 847, 0.7333333f },element{ 900, 0.7333333f },element{ 1100, 0.0f } };
-    set fan_speed2 = set{ element{ 500, 0.0f },element{ 700, 0.4f },element{ 793, 0.4f },element{ 900, 0.0f } };
+    int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
+    int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
     cons2.aggregate(fan_speed2);
 
-    set const& fan_speed3 = cons2.result();
+    int_set const& fan_speed3 = cons2.result();
     REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
     REQUIRE(equivelant(fan_speed3.membership(780), 0.7990930f));
@@ -1082,9 +1082,9 @@ TEST_CASE("Consequent-4", "[Consequent_4]")
 
 TEST_CASE("Scaled-Antecedent", "[Scaled_Antecedent]")
 {
-    set fan_speed1 = set{ element{ 650, 0.0f },element{ 700, 1.0f },element{ 750, 0.0f }};
-    set fan_speed2 = set{ element{ 750, 0.0f },element{ 800, 1.0f },element{ 850, 0.0f } };
-    set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
+    int_set fan_speed1 = int_set{ int_element{ 650, 0.0f },int_element{ 700, 1.0f },int_element{ 750, 0.0f }};
+    int_set fan_speed2 = int_set{ int_element{ 750, 0.0f },int_element{ 800, 1.0f },int_element{ 850, 0.0f } };
+    int_set fast = int_set{ int_element{ 700, 0.0f },int_element{ 900, 1.0f },int_element{ 1100, 0.0f } };
 
     auto sa1 = is(fan_speed1,fast);
     REQUIRE(sa1.set().size() == 3u);
@@ -1108,7 +1108,7 @@ TEST_CASE("Result-Aggregator", "[Result_Aggregator]")
 {
     result_aggregator<int, float, additive_function> fan_speed{ additive_function<float>{} };
 
-    set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
+    int_set fast = int_set{ int_element{ 700, 0.0f },int_element{ 900, 1.0f },int_element{ 1100, 0.0f } };
     auto consequent = fan_speed.shall_be(fast);
 
     REQUIRE(&consequent.target() == &fast);
@@ -1118,30 +1118,35 @@ TEST_CASE("Result-Aggregator", "[Result_Aggregator]")
 
 TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
 {
-    result_aggregator<int, float, additive_function> fan_speed{ additive_function<float>{} };
+    result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
 
-    set tempurature = set{ element{ 72, 0.0f },element{ 78, 1.0f },element{ 84, 0.0f } };
-    set warm = set{ element{ 70, 0.0f },element{ 85, 1.0f },element{ 100, 0.0f } };
+    set tempurature = set{ element{ 72.0f, 0.0f },element{ 78.0f, 1.0f },element{ 84.0f, 0.0f } };
+    set warm = set{ element{ 70.0f, 0.0f },element{ 85.0f, 1.0f },element{ 100.0f, 0.0f } };
 
     auto sa1 = is(tempurature, warm);
 
     REQUIRE(sa1.set().size() == 5u);
     REQUIRE(equivelant(sa1.set().membership(0.0666667f), 0.0f));
-    REQUIRE(equivelant(sa1.set().membership(0.1f), 0.1666667f));
+    REQUIRE(equivelant(sa1.set().membership(0.1111111f), 0.2222222f));
     REQUIRE(equivelant(sa1.set().membership(0.2666667f), 0.5333333f));
     REQUIRE(equivelant(sa1.set().membership(0.3333333f), 0.6666667f));
     REQUIRE(equivelant(sa1.set().membership(0.4666667f), 0.0f));
 
 
-    set fast = set{ element{ 700, 0.0f },element{ 900, 1.0f },element{ 1100, 0.0f } };
+    set fast = set{ element{ 700.0f, 0.0f }, element{ 900.0f, 1.0f }, element{ 1100.0f, 0.0f } };
     auto consequent = fan_speed.shall_be(fast);
 
     fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
 
-
     REQUIRE(&consequent.target() == &fast);
     REQUIRE(&consequent.aggregator() == &fan_speed);
     REQUIRE(consequent.aggregator().result().size() == 6);
+    REQUIRE(equivelant(consequent.aggregator().result().membership(726.666687f), 0.0f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(744.444458f), 0.222222f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(786.790161f), 0.433950f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(806.666687f), 0.533333f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(886.666687f), 0.0f));
 }
 
 
