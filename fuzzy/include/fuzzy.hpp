@@ -32,7 +32,8 @@
 #include <fuzzy/element.hpp>
 #include <fuzzy/mapping_rule.hpp>
 #include <fuzzy/math.hpp>
-#include <fuzzy/operator.hpp>
+#include <fuzzy/norm_conorm.hpp>
+#include <fuzzy/operators.hpp>
 #include <fuzzy/relation.hpp>
 #include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/set.hpp>

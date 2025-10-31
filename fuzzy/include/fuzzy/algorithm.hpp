@@ -39,7 +39,7 @@
 #include <fuzzy/concepts.hpp>
 #include <fuzzy/element.hpp>
 #include <fuzzy/math.hpp>
-#include <fuzzy/operator.hpp>
+#include <fuzzy/norm_conorm.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/traits.hpp>
 
@@ -681,14 +681,16 @@ namespace fuzzy
 
 	}
 
-
 	/**
-	* Version of std::set_intersection compatible with fuzzy set theory.
-	* @param lhs The left hand side fuzzy set operand.
-	* @param rhs The right hand side fuzzy set operand.
-	* @return The intersection of the two fuzzy sets.
+	 * @brief A version of std::set_intersection compatible with fuzzy set theory.
+	 * @tparam V The element value type.
+	 * @tparam M The element membership type.
+	 * @tparam Allocator The allocator type.
+	 * @param lhs The left-hand set for the intersection.
+	 * @param rhs The right-hand set for the intersection.
+	 * @return A set which is the intersection of the two operands.
 	*/
-	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator, template<typename> class Operation = fuzzy::minimum>
+	template <template<typename> class Operation, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Operation<M>>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> set_intersection(fuzzy::basic_set<V, M, Container, Allocator> const& lhs, fuzzy::basic_set<V, M, Container, Allocator> const& rhs)
 	{
@@ -696,12 +698,15 @@ namespace fuzzy
 	}
 
 	/**
-	* Version of std::set_union compatible with fuzzy set theory.
-	* @param lhs The left hand side fuzzy set operand.
-	* @param rhs The right hand side fuzzy set operand.
-	* @return The union of the two fuzzy sets.
+	 * @brief A version of std::set_union compatible with fuzzy set theory.
+	 * @tparam V The element value type.
+	 * @tparam M The element membership type.
+	 * @tparam Allocator The allocator type.
+	 * @param lhs The left-hand set for the union.
+	 * @param rhs The right-hand set for the union.
+	 * @return A set which is the union of the two operands.
 	*/
-	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator, template <typename> class Operation = fuzzy::maximum>
+	template <template <typename> class Operation, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tconorm_type<Operation<M>>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> set_union(fuzzy::basic_set<V, M, Container, Allocator> const& lhs, fuzzy::basic_set<V, M, Container, Allocator> const& rhs)
 	{
@@ -710,7 +715,7 @@ namespace fuzzy
 
 
 
-#ifdef FUZZY_USE_TLS_DEF_OPERATOR
+#ifdef FUZZY_USE_TLS_DEF_OPERATOR // FIXME: Make this go away... it is a design flaw.
 
 	template <class T>
 	requires tnorm_type<T> && std::floating_point<typename T::value_type>
@@ -778,36 +783,26 @@ namespace fuzzy
 	};
 
 	template<class T> use_tconorm_t(T) -> use_tconorm_t<T>;
-
-
-
-
-
 #endif
 
-	/**
-	* Intersects two fuzzy sets.
-	* @param aset The lhs set to intersect.
-	* @return The intersection of the sets.
-	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container>
-	requires fuzzy::numeric<V> && std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator&(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
-	{
-		return set_intersection<V, M, Operation, Container>(lhs, rhs);
-	}
 
-	/**
-	* Unions two fuzzy sets.
-	* @param aset The lhs set to intersect.
-	* @return The unions of the sets.
-	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container>
-		requires fuzzy::numeric<V> && std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator|(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+
+	// Complement function object.
+	template <typename M = float>
+	requires std::floating_point<M>
+	struct complement
 	{
-		return set_union<V, M, Operation, Container>(lhs, rhs);
-	}
+		using value_type = M;
+
+		// Complement as 1 - m.
+		// @param m Membership in the range [0,1].
+		// @result a value in the range [0,1].
+		[[nodiscard]] constexpr static M apply(M m) noexcept
+		{
+			validate_range<M>(m);
+			return static_cast<M>(1.0) - m;
+		}
+	};
 
 	/**
 	* Complement of fuzzy set.
@@ -867,80 +862,8 @@ namespace fuzzy
 	}
 
 
-	/**
-	* Fuzzy term 'somewhat' relaxes requirement for the fuzzy set.
-	* @param aset The set to relax.
-	* @return The relaxed set.
-	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V> && std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> somewhat(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
-	{
-		constexpr auto somewhat_func = [](M m) { return std::sqrt(m); };
-		return detail::linguistic_term_impl(aset, somewhat_func, steps);
-	}
 
-	/**
-	* Fuzzy term 'verry' tightens requirement for the fuzzy set.
-	* @param aset The set to tighten.
-	* @return The tightened set.
-	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V> && std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> very(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
-	{
-		constexpr auto very_func = [](M m) { return m * m; };
-		return detail::linguistic_term_impl(aset, very_func, steps);
-	}
-
-	/**
-	* Complement of fuzzy set.
-	* @param aset The set to complement.
-	* @return The complement of the set.
-	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V> && std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator~(fuzzy::basic_set<V, M, Container> const& aset)
-	{
-		return set_complement<V,M,Operation, Container>(aset);
-	}
-
-
-	/**
-	 * @brief Applies the fuzzy value to the fuzzy variable.  i.e. is(tempurature, hot)
-	 * @tparam M The fuzzy element membership type.
-	 * @tparam Tnorm The T-norm to use in the application.
-	 * @tparam Container The container type to use for the fuzzy basic_set.
-	 * @tparam V The fuzzy element value type.
-	 * @param value The fuzzy value to apply.
-	 * @param variable The fuzzy variable to apply the value against.
-	 * @return A scaled application of a fuzzy value to a fuzzy variable.
-	*/
-	template <template<typename> class Tnorm = fuzzy::minimum, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
-	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_antecedent<V, M, Container, Allocator> is(fuzzy::basic_set<V, M, Container, Allocator> const& value, fuzzy::basic_set<V, M, Container, Allocator> const& variable)
-	{
-		using key_type = typename fuzzy::float_value_t<V>::value;
-		if (variable.empty())
-			return scaled_antecedent<V, M, Container>{ };
-
-		key_type const d0 = static_cast<key_type>(variable.front().value());
-		key_type const d1 = static_cast<key_type>(variable.back().value());
-		key_type const domain_ratio = static_cast<key_type>(1) / (d1 - d0);
-		fuzzy::basic_set<V, M, Container, Allocator> const set = fuzzy::set_intersection<V, M, Container, Allocator, Tnorm>(value, variable);
-		using key_alloc_type = typename std::allocator_traits<Allocator>::template rebind_alloc<fuzzy::basic_element<key_type, M>>;
-
-		fuzzy::basic_set<key_type, M, Container, key_alloc_type> scaled_set{ key_alloc_type{variable.get_allocator()} };
-		scaled_set.reserve(set.size());
-		for (fuzzy::basic_element<V, M> const& e : set)
-		{
-			key_type const offset = static_cast<key_type>(e.value()) - d0;
-			key_type const scaled_value = offset * domain_ratio;
-			scaled_set.insert(fuzzy::basic_element<key_type, M>{ scaled_value, e.membership() });
-		}
-
-		return scaled_antecedent<V, M, Container, Allocator>{ std::move(scaled_set) };
-	}
+	
 }
 
 #endif // FUZZY_ALGORITHM_HPP

@@ -62,7 +62,7 @@ namespace fuzzy
 			projected_src.insert(element_t{ rounded_v, ele.membership() });
 		}
 
-		set_t result = set_intersection<V,M,Container, Allocator,Tnorm>(projected_src, dst);
+		set_t result = set_intersection<Tnorm, V,M,Container, Allocator>(projected_src, dst);
 		consequent.aggregator().aggregate(result);
 	}
 }

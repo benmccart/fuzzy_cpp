@@ -548,7 +548,7 @@ TEST_CASE("SET-complement", "[SET_complement]")
 TEST_CASE("SET-intersection", "[SET_intersection]")
 {
     // Common case left-right
-    int_set si_cc_lr = set_intersection(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+    int_set si_cc_lr = set_intersection<fuzzy::minimum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
     REQUIRE(si_cc_lr.membership(3) == 0.0f);
     REQUIRE(si_cc_lr.membership(4) == 0.0f);
     REQUIRE(si_cc_lr.membership(5) == 0.25f);
@@ -561,7 +561,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_cc_lr.membership(12) == 0.0f);
 
     // Common case right-left
-    int_set si_cc_rl = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+    int_set si_cc_rl = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
     REQUIRE(si_cc_rl.membership(3) == 0.0f);
     REQUIRE(si_cc_rl.membership(4) == 0.0f);
     REQUIRE(si_cc_rl.membership(5) == 0.25f);
@@ -574,7 +574,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_cc_rl.membership(12) == 0.0f);
 
     // Boundary case left-right
-    int_set si_bc_lr = set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+    int_set si_bc_lr = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
     REQUIRE(si_bc_lr.membership(3) == 0.0f);
     REQUIRE(si_bc_lr.membership(4) == 0.0f);
     REQUIRE(si_bc_lr.membership(5) == 0.0f);
@@ -585,7 +585,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bc_lr.membership(20) == 0.0f);
     REQUIRE(si_bc_lr.membership(21) == 0.0f);
 
-    int_set si_bc_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+    int_set si_bc_rl = set_intersection<fuzzy::minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
     REQUIRE(si_bc_rl.membership(3) == 0.0f);
     REQUIRE(si_bc_rl.membership(4) == 0.0f);
     REQUIRE(si_bc_rl.membership(5) == 0.0f);
@@ -597,7 +597,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bc_rl.membership(21) == 0.0f);
 
     // Boundary past each-other case
-    int_set si_bp_lr = set_intersection(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
+    int_set si_bp_lr = set_intersection<fuzzy::minimum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
     REQUIRE(si_bp_lr.membership(-13) == 0.0f);
     REQUIRE(si_bp_lr.membership(-12) == 0.0f);
     REQUIRE(si_bp_lr.membership(-7) == 0.0f);
@@ -608,7 +608,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_bp_lr.membership(20) == 0.0f);
     REQUIRE(si_bp_lr.membership(21) == 0.0f);
 
-    int_set si_bp_rl = set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
+    int_set si_bp_rl = set_intersection<fuzzy::minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
     REQUIRE(si_bp_rl.membership(-13) == 0.0f);
     REQUIRE(si_bp_rl.membership(-12) == 0.0f);
     REQUIRE(si_bp_rl.membership(-7) == 0.0f);
@@ -624,13 +624,13 @@ TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
 {
     int_set a_even = make_triangle<float>(16, 24, 32);
     int_set b_even = make_triangle<float>(24, 32, 40);
-    int_set c1_even = set_intersection(a_even, b_even);
+    int_set c1_even = set_intersection<fuzzy::minimum>(a_even, b_even);
     REQUIRE(c1_even.size() == 3);
     REQUIRE(c1_even.membership(24) == 0.0f);
     REQUIRE(c1_even.membership(28) == 0.5f);
     REQUIRE(c1_even.membership(32) == 0.0f);
 
-    int_set c2_even = set_intersection(b_even, a_even);
+    int_set c2_even = set_intersection<fuzzy::minimum>(b_even, a_even);
     REQUIRE(c2_even.size() == 3);
     REQUIRE(c2_even.membership(24) == 0.0f);
     REQUIRE(c2_even.membership(28) == 0.5f);
@@ -638,13 +638,13 @@ TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
 
     int_set a_minor = make_triangle<float>(16, 24, 32);
     int_set b_minor = make_triangle<float>(28, 36, 44);
-    int_set c1_minor = set_intersection(a_minor, b_minor);
+    int_set c1_minor = set_intersection<fuzzy::minimum>(a_minor, b_minor);
     REQUIRE(c1_minor.size() == 3);
     REQUIRE(c1_minor.membership(28) == 0.0f);
     REQUIRE(c1_minor.membership(30) == 0.25f);
     REQUIRE(c1_minor.membership(32) == 0.0f);
 
-    int_set c2_minor = set_intersection(b_minor, a_minor);
+    int_set c2_minor = set_intersection<fuzzy::minimum>(b_minor, a_minor);
     REQUIRE(c2_minor.size() == 3);
     REQUIRE(c2_minor.membership(28) == 0.0f);
     REQUIRE(c2_minor.membership(30) == 0.25f);
@@ -654,7 +654,7 @@ TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
 TEST_CASE("SET-union", "[SET_union]")
 {
     // Common case 
-    int_set su_cc_lr = set_union(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+    int_set su_cc_lr = set_union<fuzzy::maximum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
     REQUIRE(su_cc_lr.membership(3) == 0.0f);
     REQUIRE(su_cc_lr.membership(4) == 0.25f);
     REQUIRE(su_cc_lr.membership(5) == 0.50f);
@@ -666,7 +666,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_cc_lr.membership(11) == 0.25f);
     REQUIRE(su_cc_lr.membership(12) == 0.0f);
 
-    int_set su_cc_rl = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+    int_set su_cc_rl = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
     REQUIRE(su_cc_rl.membership(3) == 0.0f);
     REQUIRE(su_cc_rl.membership(4) == 0.25f);
     REQUIRE(su_cc_rl.membership(5) == 0.50f);
@@ -679,7 +679,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_cc_rl.membership(12) == 0.0f);
 
     // Boundary case
-    int_set su_bc_lr = set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+    int_set su_bc_lr = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
     REQUIRE(su_bc_lr.membership(3) == 0.0f);
     REQUIRE(su_bc_lr.membership(4) == 0.0f);
     REQUIRE(su_bc_lr.membership(5) == 0.25f);
@@ -691,7 +691,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_bc_lr.membership(21) == 0.0f);
 
     // Boundaries past each-other case
-    int_set su_bp_lr = set_union(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
+    int_set su_bp_lr = set_union<fuzzy::maximum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
     REQUIRE(su_bp_lr.membership(-13) == 0.0f);
     REQUIRE(su_bp_lr.membership(-12) == 0.0f);
     REQUIRE(su_bp_lr.membership(-5) == 0.25f);
@@ -703,7 +703,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_bp_lr.membership(20) == 0.0f);
     REQUIRE(su_bp_lr.membership(21) == 0.0f);
 
-    int_set su_bp_rl = set_union(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
+    int_set su_bp_rl = set_union<fuzzy::maximum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
     REQUIRE(su_bp_rl.membership(-13) == 0.0f);
     REQUIRE(su_bp_rl.membership(-12) == 0.0f);
     REQUIRE(su_bp_rl.membership(-5) == 0.25f);
@@ -716,7 +716,7 @@ TEST_CASE("SET-union", "[SET_union]")
     REQUIRE(su_bp_rl.membership(21) == 0.0f);
 }
 
-#ifdef FUZZY_USE_TLS_DEF_OPERATOR
+#ifdef FUZZY_USE_TLS_DEF_OPERATOR // FIXME: Make this gow away.
 TEST_CASE("current-tnorm")
 {
     REQUIRE(detail::current_tnorm<float> == nullptr);
@@ -1147,6 +1147,66 @@ TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
     REQUIRE(equivelant(consequent.aggregator().result().membership(806.666687f), 0.533333f));
     REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
     REQUIRE(equivelant(consequent.aggregator().result().membership(886.666687f), 0.0f));
+}
+
+TEST_CASE("Expressions-1", "[Expressions_1]")
+{
+    using namespace fuzzy;
+    result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+
+    set mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
+    set warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
+    set hot = make_triangle<float>(85.0f, 100.0f, 115.0f);
+    set t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
+    {
+        using namespace operators::tnorm::algabraic_product;
+        auto a0 = is(t0, mild) & is(t0, warm);
+    }
+    {
+        using namespace operators::tnorm::bounded_difference;
+        auto a0 = is(t0, mild) & is(t0, warm);
+    }
+    {
+        using namespace operators::tnorm::drastic_product;
+        auto a0 = is(t0, mild) & is(t0, warm);
+    }
+    {
+        using namespace operators::tnorm::einstein_product;
+        auto a0 = is(t0, mild) & is(t0, warm);
+    }
+    {
+        using namespace operators::tnorm::hamacher_product;
+        auto a0 = is(t0, mild) & is(t0, warm);
+    }
+    {
+        using namespace operators::tnorm::minimum;
+        auto a0 = is(t0, mild) & is(t0, warm);
+    }
+
+    auto sa1 = is(t0, warm);
+
+    //REQUIRE(sa1.set().size() == 5u);
+    //REQUIRE(equivelant(sa1.set().membership(0.0666667f), 0.0f));
+    //REQUIRE(equivelant(sa1.set().membership(0.1111111f), 0.2222222f));
+    //REQUIRE(equivelant(sa1.set().membership(0.2666667f), 0.5333333f));
+    //REQUIRE(equivelant(sa1.set().membership(0.3333333f), 0.6666667f));
+    //REQUIRE(equivelant(sa1.set().membership(0.4666667f), 0.0f));
+
+
+    //set fast = set{ element{ 700.0f, 0.0f }, element{ 900.0f, 1.0f }, element{ 1100.0f, 0.0f } };
+    //auto consequent = fan_speed.shall_be(fast);
+
+	/*fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
+
+	REQUIRE(&consequent.target() == &fast);
+	REQUIRE(&consequent.aggregator() == &fan_speed);
+	REQUIRE(consequent.aggregator().result().size() == 6);
+	REQUIRE(equivelant(consequent.aggregator().result().membership(726.666687f), 0.0f));
+	REQUIRE(equivelant(consequent.aggregator().result().membership(744.444458f), 0.222222f));
+	REQUIRE(equivelant(consequent.aggregator().result().membership(786.790161f), 0.433950f));
+	REQUIRE(equivelant(consequent.aggregator().result().membership(806.666687f), 0.533333f));
+	REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
+	REQUIRE(equivelant(consequent.aggregator().result().membership(886.666687f), 0.0f));*/
 }
 
 

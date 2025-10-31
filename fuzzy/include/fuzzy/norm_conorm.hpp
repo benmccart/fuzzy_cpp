@@ -23,8 +23,8 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#ifndef FUZZY_OPERATORS_HPP
-#define FUZZY_OPERATORS_HPP
+#ifndef FUZZY_NORM_CONORM_HPP
+#define FUZZY_NORM_CONORM_HPP
 
 #include <algorithm>
 #include <cassert>
@@ -266,25 +266,6 @@ namespace fuzzy
 			return std::max(x, y);
 		}
 	};
-
-	// Complement function object.
-	template <typename M = float>
-	requires std::floating_point<M>
-	struct complement
-	{
-		using value_type = M;
-
-		// Complement as 1 - m.
-		// @param m Membership in the range [0,1].
-		// @result a value in the range [0,1].
-		[[nodiscard]] constexpr static M apply(M m) noexcept
-		{
-			validate_range<M>(m);
-			return static_cast<M>(1.0) - m;
-		}
-	};
-
-
 }
 
-#endif // FUZZY_OPERATORS_HPP
+#endif // FUZZY_NORM_CONORM_HPP

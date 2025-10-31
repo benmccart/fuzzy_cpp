@@ -25,7 +25,7 @@
 
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/fwd.hpp>
-#include <fuzzy/operator.hpp>
+#include <fuzzy/norm_conorm.hpp>
 #include <fuzzy/set.hpp>
 
 #ifndef FUZZY_RESULT_AGGREGATOR_HPP
