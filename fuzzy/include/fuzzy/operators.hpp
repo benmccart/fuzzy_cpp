@@ -37,9 +37,9 @@ namespace fuzzy
 	* @param aset The set to relax.
 	* @return The relaxed set.
 	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V>&& std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> somewhat(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
+	template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	requires numeric<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr basic_set<V, M, Container> somewhat(basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
 		constexpr auto somewhat_func = [](M m) { return std::sqrt(m); };
 		return detail::linguistic_term_impl(aset, somewhat_func, steps);
@@ -50,9 +50,9 @@ namespace fuzzy
 	* @param aset The set to tighten.
 	* @return The tightened set.
 	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V>&& std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> very(fuzzy::basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
+	template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	requires numeric<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr basic_set<V, M, Container> very(basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
 		constexpr auto very_func = [](M m) { return m * m; };
 		return detail::linguistic_term_impl(aset, very_func, steps);
@@ -63,9 +63,9 @@ namespace fuzzy
 	* @param aset The set to complement.
 	* @return The complement of the set.
 	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
-	requires fuzzy::numeric<V>&& std::floating_point<M>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator~(fuzzy::basic_set<V, M, Container> const& aset)
+	template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	requires numeric<V>&& std::floating_point<M>
+	[[nodiscard]] constexpr basic_set<V, M, Container> operator~(basic_set<V, M, Container> const& aset)
 	{
 		return set_complement<V, M, Operation, Container>(aset);
 	}
@@ -80,28 +80,41 @@ namespace fuzzy
 	 * @param variable The fuzzy variable to apply the value against.
 	 * @return A scaled application of a fuzzy value to a fuzzy variable.
 	*/
-	template <template<typename> class Tnorm = fuzzy::minimum, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
-	requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
-	constexpr scaled_antecedent<V, M, Container, Allocator> is(fuzzy::basic_set<V, M, Container, Allocator> const& value, fuzzy::basic_set<V, M, Container, Allocator> const& variable)
+	template <template<typename> class Tnorm = minimum, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+	requires numeric<V>&& std::floating_point<M>&& tnorm_type<Tnorm<M>>
+	constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
 	{
-		using key_type = typename fuzzy::float_value_t<V>::value;
+		using key_type = typename float_value_t<V>::value;
 		if (variable.empty())
 			return scaled_antecedent<V, M, Container>{ };
 
+		// Get the set intersection.
 		key_type const d0 = static_cast<key_type>(variable.front().value());
 		key_type const d1 = static_cast<key_type>(variable.back().value());
 		key_type const domain_ratio = static_cast<key_type>(1) / (d1 - d0);
-		fuzzy::basic_set<V, M, Container, Allocator> const set = fuzzy::set_intersection<Tnorm, V, M, Container, Allocator>(value, variable);
-		using key_alloc_type = typename std::allocator_traits<Allocator>::template rebind_alloc<fuzzy::basic_element<key_type, M>>;
+		basic_set<V, M, Container, Allocator> const set = set_intersection<Tnorm, V, M, Container, Allocator>(value, variable);
+		using key_alloc_type = typename std::allocator_traits<Allocator>::template rebind_alloc<basic_element<key_type, M>>;
 
-		fuzzy::basic_set<key_type, M, Container, key_alloc_type> scaled_set{ key_alloc_type{variable.get_allocator()} };
+		// Scale the set intersection to the range of the variable as [0,1].
+		basic_set<key_type, M, Container, key_alloc_type> scaled_set{ key_alloc_type{variable.get_allocator()} };
 		scaled_set.reserve(set.size());
-		for (fuzzy::basic_element<V, M> const& e : set)
+		for (basic_element<V, M> const& e : set)
 		{
 			key_type const offset = static_cast<key_type>(e.value()) - d0;
 			key_type const scaled_value = offset * domain_ratio;
-			scaled_set.insert(fuzzy::basic_element<key_type, M>{ scaled_value, e.membership() });
+			scaled_set.insert(basic_element<key_type, M>{ scaled_value, e.membership() });
 		}
+
+		// Essentially apply a scaling inference by widening the range of the scaled set to [0,1].
+		if (scaled_set.size() < 2)
+		{
+			return scaled_antecedent<V, M, Container>{ };
+		}
+		scaled_set.front().value(static_cast<V>(0));
+		scaled_set.back().value(static_cast<V>(1));
+
+		// Simplify the set.
+		fuzzy::detail::simplify_impl::apply(scaled_set); // FIXME: benchmark this.
 
 		return scaled_antecedent<V, M, Container, Allocator>{ std::move(scaled_set) };
 	}
@@ -111,9 +124,9 @@ namespace fuzzy
 	//* @param aset The lhs set to intersect.
 	//* @return The intersection of the sets.
 	//*/
-	//template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container>
-	//requires fuzzy::numeric<V>&& std::floating_point<M>
-	//[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator&(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	//template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc> class Container>
+	//requires numeric<V>&& std::floating_point<M>
+	//[[nodiscard]] constexpr basic_set<V, M, Container> operator&(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
 	//{
 	//	return set_intersection<V, M, Operation, Container>(lhs, rhs);
 	//}
@@ -123,9 +136,9 @@ namespace fuzzy
 	//* @param aset The lhs set to intersect.
 	//* @return The unions of the sets.
 	//*/
-	//template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container>
-	//requires fuzzy::numeric<V>&& std::floating_point<M>
-	//[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> operator|(fuzzy::basic_set<V, M, Container> const& lhs, fuzzy::basic_set<V, M, Container> const& rhs)
+	//template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc> class Container>
+	//requires numeric<V>&& std::floating_point<M>
+	//[[nodiscard]] constexpr basic_set<V, M, Container> operator|(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
 	//{
 	//	return set_union<V, M, Operation, Container>(lhs, rhs);
 	//}
@@ -140,10 +153,10 @@ namespace fuzzy
 	 * @return An antecedant which is the intersection of the two operands.
 	*/
 	template <template<typename> class Operation, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-	requires fuzzy::numeric<V>&& std::floating_point<M>&& tnorm_type<Operation<M>>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> antecedent_intersection(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+	requires numeric<V>&& std::floating_point<M>&& tnorm_type<Operation<M>>
+	[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> antecedent_intersection( scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 	{
-		return fuzzy::set_intersection<Operation>(lhs.set(), rhs.set());
+		return scaled_antecedent<V, M, Container, Allocator>{  set_intersection<Operation>(lhs.set(), rhs.set()) };
 	}
 
 	/**
@@ -156,10 +169,10 @@ namespace fuzzy
 	 * @return A set which is the union of the two operands.
 	*/
 	template <template <typename> class Operation, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-	requires fuzzy::numeric<V>&& std::floating_point<M>&& tconorm_type<Operation<M>>
-	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> antecedent_union(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+	requires numeric<V>&& std::floating_point<M>&& tconorm_type<Operation<M>>
+	[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> antecedent_union(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 	{
-		return fuzzy::set_union<Operation>(lhs.set(), rhs.set());
+		return scaled_antecedent<V, M, Container, Allocator>{ set_union<Operation>(lhs.set(), rhs.set()) };
 	}
 
 	namespace operators { namespace tnorm
@@ -168,65 +181,113 @@ namespace fuzzy
 		namespace algabraic_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-			[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> operator&(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator&(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 			{
-				return fuzzy::antecedent_intersection<fuzzy::algabraic_product>(lhs, rhs);
+				return antecedent_intersection<fuzzy::algabraic_product>(lhs, rhs);
 			}
 		}
 
 		namespace bounded_difference
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-			[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> operator&(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator&(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 			{
-				return fuzzy::antecedent_intersection<fuzzy::bounded_difference>(lhs, rhs);
+				return antecedent_intersection<fuzzy::bounded_difference>(lhs, rhs);
 			}
 		}
 
 		namespace drastic_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-			[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> operator&(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator&(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 			{
-				return fuzzy::antecedent_intersection<fuzzy::drastic_product>(lhs, rhs);
+				return antecedent_intersection<fuzzy::drastic_product>(lhs, rhs);
 			}
 		}
 
 		namespace einstein_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-			[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> operator&(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator&(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 			{
-				return fuzzy::antecedent_intersection<fuzzy::einstein_product>(lhs, rhs);
+				return antecedent_intersection<fuzzy::einstein_product>(lhs, rhs);
 			}
 		}
 
 		namespace hamacher_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-			[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> operator&(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator&(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 			{
-				return fuzzy::antecedent_intersection<fuzzy::hamacher_product>(lhs, rhs);
+				return antecedent_intersection<fuzzy::hamacher_product>(lhs, rhs);
 			}
 		}
 
 		namespace minimum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-			[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> operator&(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& lhs, fuzzy::scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator&(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 			{
-				return fuzzy::antecedent_intersection<fuzzy::minimum>(lhs, rhs);
+				return antecedent_intersection<fuzzy::minimum>(lhs, rhs);
+			}
+		}
+	}}
+
+	namespace operators { namespace tconorm
+	{
+		namespace algabraic_sum
+		{
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator|(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			{
+				return antecedent_union<fuzzy::algabraic_sum>(lhs, rhs);
 			}
 		}
 
+		namespace bounded_sum
+		{
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator|(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			{
+				return antecedent_union<fuzzy::bounded_sum>(lhs, rhs);
+			}
+		}
 
+		namespace drastic_sum
+		{
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator|(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			{
+				return antecedent_union<fuzzy::drastic_sum>(lhs, rhs);
+			}
+		}
 
+		namespace einstein_sum
+		{
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator|(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			{
+				return antecedent_union<fuzzy::einstein_sum>(lhs, rhs);
+			}
+		}
 
+		namespace hamacher_sum
+		{
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator|(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			{
+				return antecedent_union<fuzzy::hamacher_sum>(lhs, rhs);
+			}
+		}
 
-
-
-
-
+		namespace maximum
+		{
+			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
+			[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> operator|(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
+			{
+				return antecedent_union<fuzzy::maximum>(lhs, rhs);
+			}
+		}
 
 	}}
 

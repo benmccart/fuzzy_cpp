@@ -75,6 +75,16 @@ namespace fuzzy
 		using membership_type = M;
 		using size_type = typename container_type::size_type;
 
+		constexpr scaled_antecedent() noexcept {}
+
+		/**
+		 * @brief Ctor.
+		 * @param set The scaled fuzzy set to construct things from.
+		 */
+		constexpr explicit scaled_antecedent(set_type&& set)
+			: set_(std::move(set))
+		{}
+
 		constexpr explicit scaled_antecedent(self_type const&) = default;
 		constexpr explicit scaled_antecedent(self_type&&) noexcept = default;
 
@@ -85,20 +95,6 @@ namespace fuzzy
 		constexpr set_type const& set() const noexcept { return set_; }
 
 	private:
-
-		constexpr scaled_antecedent() {}
-
-		/**
-		 * @brief Ctor.
-		 * @param set The scaled fuzzy set to construct things from.
-		*/
-		constexpr explicit scaled_antecedent(set_type&& set)
-			: set_(std::move(set)) {}
-
-		template <template <typename> class Tnorm, class V2, class M2, template <typename T, typename Alloc2 = std::allocator<T>> class Container2, class Allocator2>
-		requires fuzzy::numeric<V2>&& std::floating_point<M2>&& fuzzy::tnorm_type<Tnorm<M2>>
-		friend constexpr scaled_antecedent<V2, M2, Container2, Allocator2> is(fuzzy::basic_set<V2, M2, Container2, Allocator2> const&, fuzzy::basic_set<V2, M2, Container2, Allocator2> const&);
-
 		set_type set_;
 	};
 }

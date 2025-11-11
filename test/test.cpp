@@ -1090,15 +1090,13 @@ TEST_CASE("Scaled-Antecedent", "[Scaled_Antecedent]")
     REQUIRE(sa1.set().size() == 3u);
     REQUIRE(equivelant(sa1.set().membership(0.0f), 0.0f));
     REQUIRE(equivelant(sa1.set().membership(0.1f), 0.2f));
-    REQUIRE(equivelant(sa1.set().membership(0.125f), 0.0f));
+    REQUIRE(equivelant(sa1.set().membership(1.0f), 0.0f));
 
     auto sa2 = is(fan_speed2,fast);
-    REQUIRE(sa2.set().size() == 5u);
-    REQUIRE(equivelant(sa2.set().membership(0.125f), 0.0f));
-    REQUIRE(equivelant(sa2.set().membership(0.1675f), 0.335f));
-    REQUIRE(equivelant(sa2.set().membership(0.25f), 0.5f));
+    REQUIRE(sa2.set().size() == 3u);
+    REQUIRE(equivelant(sa2.set().membership(0.0f), 0.0f));
     REQUIRE(equivelant(sa2.set().membership(0.3f), 0.6f));
-    REQUIRE(equivelant(sa2.set().membership(0.375f), 0.0f));
+    REQUIRE(equivelant(sa2.set().membership(1.f), 0.0f));
 
     auto sa3 = is<fuzzy::algabraic_product>(fan_speed2, fast);
     REQUIRE(sa3.set().size() == 5u);
@@ -1122,91 +1120,117 @@ TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
 
     set tempurature = set{ element{ 72.0f, 0.0f },element{ 78.0f, 1.0f },element{ 84.0f, 0.0f } };
     set warm = set{ element{ 70.0f, 0.0f },element{ 85.0f, 1.0f },element{ 100.0f, 0.0f } };
-
     auto sa1 = is(tempurature, warm);
-
-    REQUIRE(sa1.set().size() == 5u);
-    REQUIRE(equivelant(sa1.set().membership(0.0666667f), 0.0f));
-    REQUIRE(equivelant(sa1.set().membership(0.1111111f), 0.2222222f));
-    REQUIRE(equivelant(sa1.set().membership(0.2666667f), 0.5333333f));
+    REQUIRE(sa1.set().size() == 3u);
+    REQUIRE(equivelant(sa1.set().membership(0.0f), 0.0f));
     REQUIRE(equivelant(sa1.set().membership(0.3333333f), 0.6666667f));
-    REQUIRE(equivelant(sa1.set().membership(0.4666667f), 0.0f));
-
+    REQUIRE(equivelant(sa1.set().membership(1.0f), 0.0f));
 
     set fast = set{ element{ 700.0f, 0.0f }, element{ 900.0f, 1.0f }, element{ 1100.0f, 0.0f } };
     auto consequent = fan_speed.shall_be(fast);
-
     fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
-
     REQUIRE(&consequent.target() == &fast);
     REQUIRE(&consequent.aggregator() == &fan_speed);
-    REQUIRE(consequent.aggregator().result().size() == 6);
-    REQUIRE(equivelant(consequent.aggregator().result().membership(726.666687f), 0.0f));
-    REQUIRE(equivelant(consequent.aggregator().result().membership(744.444458f), 0.222222f));
-    REQUIRE(equivelant(consequent.aggregator().result().membership(786.790161f), 0.433950f));
-    REQUIRE(equivelant(consequent.aggregator().result().membership(806.666687f), 0.533333f));
+    REQUIRE(consequent.aggregator().result().size() == 4);
+    REQUIRE(equivelant(consequent.aggregator().result().membership(700.0f), 0.0f));
     REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
-    REQUIRE(equivelant(consequent.aggregator().result().membership(886.666687f), 0.0f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(900.00f), 0.500000f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(1100.0f), 0.0f));
 }
 
-TEST_CASE("Expressions-1", "[Expressions_1]")
+TEST_CASE("Opperators", "[Opperators]")
 {
     using namespace fuzzy;
-    result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+//    result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
 
     set mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
     set warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
     set hot = make_triangle<float>(85.0f, 100.0f, 115.0f);
     set t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
+
+    // t-norm
     {
         using namespace operators::tnorm::algabraic_product;
         auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.223471f));
     }
     {
         using namespace operators::tnorm::bounded_difference;
         auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 2u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
     }
     {
         using namespace operators::tnorm::drastic_product;
         auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 2u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
     }
     {
         using namespace operators::tnorm::einstein_product;
         auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.174858f));
     }
     {
         using namespace operators::tnorm::hamacher_product;
         auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.309524f));
     }
     {
         using namespace operators::tnorm::minimum;
         auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.472727f));
     }
 
-    auto sa1 = is(t0, warm);
+    // t-conorm
+    {
+        using namespace operators::tconorm::algabraic_sum;
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.721983f));
+    }
+    {
+        using namespace operators::tconorm::bounded_sum;
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.945454f));
+    }
+    {
+        using namespace operators::tconorm::drastic_sum;
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 1.0f));
+    }
+    {
+        using namespace operators::tconorm::einstein_sum;
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.772764));
+    }
+    {
+        using namespace operators::tconorm::hamacher_sum;
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.641975));
+    }
+    {
+        using namespace operators::tconorm::maximum;
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.472727f));
+    }
 
-    //REQUIRE(sa1.set().size() == 5u);
-    //REQUIRE(equivelant(sa1.set().membership(0.0666667f), 0.0f));
-    //REQUIRE(equivelant(sa1.set().membership(0.1111111f), 0.2222222f));
-    //REQUIRE(equivelant(sa1.set().membership(0.2666667f), 0.5333333f));
-    //REQUIRE(equivelant(sa1.set().membership(0.3333333f), 0.6666667f));
-    //REQUIRE(equivelant(sa1.set().membership(0.4666667f), 0.0f));
+        //std::cout << "{";
+        //for (auto const& ele : a0.set())
+        //{
+        //    std::cout << "{" << ele.value() << ", " << ele.membership() << "}, ";
+        //}
+        //std::cout << "}";
 
-
-    //set fast = set{ element{ 700.0f, 0.0f }, element{ 900.0f, 1.0f }, element{ 1100.0f, 0.0f } };
-    //auto consequent = fan_speed.shall_be(fast);
-
-	/*fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
-
-	REQUIRE(&consequent.target() == &fast);
-	REQUIRE(&consequent.aggregator() == &fan_speed);
-	REQUIRE(consequent.aggregator().result().size() == 6);
-	REQUIRE(equivelant(consequent.aggregator().result().membership(726.666687f), 0.0f));
-	REQUIRE(equivelant(consequent.aggregator().result().membership(744.444458f), 0.222222f));
-	REQUIRE(equivelant(consequent.aggregator().result().membership(786.790161f), 0.433950f));
-	REQUIRE(equivelant(consequent.aggregator().result().membership(806.666687f), 0.533333f));
-	REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
-	REQUIRE(equivelant(consequent.aggregator().result().membership(886.666687f), 0.0f));*/
 }
 
 

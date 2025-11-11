@@ -379,31 +379,31 @@ namespace fuzzy
 			* @param seq The set operation value sequence.
 			* @return A pair of iterators pointing to a subset of the original sequence.
 			*/
-			template <class V, class M, template <typename T, typename Alloc> class Container>
-			requires fuzzy::numeric<V> && std::floating_point<M>
-			constexpr static auto apply(typename set_operation_value_sequence<V, M, Container>::const_iterator first, typename set_operation_value_sequence<V, M, Container>::const_iterator last)
-			{
-				using const_iterator = typename set_operation_value_sequence<V, M, Container>::const_iterator;
-				std::pair<const_iterator, const_iterator> result{ first, last };
+			//template <class V, class M, template <typename T, typename Alloc> class Container>
+			//requires fuzzy::numeric<V> && std::floating_point<M>
+			//constexpr static auto apply(typename set_operation_value_sequence<V, M, Container>::const_iterator first, typename set_operation_value_sequence<V, M, Container>::const_iterator last)
+			//{
+			//	using const_iterator = typename set_operation_value_sequence<V, M, Container>::const_iterator;
+			//	std::pair<const_iterator, const_iterator> result{ first, last };
 
-				using element_t = fuzzy::basic_element<V, M>;
-				auto non_zero = [](element_t a, element_t b) -> bool { return a.membership() != static_cast<M>(0) && b.membership() != static_cast<M>(0); };
-				for (auto itr = first; itr != last; ++itr)
-				{
-					auto cpair = *itr;
-					if (non_zero(cpair.first, cpair.second))
-					{
-						result.second = itr;
-						auto ipair = *result.first;
-						if (!non_zero(ipair.first, ipair.second))
-							result.first = itr;
-					}
-				}
-				if (result.second != last)
-					++result.second;
+			//	using element_t = fuzzy::basic_element<V, M>;
+			//	auto non_zero = [](element_t a, element_t b) -> bool { return a.membership() != static_cast<M>(0) && b.membership() != static_cast<M>(0); };
+			//	for (auto itr = first; itr != last; ++itr)
+			//	{
+			//		auto cpair = *itr;
+			//		if (non_zero(cpair.first, cpair.second))
+			//		{
+			//			result.second = itr;
+			//			auto ipair = *result.first;
+			//			if (!non_zero(ipair.first, ipair.second))
+			//				result.first = itr;
+			//		}
+			//	}
+			//	if (result.second != last)
+			//		++result.second;
 
-				return result;
-			}
+			//	return result;
+			//}
 		};
 
 		struct simplify_impl
