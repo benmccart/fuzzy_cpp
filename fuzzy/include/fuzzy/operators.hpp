@@ -28,6 +28,7 @@
 
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/norm_conorm.hpp>
+#include <fuzzy/scaled_mapping.hpp>
 
 namespace fuzzy
 {
@@ -71,7 +72,7 @@ namespace fuzzy
 	}
 
 	/**
-	 * @brief Applies the fuzzy value to the fuzzy variable.  i.e. is(tempurature, hot)
+	 * @brief Applies the fuzzy value to the fuzzy variable.  i.e. make_antecedent(tempurature, hot)
 	 * @tparam M The fuzzy element membership type.
 	 * @tparam Tnorm The T-norm to use in the application.
 	 * @tparam Container The container type to use for the fuzzy basic_set.
@@ -81,8 +82,8 @@ namespace fuzzy
 	 * @return A scaled application of a fuzzy value to a fuzzy variable.
 	*/
 	template <template<typename> class Tnorm = minimum, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
-	requires numeric<V>&& std::floating_point<M>&& tnorm_type<Tnorm<M>>
-	constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+	requires numeric<V> && std::floating_point<M>&& tnorm_type<Tnorm<M>>
+	constexpr scaled_antecedent<V, M, Container, Allocator> make_antecedent(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable) // FIXME: rename 'is' to 'make_antecedent' and create alias 'is' in each tnorm oeprator namespace.
 	{
 		using key_type = typename float_value_t<V>::value;
 		if (variable.empty())
@@ -175,9 +176,61 @@ namespace fuzzy
 		return scaled_antecedent<V, M, Container, Allocator>{ set_union<Operation>(lhs.set(), rhs.set()) };
 	}
 
+	namespace functions
+	{
+		namespace algabraic_product
+		{
+			template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+			constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+			{
+				return fuzzy::make_antecedent<fuzzy::algabraic_product>(value, variable);
+			}
+		}
+		namespace bounded_difference
+		{
+			template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+			constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+			{
+				return fuzzy::make_antecedent<fuzzy::bounded_difference>(value, variable);
+			}
+		}
+		namespace drastic_product
+		{
+			template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+			constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+			{
+				return fuzzy::make_antecedent<fuzzy::drastic_product>(value, variable);
+			}
+		}
+		namespace einstein_product
+		{
+			template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+			constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+			{
+				return fuzzy::make_antecedent<fuzzy::einstein_product>(value, variable);
+			}
+		}
+		namespace hamacher_product
+		{
+			template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+			constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+			{
+				return fuzzy::make_antecedent<fuzzy::hamacher_product>(value, variable);
+			}
+		}
+		namespace minimum
+		{
+			template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
+			constexpr scaled_antecedent<V, M, Container, Allocator> is(basic_set<V, M, Container, Allocator> const& value, basic_set<V, M, Container, Allocator> const& variable)
+			{
+				return fuzzy::make_antecedent<fuzzy::minimum>(value, variable);
+			}
+		}
+		
+	}
+
 	namespace operators { namespace tnorm
 	{
-	
 		namespace algabraic_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -186,7 +239,6 @@ namespace fuzzy
 				return antecedent_intersection<fuzzy::algabraic_product>(lhs, rhs);
 			}
 		}
-
 		namespace bounded_difference
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -195,7 +247,6 @@ namespace fuzzy
 				return antecedent_intersection<fuzzy::bounded_difference>(lhs, rhs);
 			}
 		}
-
 		namespace drastic_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -204,7 +255,6 @@ namespace fuzzy
 				return antecedent_intersection<fuzzy::drastic_product>(lhs, rhs);
 			}
 		}
-
 		namespace einstein_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -213,7 +263,6 @@ namespace fuzzy
 				return antecedent_intersection<fuzzy::einstein_product>(lhs, rhs);
 			}
 		}
-
 		namespace hamacher_product
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -222,7 +271,6 @@ namespace fuzzy
 				return antecedent_intersection<fuzzy::hamacher_product>(lhs, rhs);
 			}
 		}
-
 		namespace minimum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -243,7 +291,6 @@ namespace fuzzy
 				return antecedent_union<fuzzy::algabraic_sum>(lhs, rhs);
 			}
 		}
-
 		namespace bounded_sum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -252,7 +299,6 @@ namespace fuzzy
 				return antecedent_union<fuzzy::bounded_sum>(lhs, rhs);
 			}
 		}
-
 		namespace drastic_sum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -261,7 +307,6 @@ namespace fuzzy
 				return antecedent_union<fuzzy::drastic_sum>(lhs, rhs);
 			}
 		}
-
 		namespace einstein_sum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -270,7 +315,6 @@ namespace fuzzy
 				return antecedent_union<fuzzy::einstein_sum>(lhs, rhs);
 			}
 		}
-
 		namespace hamacher_sum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -279,7 +323,6 @@ namespace fuzzy
 				return antecedent_union<fuzzy::hamacher_sum>(lhs, rhs);
 			}
 		}
-
 		namespace maximum
 		{
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -290,6 +333,104 @@ namespace fuzzy
 		}
 
 	}}
+
+	namespace operators
+	{
+		namespace mapping
+		{
+			namespace algabraic_product
+			{
+				template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+				constexpr void operator>>(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) //??
+				{
+					scaled_mapping<fuzzy::algabraic_product>(antecedent, consequent);
+				}
+			}
+			namespace bounded_difference
+			{
+				template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+				constexpr void operator>>(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) //??
+				{
+					scaled_mapping<fuzzy::bounded_difference>(antecedent, consequent);
+				}
+			}
+			namespace drastic_product
+			{
+				template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+				constexpr void operator>>(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) //??
+				{
+					scaled_mapping<fuzzy::drastic_product>(antecedent, consequent);
+				}
+			}
+			namespace einstein_product
+			{
+				template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+				constexpr void operator>>(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) //??
+				{
+					scaled_mapping<fuzzy::einstein_product>(antecedent, consequent);
+				}
+			}
+			namespace hamacher_product
+			{
+				template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+				constexpr void operator>>(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) //??
+				{
+					scaled_mapping<fuzzy::hamacher_product>(antecedent, consequent);
+				}
+			}
+			namespace minimum
+			{
+				template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+				constexpr void operator>>(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) //??
+				{
+					scaled_mapping<fuzzy::minimum>(antecedent, consequent);
+				}
+			}
+		}
+	}
+
+	namespace operators { namespace algabraic
+	{
+		using namespace fuzzy::operators::tnorm::algabraic_product;
+		using namespace fuzzy::operators::tconorm::algabraic_sum;
+		using namespace fuzzy::operators::mapping::algabraic_product;
+	}}
+
+	namespace operators { namespace bounded
+	{
+		using namespace fuzzy::operators::tnorm::bounded_difference;
+		using namespace fuzzy::operators::tconorm::bounded_sum;
+		using namespace fuzzy::operators::mapping::bounded_difference;
+	}}
+
+	namespace operators { namespace drastic
+	{
+		using namespace fuzzy::operators::tnorm::drastic_product;
+		using namespace fuzzy::operators::tconorm::drastic_sum;
+		using namespace fuzzy::operators::mapping::drastic_product;
+	}}
+
+	namespace operators { namespace einstein
+	{
+		using namespace fuzzy::operators::tnorm::einstein_product;
+		using namespace fuzzy::operators::tconorm::einstein_sum;
+		using namespace fuzzy::operators::mapping::einstein_product;
+	}}
+
+	namespace operators { namespace hamacher
+	{
+		using namespace fuzzy::operators::tnorm::hamacher_product;
+		using namespace fuzzy::operators::tconorm::hamacher_sum;
+		using namespace fuzzy::operators::mapping::hamacher_product;
+	}}
+
+	namespace operators { namespace minmax
+	{
+		using namespace fuzzy::operators::tnorm::minimum;
+		using namespace fuzzy::operators::tconorm::maximum;
+		using namespace fuzzy::operators::mapping::minimum;
+	}}
+
 
 }
 

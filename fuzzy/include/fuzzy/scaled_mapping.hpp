@@ -41,7 +41,7 @@ namespace fuzzy
 {
 
 	template <template <typename> class Tnorm, class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
-	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container, Allocator>& consequent) // ??
+	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) // ??
 	{
 		using set_t = basic_set<V,M,Container, Allocator>;
 		using element_t = basic_element<V,M>;

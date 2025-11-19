@@ -23,8 +23,6 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#define FUZZY_USE_TLS_DEF_OPERATOR // FIXME: Remove me!
-
 #ifndef FUZZY_ALGORITHM_HPP
 #define FUZZY_ALGORITHM_HPP
 
@@ -573,16 +571,6 @@ namespace fuzzy
 			func_ptr func_;
 		};
 
-#ifdef FUZZY_USE_TLS_DEF_OPERATOR
-		template <class M>
-		requires std::floating_point<M>
-		thread_local tconorm_binder<M> *current_tconorm = nullptr;
-
-		template <class M>
-		requires std::floating_point<M>
-		thread_local tnorm_binder<M> *current_tnorm = nullptr;
-#endif
-
 		template <class V, class M>
 		requires fuzzy::numeric<V> && std::floating_point<M>
 		struct edge
@@ -712,80 +700,6 @@ namespace fuzzy
 	{
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
-
-
-
-#ifdef FUZZY_USE_TLS_DEF_OPERATOR // FIXME: Make this go away... it is a design flaw.
-
-	template <class T>
-	requires tnorm_type<T> && std::floating_point<typename T::value_type>
-	class use_tnorm_t
-	{
-	public:
-		using value_type = typename T::value_type;
-
-		use_tnorm_t() = delete;
-		use_tnorm_t(use_tnorm_t<T> const&) = delete;
-		use_tnorm_t(use_tnorm_t<T>&&) = delete;
-		use_tnorm_t<T>& operator=(use_tnorm_t<T> const&) = delete;
-		use_tnorm_t<T>& operator=(use_tnorm_t<T>&&) = delete;
-
-		constexpr use_tnorm_t(T) noexcept
-			: previous_(detail::current_tnorm<value_type>)
-		{
-			current_.bind(T{});
-			detail::current_tnorm<value_type> = &current_;
-		}
-
-		constexpr ~use_tnorm_t() noexcept
-		{
-			assert(detail::current_tnorm<value_type> == &current_);
-			detail::current_tnorm<value_type> = previous_;
-		}
-
-	private:
-		detail::tnorm_binder<value_type> current_;
-		detail::tnorm_binder<value_type> *previous_;
-	};
-
-	template<class T> use_tnorm_t(T) -> use_tnorm_t<T>;
-	
-
-	template <class T>
-	requires tconorm_type<T>&& std::floating_point<typename T::value_type>
-	class use_tconorm_t
-	{
-	public:
-		using value_type = typename T::value_type;
-
-		use_tconorm_t() = delete;
-		use_tconorm_t(use_tconorm_t<T> const&) = delete;
-		use_tconorm_t(use_tconorm_t<T>&&) = delete;
-		use_tconorm_t<T>& operator=(use_tconorm_t<T> const&) = delete;
-		use_tconorm_t<T>& operator=(use_tconorm_t<T>&&) = delete;
-
-		constexpr use_tconorm_t(T) noexcept
-			: previous_(detail::current_tconorm<value_type>)
-		{
-			current_.bind(T{});
-			detail::current_tconorm<value_type> = &current_;
-		}
-
-		constexpr ~use_tconorm_t() noexcept
-		{
-			assert(detail::current_tconorm<value_type> == &current_);
-			detail::current_tconorm<value_type> = previous_;
-		}
-
-	private:
-		detail::tconorm_binder<value_type> current_;
-		detail::tconorm_binder<value_type>* previous_;
-	};
-
-	template<class T> use_tconorm_t(T) -> use_tconorm_t<T>;
-#endif
-
-
 
 	// Complement function object.
 	template <typename M = float>
