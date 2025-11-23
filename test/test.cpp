@@ -951,7 +951,8 @@ TEST_CASE("Scaling-Inference-Rule-2", "[Scaling_Inference_Rule_2]")
 
 TEST_CASE("Consequent-1", "[Consequent_1]")
 {
-	result_aggregator<int, float, fuzzy::mamdani> cons1{fuzzy::mamdani<float>{}};
+    
+	int_maximum_aggregator cons1;
 	int_set horse_strength1 = int_set{ int_element{ 1600, 0.0f },int_element{ 1900, 0.6f },int_element{ 2000, 0.6f },int_element{ 2400, 0.0f } };
 	int_set horse_strength2 = int_set{ int_element{ 1200, 0.0f },int_element{ 1600, 0.6f },int_element{ 1700, 0.6f },int_element{ 2000, 0.0f } };
 	cons1.aggregate(horse_strength1);
@@ -969,7 +970,8 @@ TEST_CASE("Consequent-1", "[Consequent_1]")
 
 TEST_CASE("Consequent-2", "[Consequent_2]")
 {
-    result_aggregator<int, float, mamdani> cons2{fuzzy::mamdani<float>{}};
+    int_maximum_aggregator cons2;
+    //basic_result_aggregator<int, float, mamdani> cons2{fuzzy::mamdani<float>{}};
     int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
     int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
@@ -987,7 +989,7 @@ TEST_CASE("Consequent-2", "[Consequent_2]")
 
 TEST_CASE("Consequent-3", "[Consequent_3]")
 {
-    result_aggregator<int, float, fuzzy::additive_function> cons1{fuzzy::additive_function<float>{}};
+    int_additive_aggregator cons1;
     int_set horse_strength1 = int_set{ int_element{ 1600, 0.0f },int_element{ 1700, 0.25f },int_element{ 1800, 0.5f },int_element{ 2100, 0.25f },int_element{ 2400, 0.0f } };
     int_set horse_strength2 = int_set{ int_element{ 1200, 0.0f },int_element{ 1500, 0.25f },int_element{ 1800, 0.5f },int_element{ 1900, 0.25f },int_element{ 2000, 0.0f } };
     cons1.aggregate(horse_strength1);
@@ -1005,7 +1007,7 @@ TEST_CASE("Consequent-3", "[Consequent_3]")
 
 TEST_CASE("Consequent-4", "[Consequent_4]")
 {
-    result_aggregator<int, float, fuzzy::additive_function> cons2{fuzzy::additive_function<float>{}};
+    int_additive_aggregator cons2;
     int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
     int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
@@ -1044,7 +1046,7 @@ TEST_CASE("Scaled-Antecedent", "[Scaled_Antecedent]")
 
 TEST_CASE("Result-Aggregator", "[Result_Aggregator]")
 {
-    result_aggregator<int, float, additive_function> fan_speed{ additive_function<float>{} };
+    int_additive_aggregator fan_speed;
 
     int_set fast = int_set{ int_element{ 700, 0.0f },int_element{ 900, 1.0f },int_element{ 1100, 0.0f } };
     auto consequent = fan_speed.shall_be(fast);
@@ -1058,8 +1060,7 @@ TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
 {
     using namespace fuzzy::functions::minimum;
 
-    result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
-
+    additive_aggregator fan_speed;
     set tempurature = set{ element{ 72.0f, 0.0f },element{ 78.0f, 1.0f },element{ 84.0f, 0.0f } };
     set warm = set{ element{ 70.0f, 0.0f },element{ 85.0f, 1.0f },element{ 100.0f, 0.0f } };
     auto sa1 = is(tempurature, warm);
@@ -1098,7 +1099,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         REQUIRE(a0.set().size() == 12u);
         REQUIRE(equivelant(a0.set().membership(0.545699f), 0.0917287f));
 
-        result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
         REQUIRE(fan_speed.result().size() == 6);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.333333f));
@@ -1111,7 +1112,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         REQUIRE(a0.set().size() == 2u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
 
-        result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
         REQUIRE(fan_speed.result().size() == 5);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.25f));
@@ -1124,7 +1125,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         REQUIRE(a0.set().size() == 2u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
 
-        result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
         REQUIRE(fan_speed.result().size() == 3);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.363636f));
@@ -1137,7 +1138,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         REQUIRE(a0.set().size() == 11u);
         REQUIRE(equivelant(a0.set().membership(0.553163f), 0.0468059f));
 
-        result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
         REQUIRE(fan_speed.result().size() == 6);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.3f));
@@ -1150,7 +1151,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         REQUIRE(a0.set().size() == 9u);
         REQUIRE(equivelant(a0.set().membership(0.53601f), 0.210648f));
 
-        result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
         REQUIRE(fan_speed.result().size() == 6);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.375f));
@@ -1163,7 +1164,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         REQUIRE(a0.set().size() == 5u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.472727f));
 
-        result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
         REQUIRE(fan_speed.result().size() == 4);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.5f));
@@ -1238,7 +1239,7 @@ TEST_CASE("Combined_Operators_And_Functions", "[Combined-Opperators-And-Function
 		REQUIRE(a0.set().size() == 12u);
 		REQUIRE(equivelant(a0.set().membership(0.545699f), 0.0917287f));
 
-		result_aggregator<float, float, additive_function> fan_speed{ additive_function<float>{} };
+        additive_aggregator fan_speed;
 		is(t0, warm) >> fan_speed.shall_be(medium);
 		REQUIRE(fan_speed.result().size() == 6);
 		REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.333333f));

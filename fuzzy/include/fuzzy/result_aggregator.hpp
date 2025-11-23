@@ -34,41 +34,22 @@
 namespace fuzzy
 {
 
-	template <typename M, template <typename> class Tconorm>
-	requires std::floating_point<M> && fuzzy::tconorm_type<Tconorm<M>>
-	class Tconorm_converter
-	{
-	public:
-		using membership_type = M;
-
-		constexpr Tconorm_converter() = default;
-		constexpr Tconorm_converter(Tconorm<M>) {}
-		[[nodiscard]] constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
-		{
-			return Tconorm<M>::apply(a, b);
-		}
-	};
-
-	template <typename M, template <typename> class Tconorm>
-	Tconorm_converter(Tconorm<M>) -> Tconorm_converter<M,Tconorm>;
-
 
 	/** 
-	* Models the fuzzy result_aggregator of a fuzzy antecedant, namely a fuzzy mapping_rule.	
+	* Models the fuzzy basic_aggregator of a fuzzy antecedant, namely a fuzzy mapping_rule.	
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	class result_aggregator
+	class basic_aggregator
 	{
 	public:
 		using set_type = basic_set<V, M, Container, Allocator>;
 		using consequent_type = consequent<V,M,AggregatorFunc, Container, Allocator>;
 
-		result_aggregator() = delete;
 		consequent_type shall_be(set_type&&) = delete;
 
-
-		constexpr result_aggregator(AggregatorFunc<M> func, Allocator alloc = Allocator()) : set_(alloc), func_(func) {}
+		constexpr basic_aggregator(AggregatorFunc<M> func, Allocator alloc = Allocator()) : set_(alloc), func_(func) {}
+		constexpr basic_aggregator(Allocator alloc = Allocator()) : set_(alloc) {}
 
 		constexpr void aggregate(set_type const&);
 		constexpr consequent_type shall_be(set_type const&) noexcept;
@@ -82,19 +63,19 @@ namespace fuzzy
 		
 
 	/**
-	* Template deduction guid for result_aggregator.
+	* Template deduction guid for basic_aggregator.
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	result_aggregator(basic_set<V, M, Container> const&, AggregatorFunc<M>, Allocator const& = Allocator()) -> result_aggregator<V, M, AggregatorFunc, Container, Allocator>;
+	basic_aggregator(basic_set<V, M, Container> const&, AggregatorFunc<M>, Allocator const& = Allocator()) -> basic_aggregator<V, M, AggregatorFunc, Container, Allocator>;
 
 	/**
-	* Aggregates the specified input to the result_aggregator set.
+	* Aggregates the specified input to the basic_aggregator set.
 	* @param input The input set  to aggregate (oputput from mapping_rule.)
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr void result_aggregator<V, M, AggregatorFunc, Container, Allocator>::aggregate(set_type const& input)
+	constexpr void basic_aggregator<V, M, AggregatorFunc, Container, Allocator>::aggregate(set_type const& input)
 	{
 		using element_t = typename set_type::element_type;
 		using pair_t = std::pair<element_t, element_t>;
@@ -112,7 +93,7 @@ namespace fuzzy
 
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V>&& std::floating_point<M>
-	constexpr typename result_aggregator<V, M, AggregatorFunc, Container, Allocator>::consequent_type result_aggregator<V, M, AggregatorFunc, Container, Allocator>::shall_be(set_type const& target) noexcept
+	constexpr typename basic_aggregator<V, M, AggregatorFunc, Container, Allocator>::consequent_type basic_aggregator<V, M, AggregatorFunc, Container, Allocator>::shall_be(set_type const& target) noexcept
 	{
 		return consequent_type{ *this, target };
 	}
@@ -120,11 +101,11 @@ namespace fuzzy
 	
 
 	/**
-	* Retrieves the underlying result_aggregator fuzzy set via an implicit conversion operator.
+	* Retrieves the underlying basic_aggregator fuzzy set via an implicit conversion operator.
 	*/
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr typename result_aggregator<V, M, AggregatorFunc, Container, Allocator>::set_type& result_aggregator<V, M, AggregatorFunc, Container, Allocator>::result() noexcept
+	constexpr typename basic_aggregator<V, M, AggregatorFunc, Container, Allocator>::set_type& basic_aggregator<V, M, AggregatorFunc, Container, Allocator>::result() noexcept
 	{
 		if (dirty_)
 		{
@@ -146,9 +127,11 @@ namespace fuzzy
 		return set_;
 	}
 
-	template <class M>
-	using mamdani = Tconorm_converter<M, fuzzy::maximum>;
 
+	/**
+	 * @brief An aggregator function object for use with basic_aggregator.
+	 * @tparam M 
+	*/
 	template <class M>
 	requires std::floating_point<M>
 	struct additive_function
@@ -162,6 +145,36 @@ namespace fuzzy
 			return a + b;
 		}
 	};
+
+	/**
+	 * @brief An aggregator function objectfor use with basic_aggregator that uses a T-conorm for aggregation.
+	*/
+	template <typename M, template <typename> class Tconorm>
+	requires std::floating_point<M>&& fuzzy::tconorm_type<Tconorm<M>>
+	class tconorm_converter
+	{
+	public:
+		using membership_type = M;
+
+		constexpr tconorm_converter() = default;
+		constexpr tconorm_converter(Tconorm<M>) {}
+		[[nodiscard]] constexpr membership_type operator()(membership_type a, membership_type b) const noexcept
+		{
+			return Tconorm<M>::apply(a, b);
+		}
+	};
+
+	template <typename M, template <typename> class Tconorm>
+	tconorm_converter(Tconorm<M>) -> tconorm_converter<M, Tconorm>;
+
+	/** Convenience defintion for common use cases. */
+	using int_additive_aggregator = basic_aggregator<int, float, additive_function>;
+	using additive_aggregator = basic_aggregator<float, float, additive_function>;
+
+	template <typename M>
+	using maximum_function = tconorm_converter<M, fuzzy::maximum>;
+	using int_maximum_aggregator = basic_aggregator<int, float, maximum_function>;
+	using maximum_aggregator = basic_aggregator<float, float, maximum_function>;
 }
 
 

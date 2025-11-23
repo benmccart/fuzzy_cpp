@@ -28,6 +28,7 @@
 
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/norm_conorm.hpp>
+#include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/scaled_mapping.hpp>
 
 namespace fuzzy
@@ -431,7 +432,23 @@ namespace fuzzy
 		using namespace fuzzy::operators::mapping::minimum;
 	}}
 
+	namespace models { namespace mamdani
+	{
+		using namespace fuzzy::operators::tnorm::minimum;
+		using namespace fuzzy::operators::tconorm::maximum;
+		using namespace fuzzy::operators::mapping::minimum;
+		using aggregator = maximum_aggregator;
+		using int_aggregator = int_maximum_aggregator;
+	}}
 
+	namespace models { namespace tsk
+	{
+		using namespace fuzzy::operators::tnorm::minimum;
+		using namespace fuzzy::operators::tconorm::maximum;
+		using namespace fuzzy::operators::mapping::algabraic_product;
+		using aggregator = additive_aggregator;
+		using int_aggregator = int_additive_aggregator;
+	}}
 }
 
 

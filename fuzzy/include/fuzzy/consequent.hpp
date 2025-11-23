@@ -46,7 +46,7 @@ namespace fuzzy
 	class consequent
 	{
 	public:
-		using aggregator_type = result_aggregator<V, M, AggregatorFunc, Container, Allocator>;
+		using aggregator_type = basic_aggregator<V, M, AggregatorFunc, Container, Allocator>;
 		using set_type = basic_set<V, M, Container, Allocator>;
 		using self_type = consequent<V, M, AggregatorFunc, Container, Allocator>;
 
@@ -73,7 +73,7 @@ namespace fuzzy
 
 		template <class V2, class M2, template <typename> class AggregatorFunc2, template <typename T2, typename Alloc2 = std::allocator<T2>> class Container2, class Allocator2>
 		requires fuzzy::numeric<V2>&& std::floating_point<M2>
-		friend class result_aggregator;
+		friend class basic_aggregator;
 
 		aggregator_type *aggregator_;
 		set_type const *target_;

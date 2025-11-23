@@ -96,6 +96,6 @@ namespace fuzzy
 
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
 	requires fuzzy::numeric<V>&& std::floating_point<M>
-	class result_aggregator;
+	class basic_aggregator;
 }
 #endif // FUZZY_FWD_HPP
