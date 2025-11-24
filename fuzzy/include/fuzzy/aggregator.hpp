@@ -24,12 +24,13 @@
 //  DEALINGS IN THE SOFTWARE.
 
 #include <fuzzy/algorithm.hpp>
+#include <fuzzy/consequent.hpp>
 #include <fuzzy/fwd.hpp>
 #include <fuzzy/norm_conorm.hpp>
 #include <fuzzy/set.hpp>
 
-#ifndef FUZZY_RESULT_AGGREGATOR_HPP
-#define FUZZY_RESULT_AGGREGATOR_HPP
+#ifndef FUZZY_AGGREGATOR_HPP
+#define FUZZY_AGGREGATOR_HPP
 
 namespace fuzzy
 {
@@ -178,4 +179,4 @@ namespace fuzzy
 }
 
 
-#endif // FUZZY_RESULT_AGGREGATOR_HPP
+#endif // FUZZY_AGGREGATOR_HPP

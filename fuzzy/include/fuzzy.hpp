@@ -26,16 +26,16 @@
 #ifndef FUZZY_LIB_ALL_HPP
 #define FUZZY_LIB_ALL_HPP
 
+#include <fuzzy/aggregator.hpp>
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/concepts.hpp>
 #include <fuzzy/consequent.hpp>
 #include <fuzzy/element.hpp>
+#include <fuzzy/expressions.hpp>
 #include <fuzzy/mapping_rule.hpp>
 #include <fuzzy/math.hpp>
 #include <fuzzy/norm_conorm.hpp>
-#include <fuzzy/operators.hpp>
 #include <fuzzy/relation.hpp>
-#include <fuzzy/result_aggregator.hpp>
 #include <fuzzy/set.hpp>
 #include <fuzzy/scaled_antecedent.hpp>
 #include <fuzzy/scaling_inference.hpp>

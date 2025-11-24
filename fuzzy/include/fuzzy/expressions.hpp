@@ -23,12 +23,12 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#ifndef FUZZY_OPERATORS_HPP
-#define FUZZY_OPERATORS_HPP
+#ifndef FUZZY_EXPRESSIONS_HPP
+#define FUZZY_EXPRESSIONS_HPP
 
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/norm_conorm.hpp>
-#include <fuzzy/result_aggregator.hpp>
+#include <fuzzy/aggregator.hpp>
 #include <fuzzy/scaled_mapping.hpp>
 
 namespace fuzzy
@@ -452,4 +452,4 @@ namespace fuzzy
 }
 
 
-#endif // FUZZY_OPERATORS_HPP
+#endif // FUZZY_EXPRESSIONS_HPP
