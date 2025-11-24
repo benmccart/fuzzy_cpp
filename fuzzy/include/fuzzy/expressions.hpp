@@ -121,30 +121,6 @@ namespace fuzzy
 		return scaled_antecedent<V, M, Container, Allocator>{ std::move(scaled_set) };
 	}
 
-	///**
-	//* Intersects two fuzzy sets.
-	//* @param aset The lhs set to intersect.
-	//* @return The intersection of the sets.
-	//*/
-	//template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc> class Container>
-	//requires numeric<V>&& std::floating_point<M>
-	//[[nodiscard]] constexpr basic_set<V, M, Container> operator&(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
-	//{
-	//	return set_intersection<V, M, Operation, Container>(lhs, rhs);
-	//}
-
-	///**
-	//* Unions two fuzzy sets.
-	//* @param aset The lhs set to intersect.
-	//* @return The unions of the sets.
-	//*/
-	//template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc> class Container>
-	//requires numeric<V>&& std::floating_point<M>
-	//[[nodiscard]] constexpr basic_set<V, M, Container> operator|(basic_set<V, M, Container> const& lhs, basic_set<V, M, Container> const& rhs)
-	//{
-	//	return set_union<V, M, Operation, Container>(lhs, rhs);
-	//}
-
 	 /**
 	 * @brief A version of std::set_intersection compatible with fuzzy set theory for antecedent sets.
 	 * @tparam V The element value type.
