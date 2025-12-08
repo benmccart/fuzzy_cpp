@@ -774,10 +774,6 @@ namespace fuzzy
 
 		return result;
 	}
-
-
-
-	
 }
 
 #endif // FUZZY_ALGORITHM_HPP

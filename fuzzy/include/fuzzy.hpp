@@ -30,6 +30,7 @@
 #include <fuzzy/algorithm.hpp>
 #include <fuzzy/concepts.hpp>
 #include <fuzzy/consequent.hpp>
+#include <fuzzy/defuzzification.hpp>
 #include <fuzzy/element.hpp>
 #include <fuzzy/expressions.hpp>
 #include <fuzzy/mapping_rule.hpp>

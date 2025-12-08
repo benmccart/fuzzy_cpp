@@ -63,7 +63,7 @@ namespace fuzzy { namespace math
 		if constexpr (std::is_floating_point_v<V>)
 			return static_cast<M>(number);
 		else
-			return std::round(number);
+			return static_cast<M>(std::round(number));
 	}
 
 	/**
@@ -85,6 +85,11 @@ namespace fuzzy { namespace math
 		return lhs.membership() + (ratio * dy);
 	}
 
+	/**
+	 * @brief Type used for modeling segments of two elements intersect.
+	 * @tparam V The value type.
+	 * @tparam M The membership type.
+	*/
 	template <class V, class M>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	struct basic_segment
@@ -94,6 +99,14 @@ namespace fuzzy { namespace math
 		element_t v1;
 	};
 
+	/**
+	 * @brief Determines the intersection point between two segments.
+	 * @tparam V The value type.
+	 * @tparam M The membership type.
+	 * @param s0 The first segment.
+	 * @param s1 The second segment.
+	 * @return The point of inersection.
+	*/
 	template <class V, class M>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_element<V, M> intersection(basic_segment<V, M> const& s0, basic_segment<V, M> const& s1)
@@ -121,6 +134,49 @@ namespace fuzzy { namespace math
 
 		return element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
 	}
+
+	/**
+	 * @brief Calculates the absolute value of a floating point type.
+	 * @tparam M Must be floating point.
+	 * @param m The value to find the absolute of.
+	 * @return The absolute value.
+	*/
+	template <class M>
+	requires std::floating_point<M>
+	constexpr M abs(M m) noexcept 
+	{
+		// FUTURE: Replace this in C++23 for std::abs which will have a better implementation.
+		return ((m < static_cast<M>(0)) || (m == static_cast<M>(-0.0))) ? -m : m;
+	}
+
+	namespace detail
+	{
+		template <class M>
+		requires std::floating_point<M>
+		constexpr float round_off() noexcept
+		{
+			if constexpr (sizeof(M) == 4)
+				return 0.0000077f;
+
+			return 0.00000000000015;
+		}
+
+	}
+
+	/**
+	 * @brief A fudged version of operator== for floating point types in the range [0,1].
+	 * @tparam M Must be a floating point type.
+	 * @param m0 First argument.
+	 * @param m1 Second argument.
+	 * @return Whether the two arguments are equivelant.
+	*/
+	template <class M>
+	requires std::floating_point<M>
+	constexpr bool equivelant(M m0, M m1) noexcept
+	{
+		return fuzzy::math::abs(m1 - m0) <= detail::round_off<M>();
+	}
+
 }}
 
 

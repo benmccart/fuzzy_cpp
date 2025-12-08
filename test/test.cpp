@@ -33,13 +33,14 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-constexpr bool equivelant(float v0, float v1)
-{
-    return std::abs(v1 - v0) < 0.00001f;
-}
+//constexpr bool equivelant(float v0, float v1)
+//{
+//    return std::abs(v1 - v0) < 0.00001f;
+//}
 
 
 using namespace fuzzy;
+using fuzzy::math::equivelant;
 
 TEST_CASE("membership-bounds-check", "[boundscheck]")
 {
@@ -971,7 +972,6 @@ TEST_CASE("Consequent-1", "[Consequent_1]")
 TEST_CASE("Consequent-2", "[Consequent_2]")
 {
     int_maximum_aggregator cons2;
-    //basic_result_aggregator<int, float, mamdani> cons2{fuzzy::mamdani<float>{}};
     int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
     int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
     cons2.aggregate(fan_speed1);
@@ -1201,7 +1201,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         auto a0 = is(t0, mild) | is(t0, warm);
 
         REQUIRE(a0.set().size() == 5u);
-        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.772764));
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.772764f));
     }
     {
         using namespace operators::tconorm::hamacher_sum;
@@ -1209,7 +1209,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
 
         auto a0 = is(t0, mild) | is(t0, warm);
         REQUIRE(a0.set().size() == 5u);
-        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.641975));
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.641975f));
     }
     {
         using namespace operators::tconorm::maximum;
@@ -1221,29 +1221,140 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
     }
 }
 
-TEST_CASE("Combined_Operators_And_Functions", "[Combined-Opperators-And-Functions]")
+TEST_CASE("Deffuzification", "[Deffuzification]")
+{
+    {
+        set const aset = make_triangle<float>(55.0f, 70.0f, 85.0f);
+        REQUIRE(equivelant(mean_of_maximum(aset), 70.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 70.0f));
+    }
+    {
+        set const aset{ {50.0f, 0.0f}, {60.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 65.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 65.0f));
+    }
+    {
+        set const aset{ {50.0f, 0.0f}, {60.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f }, { 90.0f, 0.0f }, { 100.0f, 1.0f }, { 110.0f, 1.0f }, { 120.0f, 0.0f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 85.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 100.0f));
+    }
+    {
+        set const aset{ {40.0f, 0.0f}, {50.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f }, { 90.0f, 0.0f }, { 100.0f, 1.0f }, { 110.0f, 1.0f }, { 120.0f, 0.0f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 85.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 100.0f));
+    }
+
+}
+
+TEST_CASE("Expressions", "[Expressions]")
 {
 	using namespace fuzzy;
 
-	set const medium = make_triangle<float>(800.0f, 1000.0f, 1200.0f);
 	set const mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
 	set const warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
 	set const t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
 
-	// t-norm
+	set const humid{ {50.0f, 0.0f}, {80.0f, 1.0f}, { 100.0f, 1.0f } };
+    set const h0 = make_triangle<float>(62.0f, 68.0f, 74.0f);
+
+	set const slow = make_triangle<float>(600.0f, 900.0f, 1200.0f);
+	set const medium = make_triangle<float>(900.0f, 1200.0f, 1500.0f);
+    set const fast = make_triangle<float>(1200.0f, 1500.0f, 1800.0f);
+    set const very_fast = very(fast);
+    set const not_slow = ~slow;
 	{
-		using namespace operators::algabraic;
-		using namespace functions::algabraic_product;
+		using namespace fuzzy::models::mamdani;
+		aggregator speed;
+		(is(t0, mild) | is(h0, somewhat(humid))) >> speed.shall_be(slow);
+		(is(t0, warm) & is(h0, humid)) >> speed.shall_be(very_fast);
+        (is(t0, warm) | is(h0, somewhat(humid))) >> speed.shall_be(medium);
 
-		auto a0 = is(t0, mild) & is(t0, warm);
-		REQUIRE(a0.set().size() == 12u);
-		REQUIRE(equivelant(a0.set().membership(0.545699f), 0.0917287f));
+        REQUIRE(speed.result().size() == 27u);
+        auto itr = speed.result().begin();
+        REQUIRE(equivelant(itr->value(), 600.0f));
+        REQUIRE(equivelant(itr->membership(), 0.0f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 900.0f));
+        REQUIRE(equivelant(itr->membership(), 0.5f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 928.472778f));
+        REQUIRE(equivelant(itr->membership(), 0.737272f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 966.675964f));
+        REQUIRE(equivelant(itr->membership(), 0.777746f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 984.415161f));
+        REQUIRE(equivelant(itr->membership(), 0.718616f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1000.00006f));
+        REQUIRE(equivelant(itr->membership(), 0.666666f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1007.01758f));
+        REQUIRE(equivelant(itr->membership(), 0.608187f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1014.28577f));
+        REQUIRE(equivelant(itr->membership(), 0.619047f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1032.00110f));
+        REQUIRE(equivelant(itr->membership(), 0.559996f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1050.0f));
+        REQUIRE(equivelant(itr->membership(), 0.499999f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1100.0f));
+        REQUIRE(equivelant(itr->membership(), 0.666666f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1200.0f));
+        REQUIRE(equivelant(itr->membership(), 0.5f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1228.47278f));
+        REQUIRE(equivelant(itr->membership(), 0.737272f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1266.67603f));
+        REQUIRE(equivelant(itr->membership(), 0.777746f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1275.0f));
+        REQUIRE(equivelant(itr->membership(), 0.75f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1284.41516f));
+        REQUIRE(equivelant(itr->membership(), 0.718616f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1300.0f));
+        REQUIRE(equivelant(itr->membership(), 0.666666f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1350.0f));
+        REQUIRE(equivelant(itr->membership(), 0.25f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1375.0f));
+        REQUIRE(equivelant(itr->membership(), 0.354166f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1396.875f));
+        REQUIRE(equivelant(itr->membership(), 0.445312f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1410.0f));
+        REQUIRE(equivelant(itr->membership(), 0.5f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1425.0f));
+        REQUIRE(equivelant(itr->membership(), 0.5625f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1426.15381f));
+        REQUIRE(equivelant(itr->membership(), 0.569230f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1500.0f));
+        REQUIRE(equivelant(itr->membership(), 0.428571f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1575.0f));
+        REQUIRE(equivelant(itr->membership(), 0.285714f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1650.0f));
+        REQUIRE(equivelant(itr->membership(), 0.142857f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1725.0f));
+        REQUIRE(equivelant(itr->membership(), 0.0f));
 
-        additive_aggregator fan_speed;
-		is(t0, warm) >> fan_speed.shall_be(medium);
-		REQUIRE(fan_speed.result().size() == 6);
-		REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.333333f));
 	}
+
+
 
 }
 

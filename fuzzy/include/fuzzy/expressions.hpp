@@ -410,6 +410,7 @@ namespace fuzzy
 
 	namespace models { namespace mamdani
 	{
+		using namespace fuzzy::functions::minimum;
 		using namespace fuzzy::operators::tnorm::minimum;
 		using namespace fuzzy::operators::tconorm::maximum;
 		using namespace fuzzy::operators::mapping::minimum;
@@ -419,6 +420,7 @@ namespace fuzzy
 
 	namespace models { namespace tsk
 	{
+		using namespace fuzzy::functions::minimum;
 		using namespace fuzzy::operators::tnorm::minimum;
 		using namespace fuzzy::operators::tconorm::maximum;
 		using namespace fuzzy::operators::mapping::algabraic_product;
