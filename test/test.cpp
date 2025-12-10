@@ -1224,26 +1224,41 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
 TEST_CASE("Deffuzification", "[Deffuzification]")
 {
     {
+        set const aset{};
+        REQUIRE(equivelant(mean_of_maximum(aset), std::numeric_limits<float>::max()));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), std::numeric_limits<float>::max()));
+        REQUIRE(equivelant(center_of_area(aset), std::numeric_limits<float>::max()));
+    }
+    {
+        set const aset{ { 42.0f, 0.96f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 42.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 42.0f));
+        REQUIRE(equivelant(center_of_area(aset), 42.0f));
+    }
+    {
         set const aset = make_triangle<float>(55.0f, 70.0f, 85.0f);
         REQUIRE(equivelant(mean_of_maximum(aset), 70.0f));
         REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 70.0f));
+        REQUIRE(equivelant(center_of_area(aset), 70.0f));
     }
     {
         set const aset{ {50.0f, 0.0f}, {60.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f } };
         REQUIRE(equivelant(mean_of_maximum(aset), 65.0f));
         REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 65.0f));
+        REQUIRE(equivelant(center_of_area(aset), 65.0f));
     }
     {
         set const aset{ {50.0f, 0.0f}, {60.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f }, { 90.0f, 0.0f }, { 100.0f, 1.0f }, { 110.0f, 1.0f }, { 120.0f, 0.0f } };
         REQUIRE(equivelant(mean_of_maximum(aset), 85.0f));
         REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 100.0f));
+        REQUIRE(equivelant(center_of_area(aset), 85.0f));
     }
     {
         set const aset{ {40.0f, 0.0f}, {50.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f }, { 90.0f, 0.0f }, { 100.0f, 1.0f }, { 110.0f, 1.0f }, { 120.0f, 0.0f } };
-        REQUIRE(equivelant(mean_of_maximum(aset), 85.0f));
-        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 100.0f));
+        REQUIRE(equivelant(mean_of_maximum(aset), 75.46875f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 70.0f));
+        REQUIRE(equivelant(center_of_area(aset), 78.0f));
     }
-
 }
 
 TEST_CASE("Expressions", "[Expressions]")
