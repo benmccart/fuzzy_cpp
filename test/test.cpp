@@ -1074,7 +1074,7 @@ TEST_CASE("Scaled-Mapping", "[Scaled_Mapping]")
     fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
     REQUIRE(&consequent.target() == &fast);
     REQUIRE(&consequent.aggregator() == &fan_speed);
-    REQUIRE(consequent.aggregator().result().size() == 4);
+    REQUIRE(consequent.aggregator().result().size() == 3);
     REQUIRE(equivelant(consequent.aggregator().result().membership(700.0f), 0.0f));
     REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
     REQUIRE(equivelant(consequent.aggregator().result().membership(900.00f), 0.500000f));
@@ -1095,8 +1095,12 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         using namespace operators::algabraic;
         using namespace functions::algabraic_product;
 
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.166667f));
+
         auto a0 = is(t0, mild) & is(t0, warm);
-        REQUIRE(a0.set().size() == 12u);
+        REQUIRE(a0.set().size() == 11u);
         REQUIRE(equivelant(a0.set().membership(0.545699f), 0.0917287f));
 
         additive_aggregator fan_speed;
@@ -1108,8 +1112,12 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         using namespace operators::bounded;
         using namespace functions::bounded_difference;
 
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 0u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.0f));
+
         auto a0 = is(t0, mild) & is(t0, warm);
-        REQUIRE(a0.set().size() == 2u);
+        REQUIRE(a0.set().size() == 0u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
 
         additive_aggregator fan_speed;
@@ -1121,8 +1129,12 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         using namespace operators::drastic;
         using namespace functions::drastic_product;
 
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 0u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.0f));
+
         auto a0 = is(t0, mild) & is(t0, warm);
-        REQUIRE(a0.set().size() == 2u);
+        REQUIRE(a0.set().size() == 0u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
 
         additive_aggregator fan_speed;
@@ -1133,6 +1145,10 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
     {
         using namespace operators::einstein;
         using namespace functions::einstein_product;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.133333f));
 
         auto a0 = is(t0, mild) & is(t0, warm);
         REQUIRE(a0.set().size() == 11u);
@@ -1147,6 +1163,10 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         using namespace operators::hamacher;
         using namespace functions::hamacher_product;
 
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.222222f));
+
         auto a0 = is(t0, mild) & is(t0, warm);
         REQUIRE(a0.set().size() == 9u);
         REQUIRE(equivelant(a0.set().membership(0.53601f), 0.210648f));
@@ -1160,13 +1180,17 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         using namespace operators::minmax;
         using namespace functions::minimum;
 
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.333333f));
+
         auto a0 = is(t0, mild) & is(t0, warm);
-        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(a0.set().size() == 3u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.472727f));
 
         additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
-        REQUIRE(fan_speed.result().size() == 4);
+        REQUIRE(fan_speed.result().size() == 3);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.5f));
     }
 
@@ -1174,6 +1198,10 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
     {
         using namespace operators::tconorm::algabraic_sum;
         using namespace functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.833333f));
 
         auto a0 = is(t0, mild) | is(t0, warm);
         REQUIRE(a0.set().size() == 5u);
@@ -1183,29 +1211,45 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
         using namespace operators::tconorm::bounded_sum;
         using namespace functions::minimum;
 
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 4u);
+        REQUIRE(equivelant(s0.membership(75.0f), 1.0f));
+
         auto a0 = is(t0, mild) | is(t0, warm);
-        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(a0.set().size() == 4u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.945454f));
     }
     {
         using namespace operators::tconorm::drastic_sum;
         using namespace functions::minimum;
-        auto a0 = is(t0, mild) | is(t0, warm);
 
-        REQUIRE(a0.set().size() == 5u);
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 4u);
+        REQUIRE(equivelant(s0.membership(75.0f), 1.0f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 4u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 1.0f));
     }
     {
         using namespace operators::tconorm::einstein_sum;
         using namespace functions::minimum;
-        auto a0 = is(t0, mild) | is(t0, warm);
 
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.866666f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
         REQUIRE(a0.set().size() == 5u);
         REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.772764f));
     }
     {
         using namespace operators::tconorm::hamacher_sum;
         using namespace fuzzy::functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.777777f));
 
         auto a0 = is(t0, mild) | is(t0, warm);
         REQUIRE(a0.set().size() == 5u);
@@ -1214,6 +1258,10 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
     {
         using namespace operators::tconorm::maximum;
         using namespace fuzzy::functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.666667f));
 
         auto a0 = is(t0, mild) | is(t0, warm);
         REQUIRE(a0.set().size() == 5u);
@@ -1280,17 +1328,18 @@ TEST_CASE("Expressions", "[Expressions]")
 	{
 		using namespace fuzzy::models::mamdani;
 		aggregator speed;
+
 		(is(t0, mild) | is(h0, somewhat(humid))) >> speed.shall_be(slow);
 		(is(t0, warm) & is(h0, humid)) >> speed.shall_be(very_fast);
         (is(t0, warm) | is(h0, somewhat(humid))) >> speed.shall_be(medium);
 
-        REQUIRE(speed.result().size() == 27u);
+        REQUIRE(speed.result().size() == 17u);
         auto itr = speed.result().begin();
         REQUIRE(equivelant(itr->value(), 600.0f));
         REQUIRE(equivelant(itr->membership(), 0.0f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 900.0f));
-        REQUIRE(equivelant(itr->membership(), 0.5f));
+        REQUIRE(equivelant(itr->membership(), 0.673364f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 928.472778f));
         REQUIRE(equivelant(itr->membership(), 0.737272f));
@@ -1298,29 +1347,17 @@ TEST_CASE("Expressions", "[Expressions]")
         REQUIRE(equivelant(itr->value(), 966.675964f));
         REQUIRE(equivelant(itr->membership(), 0.777746f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 984.415161f));
-        REQUIRE(equivelant(itr->membership(), 0.718616f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1000.00006f));
-        REQUIRE(equivelant(itr->membership(), 0.666666f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1007.01758f));
-        REQUIRE(equivelant(itr->membership(), 0.608187f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1014.28577f));
-        REQUIRE(equivelant(itr->membership(), 0.619047f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1032.00110f));
-        REQUIRE(equivelant(itr->membership(), 0.559996f));
-        ++itr;
         REQUIRE(equivelant(itr->value(), 1050.0f));
         REQUIRE(equivelant(itr->membership(), 0.499999f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1100.0f));
         REQUIRE(equivelant(itr->membership(), 0.666666f));
         ++itr;
+        REQUIRE(equivelant(itr->value(), 1155.67517f));
+        REQUIRE(equivelant(itr->membership(), 0.573874f));
+        ++itr;
         REQUIRE(equivelant(itr->value(), 1200.0f));
-        REQUIRE(equivelant(itr->membership(), 0.5f));
+        REQUIRE(equivelant(itr->membership(), 0.673364f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1228.47278f));
         REQUIRE(equivelant(itr->membership(), 0.737272f));
@@ -1331,23 +1368,11 @@ TEST_CASE("Expressions", "[Expressions]")
         REQUIRE(equivelant(itr->value(), 1275.0f));
         REQUIRE(equivelant(itr->membership(), 0.75f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1284.41516f));
-        REQUIRE(equivelant(itr->membership(), 0.718616f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1300.0f));
-        REQUIRE(equivelant(itr->membership(), 0.666666f));
-        ++itr;
         REQUIRE(equivelant(itr->value(), 1350.0f));
-        REQUIRE(equivelant(itr->membership(), 0.25f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1375.0f));
-        REQUIRE(equivelant(itr->membership(), 0.354166f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1396.875f));
-        REQUIRE(equivelant(itr->membership(), 0.445312f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1410.0f));
         REQUIRE(equivelant(itr->membership(), 0.5f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1383.33337f));
+        REQUIRE(equivelant(itr->membership(), 0.388889f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1425.0f));
         REQUIRE(equivelant(itr->membership(), 0.5625f));
@@ -1358,25 +1383,62 @@ TEST_CASE("Expressions", "[Expressions]")
         REQUIRE(equivelant(itr->value(), 1500.0f));
         REQUIRE(equivelant(itr->membership(), 0.428571f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1575.0f));
-        REQUIRE(equivelant(itr->membership(), 0.285714f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1650.0f));
-        REQUIRE(equivelant(itr->membership(), 0.142857f));
-        ++itr;
         REQUIRE(equivelant(itr->value(), 1725.0f));
         REQUIRE(equivelant(itr->membership(), 0.0f));
-
-	}
-
-
-
+    }
 }
 
-        //std::cout << "{";
-        //for (auto const& ele : a0.set())
-        //{
-        //    std::cout << "{" << ele.value() << ", " << ele.membership() << "}, ";
-        //}
-        //std::cout << "}";
+TEST_CASE("Final", "[Final]")
+{
+    using namespace fuzzy;
+
+    constexpr auto control_loop = [](float indoor_tempurature, float outdoor_tempurature)
+    {
+
+        set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
+        set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
+        set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
+        set const warm{ {50.0f, 0.0f}, {55.0f, 1.0f}, {130.0f, 1.0f } };
+        set const less_than_warm = [&]()
+        {
+            using namespace fuzzy::operators::tconorm::bounded_sum;
+            return cold | chilly | cool;
+        }();
+        set const more_than_chilly = [&]()
+        {
+            using namespace fuzzy::operators::tconorm::bounded_sum;
+            return cool | warm;
+        }();
+
+        set const off{ {0.0f, 1.0f}, {0.5f, 0.0f} };
+        set const slow = make_triangle<float>(4.5f, 5.0f, 8.5f);
+        set const medium = make_triangle<float>(5.0f, 8.5f, 12.0f);
+        set const fast{ {8.5f, 0.0f}, {12.0f, 1.0f}, {12.5f, 1.0f} };
+
+        set const it = make_value<float>(indoor_tempurature);
+        set const ot = make_value<float>(outdoor_tempurature);
+
+        using namespace fuzzy::models::tsk;
+        aggregator fan_voltage;
+
+        //is(it, cold) >> fan_voltage.shall_be(off);
+        //(is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
+        //(is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
+        auto i = is(it, warm);
+        auto j = is(ot, less_than_warm);
+        //(is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
+        i >> fan_voltage.shall_be(fast);
+        //(is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
+
+        return center_of_area(fan_voltage.result());
+    };
+
+    //auto v0 = control_loop(42.0f, 57.0f);
+    //REQUIRE(equivelant(v0, 0.23286f));
+
+    auto v1 = control_loop(57.0f, 44.0f);
+    REQUIRE(equivelant(v1, 10.618526f));
+
+    // FIXME: Run two series here to CSV to the output (console!)
+}
 

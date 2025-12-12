@@ -90,10 +90,6 @@ namespace fuzzy
 	requires fuzzy::numeric<V>&& std::floating_point<M>
 	class scaled_antecedent;
 
-	//template <template <typename> class Tnorm, class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
-	//requires fuzzy::numeric<V>&& std::floating_point<M>&& fuzzy::tnorm_type<Tnorm<M>>
-	//constexpr scaled_antecedent<V, M, Container, Allocator> is(fuzzy::basic_set<V, M, Container, Allocator> const&, fuzzy::basic_set<V, M, Container, Allocator> const&);
-
 	template <class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
 	requires fuzzy::numeric<V>&& std::floating_point<M>
 	class basic_aggregator;

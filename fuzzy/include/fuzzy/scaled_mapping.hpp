@@ -41,8 +41,10 @@ namespace fuzzy
 {
 
 	template <template <typename> class Tnorm, class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
-	constexpr void scaled_mapping(fuzzy::scaled_antecedent<V, M, Container, Allocator> const& antecedent, fuzzy::consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) // ??
+	constexpr void scaled_mapping(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) // ??
 	{
+		using antecedent_t = scaled_antecedent<V, M, Container, Allocator>;
+		using key_type = typename antecedent_t::key_type;
 		using set_t = basic_set<V,M,Container, Allocator>;
 		using element_t = basic_element<V,M>;
 		auto const &scaled_src = antecedent.set();
@@ -50,16 +52,42 @@ namespace fuzzy
 		if (scaled_src.empty() || dst.empty())
 			return; // Nothing more to do if either are empty.
 
-		// Project the scaled antecedent.
-		M const min_v = static_cast<M>(dst.front().value());
-		M const max_v = static_cast<M>(dst.back().value());
-		M const delta_v = max_v - min_v;
+		if (scaled_src.size() == 1u || dst.size() == 1u)
+			return; // Not a meaningful set size, treat the same as if empty.
+
+		assert(scaled_src.front().value() == static_cast<V>(0) && scaled_src.back().value() == static_cast<V>(1));
+		key_type const segment_count = static_cast<key_type>(dst.size() - 1);
+		key_type const median_segment_ratio = static_cast<key_type>(1) / segment_count;
+
 		set_t projected_src{ dst.get_allocator() };
 		for (auto const& ele : scaled_src)
 		{
-			M const scaled_v = min_v + (delta_v * ele.value());
-			V const rounded_v = static_cast<V>(fuzzy::math::round<V>(scaled_v));
-			projected_src.insert(element_t{ rounded_v, ele.membership() });
+			// Calcualte the index and get the matching itr in consequent/destination.
+			key_type const offset = ele.value() / median_segment_ratio;
+			std::size_t const index = static_cast<std::size_t>(offset);
+			auto itr = dst.cbegin() + index;
+			key_type const remainder = offset - static_cast<key_type>(index);
+			assert(static_cast<key_type>(0) <= remainder && remainder <= static_cast<key_type>(1));
+			if (remainder == static_cast<key_type>(0))
+			{
+				// Simple case of spot-on (no interpolation)!
+				projected_src.insert(element_t{ itr->value(), ele.membership() });
+				continue;
+			}
+
+			auto itr_next = itr + 1u;
+			assert(itr_next != dst.cend());
+
+			// Scale to the segment at index, using the remainder as a linear ratio of the segment length.
+			V const v0 = itr->value();
+			V const v1 = itr_next->value();
+			key_type const minv = static_cast<key_type>(v0);
+			key_type const maxv = static_cast<key_type>(v1);
+			key_type const segment_range = maxv - minv;
+			key_type const scaled_offset = remainder * segment_range;
+			V const v_offset = static_cast<V>(fuzzy::math::round<V,M>(static_cast<M>(scaled_offset)));
+			V scaled_v = std::clamp(v0 + v_offset, v0, v1);
+			projected_src.insert(element_t{ scaled_v, ele.membership() });
 		}
 
 		set_t result = set_intersection<Tnorm, V,M,Container, Allocator>(projected_src, dst);

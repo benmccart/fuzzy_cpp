@@ -492,6 +492,7 @@ namespace fuzzy
 					result.insert(element_t{ v, m });
 				}
 				trim::apply(result);
+				detail::simplify_impl::apply(result); // NOTE: This is not merely a space optimization, it is for correctness with mapping rules.
 
 				return result;
 			}

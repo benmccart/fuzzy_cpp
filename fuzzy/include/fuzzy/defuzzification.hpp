@@ -240,8 +240,6 @@ namespace fuzzy
 		return static_cast<V>(cx / (static_cast<M>(6) * area));
 	}
 
-	
-
 }
 
 

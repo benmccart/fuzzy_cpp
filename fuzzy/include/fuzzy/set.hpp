@@ -896,6 +896,30 @@ namespace fuzzy
 		return basic_set<V, M, Container, Allocator>{{ {v1, static_cast<M>(0)}, { v2, static_cast<M>(1) }, { v3, static_cast<M>(1) }, { v4, static_cast<M>(0) } }, allocator};
 	}
 
+	/** Convenience function for making a basic set in the form of a triangle.
+	* Precondition: v1 < v2 < v3.
+	* @param v1 - the lowest value.
+	* @param v2 - the peak value.
+	* @param v3 - the highest value.
+	* @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
+	*/
+	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
+	requires fuzzy::numeric<V> && std::floating_point<M>
+	constexpr basic_set<V, M, Container, Allocator> make_value(V v, V offset = static_cast<V>(1), Allocator allocator = Allocator())
+	{
+		if (std::is_constant_evaluated())
+		{
+			if (offset <= static_cast<V>(0))
+				std::terminate();
+		}
+		else
+		{
+			assert(offset >= static_cast<V>(0));
+		}
+
+		return basic_set<V, M, Container, Allocator>{{ {v - offset, static_cast<M>(0)}, { v, static_cast<M>(1) }, { v + offset, static_cast<M>(0) } }, allocator};
+	}
+
 	/** Convenience defintion for common use cases. */
 	using int_set = basic_set<int, float>;
 	using set = basic_set<float, float>;
