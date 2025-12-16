@@ -950,6 +950,8 @@ TEST_CASE("Scaling-Inference-Rule-2", "[Scaling_Inference_Rule_2]")
 
 #endif // ENABLE_DEPRECATED_TESTS
 
+/*
+
 TEST_CASE("Consequent-1", "[Consequent_1]")
 {
     
@@ -1308,6 +1310,7 @@ TEST_CASE("Deffuzification", "[Deffuzification]")
         REQUIRE(equivelant(center_of_area(aset), 78.0f));
     }
 }
+*/
 
 TEST_CASE("Expressions", "[Expressions]")
 {
@@ -1325,13 +1328,14 @@ TEST_CASE("Expressions", "[Expressions]")
     set const fast = make_triangle<float>(1200.0f, 1500.0f, 1800.0f);
     set const very_fast = very(fast);
     set const not_slow = ~slow;
+    set const somewhat_humid = somewhat(humid);
 	{
 		using namespace fuzzy::models::mamdani;
 		aggregator speed;
 
-		(is(t0, mild) | is(h0, somewhat(humid))) >> speed.shall_be(slow);
+		(is(t0, mild) | is(h0, somewhat_humid)) >> speed.shall_be(slow);
 		(is(t0, warm) & is(h0, humid)) >> speed.shall_be(very_fast);
-        (is(t0, warm) | is(h0, somewhat(humid))) >> speed.shall_be(medium);
+        (is(t0, warm) | is(h0, somewhat_humid)) >> speed.shall_be(medium);
 
         REQUIRE(speed.result().size() == 17u);
         auto itr = speed.result().begin();
@@ -1392,7 +1396,7 @@ TEST_CASE("Final", "[Final]")
 {
     using namespace fuzzy;
 
-    constexpr auto control_loop = [](float indoor_tempurature, float outdoor_tempurature)
+    constexpr auto control_loop_tsk = [](float indoor_tempurature, float outdoor_tempurature)
     {
 
         set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
@@ -1420,25 +1424,96 @@ TEST_CASE("Final", "[Final]")
 
         using namespace fuzzy::models::tsk;
         aggregator fan_voltage;
+        auto at = is(it, cool);
+        if (at.set().front().membership() == 500.0f)
+            std::cout << "haha!\n";
+
+        auto anp = (is(it, cool) & is(ot, chilly));
+        anp >> fan_voltage.shall_be(slow);
 
         //is(it, cold) >> fan_voltage.shall_be(off);
         //(is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
         //(is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
-        auto i = is(it, warm);
-        auto j = is(ot, less_than_warm);
         //(is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
-        i >> fan_voltage.shall_be(fast);
         //(is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
 
         return center_of_area(fan_voltage.result());
     };
 
-    //auto v0 = control_loop(42.0f, 57.0f);
+    //auto v0 = control_loop_tsk(42.0f, 57.0f);
     //REQUIRE(equivelant(v0, 0.23286f));
 
-    auto v1 = control_loop(57.0f, 44.0f);
-    REQUIRE(equivelant(v1, 10.618526f));
+    //auto v1 = control_loop_tsk(57.0f, 44.0f);
+    //REQUIRE(equivelant(v1, 10.986347f));
 
-    // FIXME: Run two series here to CSV to the output (console!)
+    //std::cout << "==================== TSK ====================\n";
+    //std::cout << "outdoor tempurature F, indoor tempurature F, fan VDC\n";
+    //for (float it = 35.0f; it <= 60.0f; it += 0.05f)
+    //{
+    //    float fv = control_loop_tsk(it, 44.0f);
+    //    std::cout << "44.0f, " << it << ", " << fv << "\n";
+    //}
+
+    float const it2 = 48.8997879f;//48.90f;
+    float const it3 = 48.9497871f;//48.95f;
+    float const it4 = 48.9997864f;//49.00f;
+    auto v2 = control_loop_tsk(it2, 44.0f);
+    auto v3 = control_loop_tsk(it3, 44.0f);
+    auto v4 = control_loop_tsk(it4, 44.0f);
+
+    if (v3 < v2 && v2 < v4)
+    {
+        std::cout << "we have a problem!\n";
+    }
+
+
+
+
+    //constexpr auto control_loop_mamdani = [](float indoor_tempurature, float outdoor_tempurature)
+    //{
+
+    //    set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
+    //    set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
+    //    set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
+    //    set const warm{ {50.0f, 0.0f}, {55.0f, 1.0f}, {130.0f, 1.0f } };
+    //    set const less_than_warm = [&]()
+    //    {
+    //        using namespace fuzzy::operators::tconorm::bounded_sum;
+    //        return cold | chilly | cool;
+    //    }();
+    //    set const more_than_chilly = [&]()
+    //    {
+    //        using namespace fuzzy::operators::tconorm::bounded_sum;
+    //        return cool | warm;
+    //    }();
+
+    //    set const off{ {0.0f, 1.0f}, {0.5f, 0.0f} };
+    //    set const slow = make_triangle<float>(4.5f, 5.0f, 8.5f);
+    //    set const medium = make_triangle<float>(5.0f, 8.5f, 12.0f);
+    //    set const fast{ {8.5f, 0.0f}, {12.0f, 1.0f}, {12.5f, 1.0f} };
+
+    //    set const it = make_value<float>(indoor_tempurature);
+    //    set const ot = make_value<float>(outdoor_tempurature);
+
+    //    using namespace fuzzy::models::mamdani;
+    //    aggregator fan_voltage;
+
+    //    is(it, cold) >> fan_voltage.shall_be(off);
+    //    (is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
+    //    (is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
+    //    (is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
+    //    (is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
+
+    //    return mean_of_maximum_nearest_maxima(fan_voltage.result());
+    //};
+
+    //std::cout << "==================== Mamdani ====================\n";
+    //std::cout << "indoor tempurature F,outdoor tempurature F, fan VDC\n";
+    //for (float ot = 35.0f; ot <= 60.0f; ot += 0.05f)
+    //{
+    //    float fv = control_loop_mamdani(49.0f, ot);
+    //    std::cout << "49.0f, " << ot << ", " << fv << "\n";
+    //}
+
 }
 

@@ -200,9 +200,17 @@ namespace fuzzy
 			private:
 				constexpr void advance_a()
 				{
-					auto a_next = [](value_step_iterator itr) { return ++itr; }(a_);
+					auto const a_end = value_step_iterator{ cend(*a_set_), *a_set_ };
+					auto const b_end = value_step_iterator{ cend(*b_set_), *b_set_ };
+					auto const a_next = [](value_step_iterator itr) { return ++itr; }(a_);
 					V const v0 = a_->value();
-					V const v1 = std::min(a_next->value(), b_->value());
+					V const v1 = [&]()
+					{
+						if (a_next != a_end && b_ != b_end)
+							return std::min(a_next->value(), b_->value());
+						else
+							return a_->value();
+					}();
 					segment_t seg_a
 					{ 
 						*a_,
@@ -232,9 +240,17 @@ namespace fuzzy
 				}
 				constexpr void advance_b()
 				{
-					auto b_next = [](value_step_iterator itr) { return ++itr; }(b_);
+					auto const a_end = value_step_iterator{ cend(*a_set_), *a_set_ };
+					auto const b_end = value_step_iterator{ cend(*b_set_), *b_set_ };
+					auto const b_next = [](value_step_iterator itr) { return ++itr; }(b_);
 					V const v0 = b_->value();
-					V const v1 = std::min(b_next->value(), a_->value());
+					V const v1 = [&]() -> V
+					{
+						if (b_next != b_end && a_ != a_end)
+							return std::min(b_next->value(), a_->value());
+						else
+							return b_->value();
+					}();
 					segment_t seg_a
 					{
 						element_t{ v0, a_set_->membership(v0) },
@@ -316,7 +332,7 @@ namespace fuzzy
 				constexpr static bool do_relative_memberships_intersect(int rm0, int rm1)
 				{
 					int const result = rm0 - rm1;
-					return std::abs(result) == 2;
+					return (result == -2 || result == 2);
 				}
 
 				value_step_iterator a_;
@@ -351,58 +367,58 @@ namespace fuzzy
 		template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 		constexpr typename set_operation_value_sequence<V, M, Container>::iterator end(set_operation_value_sequence<V, M, Container, Allocator> const& set)   { return set.end();   }
 
-		struct trim
-		{
-			template <class V, class M, template <typename T, typename Alloc> class Container>
-			constexpr static void apply(fuzzy::basic_set<V, M, Container>& v)
-			{
-				constexpr M zero_m = static_cast<M>(0);
-				if (v.size() < 3ull)
-					return;
+		//struct trim
+		//{
+		//	template <class V, class M, template <typename T, typename Alloc> class Container>
+		//	constexpr static void apply(fuzzy::basic_set<V, M, Container>& v)
+		//	{
+		//		constexpr M zero_m = static_cast<M>(0);
+		//		if (v.size() < 3ull)
+		//			return;
 
-				auto ritr = cend(v) - 1ull;
-				auto ritr_next = ritr - 1ull;
-				for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
+		//		auto ritr = cend(v) - 1ull;
+		//		auto ritr_next = ritr - 1ull;
+		//		for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
 
-				auto itr = cbegin(v);
-				auto itr_next = itr + 1ull;
-				for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
-			}
+		//		auto itr = cbegin(v);
+		//		auto itr_next = itr + 1ull;
+		//		for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
+		//	}
 
-			/**
-			* @brief Finds the sequence that represents the original sequence but with front and back elements that have zero membership removed.
-			* @tparam V The value type.
-			* @tparam M The membership type.
-			* @tparam Container The underlying storage container type for the set.
-			* @param seq The set operation value sequence.
-			* @return A pair of iterators pointing to a subset of the original sequence.
-			*/
-			//template <class V, class M, template <typename T, typename Alloc> class Container>
-			//requires fuzzy::numeric<V> && std::floating_point<M>
-			//constexpr static auto apply(typename set_operation_value_sequence<V, M, Container>::const_iterator first, typename set_operation_value_sequence<V, M, Container>::const_iterator last)
-			//{
-			//	using const_iterator = typename set_operation_value_sequence<V, M, Container>::const_iterator;
-			//	std::pair<const_iterator, const_iterator> result{ first, last };
+		//	/**
+		//	* @brief Finds the sequence that represents the original sequence but with front and back elements that have zero membership removed.
+		//	* @tparam V The value type.
+		//	* @tparam M The membership type.
+		//	* @tparam Container The underlying storage container type for the set.
+		//	* @param seq The set operation value sequence.
+		//	* @return A pair of iterators pointing to a subset of the original sequence.
+		//	*/
+		//	//template <class V, class M, template <typename T, typename Alloc> class Container>
+		//	//requires fuzzy::numeric<V> && std::floating_point<M>
+		//	//constexpr static auto apply(typename set_operation_value_sequence<V, M, Container>::const_iterator first, typename set_operation_value_sequence<V, M, Container>::const_iterator last)
+		//	//{
+		//	//	using const_iterator = typename set_operation_value_sequence<V, M, Container>::const_iterator;
+		//	//	std::pair<const_iterator, const_iterator> result{ first, last };
 
-			//	using element_t = fuzzy::basic_element<V, M>;
-			//	auto non_zero = [](element_t a, element_t b) -> bool { return a.membership() != static_cast<M>(0) && b.membership() != static_cast<M>(0); };
-			//	for (auto itr = first; itr != last; ++itr)
-			//	{
-			//		auto cpair = *itr;
-			//		if (non_zero(cpair.first, cpair.second))
-			//		{
-			//			result.second = itr;
-			//			auto ipair = *result.first;
-			//			if (!non_zero(ipair.first, ipair.second))
-			//				result.first = itr;
-			//		}
-			//	}
-			//	if (result.second != last)
-			//		++result.second;
+		//	//	using element_t = fuzzy::basic_element<V, M>;
+		//	//	auto non_zero = [](element_t a, element_t b) -> bool { return a.membership() != static_cast<M>(0) && b.membership() != static_cast<M>(0); };
+		//	//	for (auto itr = first; itr != last; ++itr)
+		//	//	{
+		//	//		auto cpair = *itr;
+		//	//		if (non_zero(cpair.first, cpair.second))
+		//	//		{
+		//	//			result.second = itr;
+		//	//			auto ipair = *result.first;
+		//	//			if (!non_zero(ipair.first, ipair.second))
+		//	//				result.first = itr;
+		//	//		}
+		//	//	}
+		//	//	if (result.second != last)
+		//	//		++result.second;
 
-			//	return result;
-			//}
-		};
+		//	//	return result;
+		//	//}
+		//};
 
 		struct simplify_impl
 		{
@@ -419,7 +435,7 @@ namespace fuzzy
 			requires std::floating_point<M>
 			constexpr static bool slopes_equivelant(M s0, M s1)
 			{
-				M diff = static_cast<M>(std::abs(s1 - s0));
+				M diff = static_cast<M>(std::abs(s1 - s0)); // FIXME: Shouldn't we use other equivelence function here?
 				return diff < static_cast<M>(0.000035f);
 			}
 
@@ -445,11 +461,25 @@ namespace fuzzy
 				iterator last = set.end();
 				for (iterator prev = set.begin(),itr = prev + 1,next = itr + 1; next != last;)
 				{
+					if constexpr (std::floating_point<V>)
+					{
+						if (fuzzy::math::equivelant(itr->value(), next->value()))
+						{
+							V const v = (itr->value() + next->value()) / static_cast<V>(2);
+							M const m = (itr->membership() + next->membership()) / static_cast<M>(2);
+							next->value(v);
+							next->membership(m);
+							std::copy(next, last, itr); // FIXME: Make this more efficient!
+							--last;
+							continue;
+						}
+					}
+
 					M const s0 = slope(*prev, *itr);
 					M const s1 = slope(*itr, *next);
 					if (slopes_equivelant(s0, s1))
 					{
-						std::copy(next, last, itr);
+						std::copy(next, last, itr); // FIXME: Make this more efficient!
 						--last;
 					}
 					else
@@ -491,7 +521,7 @@ namespace fuzzy
 					M m = op_t::apply(pair.first.membership(), pair.second.membership());
 					result.insert(element_t{ v, m });
 				}
-				trim::apply(result);
+				//trim::apply(result);
 				detail::simplify_impl::apply(result); // NOTE: This is not merely a space optimization, it is for correctness with mapping rules.
 
 				return result;

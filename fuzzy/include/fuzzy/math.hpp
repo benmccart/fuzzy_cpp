@@ -174,7 +174,9 @@ namespace fuzzy { namespace math
 	requires std::floating_point<M>
 	constexpr bool equivelant(M m0, M m1) noexcept
 	{
-		return fuzzy::math::abs(m1 - m0) <= detail::round_off<M>();
+		M const abs = fuzzy::math::abs(m1 - m0);
+		M const ro = detail::round_off<M>();
+		return abs <= ro;
 	}
 
 }}

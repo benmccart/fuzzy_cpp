@@ -59,6 +59,7 @@ namespace fuzzy
 	private:
 		set_type set_;
 		AggregatorFunc<M> func_;
+		M scale_ = static_cast<M>(1);
 		bool dirty_ = false;
 	};
 		
@@ -80,6 +81,12 @@ namespace fuzzy
 	{
 		using element_t = typename set_type::element_type;
 		using pair_t = std::pair<element_t, element_t>;
+
+		if (!dirty_)
+		{
+			std::for_each(set_.begin(), set_.end(), [&](element_t& e) -> void { e.membership(e.membership() * scale_); });
+			dirty_ = true;
+		}
 
 		set_type result;
 		detail::set_operation_value_sequence<V, M, Container> seq{ set_, input };
@@ -114,6 +121,7 @@ namespace fuzzy
 			if (itr != end(set_))
 			{
 				M const max = itr->membership();
+				scale_ = std::max(static_cast<M>(1), max);
 				if (max > static_cast<M>(1))
 				{
 					for (auto& element : set_)
