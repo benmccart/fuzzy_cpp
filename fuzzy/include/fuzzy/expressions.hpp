@@ -150,7 +150,7 @@ namespace fuzzy
 		scaled_set.back().value(static_cast<V>(1));
 
 		// Simplify the set.
-		fuzzy::detail::simplify_impl::apply(scaled_set); // NOTE: This is not merely a space optimization, it is for correctness with mapping rules.
+		fuzzy::detail::simplify_impl<V, M, Container>::apply(scaled_set); // NOTE: This is not merely a space optimization, it is for correctness with mapping rules.
 		return scaled_antecedent<V, M, Container, Allocator>{ std::move(scaled_set) };
 	}
 

@@ -162,7 +162,7 @@ namespace fuzzy
 
 			result.insert(element_type{ range_v.first.value(), m });
 		}
-		detail::simplify_impl::apply(result);
+		detail::simplify_impl<V, M, Container>::apply(result);
 
 		return result;
 	}

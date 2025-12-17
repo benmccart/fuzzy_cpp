@@ -366,114 +366,202 @@ namespace fuzzy
 
 		};
 
-		struct simplify_impl
+
+
+		/**
+		 * @brief A utility class for simplifying a fuzzy set.
+		 * @tparam M Floating-point type used for membership.
+		 * @tparam V Integral type used for value.
+		 * @tparam Container The container type used for the set.
+		*/
+		template <class V, class M, template <typename T, typename Alloc> class Container>
+		requires fuzzy::numeric<V> && std::floating_point<M>
+		class simplify_impl
 		{
-			template <class V, class M>
-			requires fuzzy::numeric<V> && std::floating_point<M>
-			constexpr static M slope(fuzzy::basic_element<V, M> p0, fuzzy::basic_element<V, M> p1)
+		private:
+			using set_t = basic_set<V, M, Container>;
+			using element_t = basic_element<V, M>;
+			using iterator = typename set_t::iterator;
+
+			struct state_t
 			{
-				M dx = static_cast<M>(p1.value()) - static_cast<M>(p0.value());
-				M dy = p1.membership() - p0.membership();
-				return dy / dx;
+				iterator dst;
+				iterator prev;
+				iterator itr;
+				iterator next;
+				iterator last;
+				iterator end;
+			};
+
+			constexpr static iterator find_first(set_t &set)
+			{
+				constexpr M zero = static_cast<M>(0);
+				iterator itr = std::find_if(set.begin(), set.end(), [](element_t const& e) -> bool { return e.membership() != zero; });
+				if (itr != set.begin())
+					--itr;
+
+				return itr;
 			}
 
+			constexpr static iterator find_last(set_t& set)
+			{
+				constexpr M zero = static_cast<M>(0);
+				auto itr = std::find_if(set.rbegin(), set.rend(), [](element_t const& e) -> bool { return e.membership() != zero; });
+				if (itr != set.rbegin())
+					--itr;
+
+				return itr.base();
+			}
+
+			constexpr static bool check_range(set_t& set, iterator first, iterator last)
+			{
+				if (last - first < 3)
+				{
+					auto itr = last;
+					if (first != set.begin())
+					{
+						std::copy(first, last, set.begin());
+						itr = set.begin() + (last - first);
+					}
+					set.erase(itr, set.end());
+					return false;
+				}
+
+				return true;
+			}
+
+			constexpr static M slope(fuzzy::basic_element<V, M> p0, fuzzy::basic_element<V, M> p1)
+			{
+				M const dx = static_cast<M>(p1.value() - p0.value());
+				M const inv_denom = static_cast<M>(1) / dx;
+				M const dy = p1.membership() - p0.membership();
+				return dy * inv_denom;
+			}
+
+			constexpr static bool erase_predicate(iterator const& prev, iterator const& itr, iterator const& next) noexcept
+			{
+				if constexpr (std::floating_point<V>)
+				{
+					constexpr M value_spacing_multiplier = static_cast<M>(16);
+					constexpr M vro = value_spacing_multiplier * fuzzy::math::detail::round_off<M>();
+					if (fuzzy::math::equivelant(itr->value(), next->value(), vro))
+					{
+						constexpr M inv_div_2 = static_cast<M>(0.5l);
+						V const v = static_cast<V>(fuzzy::math::round<V>(static_cast<M>(itr->value() + next->value()) * inv_div_2));
+						M const m = (itr->membership() + next->membership()) * inv_div_2;
+						next->value(v);
+						next->membership(m);
+						return true;
+					}
+				}
+				else
+				{
+					if (itr->value() == next->value())
+						return true;
+				}
+
+				M const s0 = slope(*prev, *itr);
+				M const s1 = slope(*itr, *next);
+				constexpr M slope_multiplier = static_cast<M>(5);
+				constexpr M sro = slope_multiplier * fuzzy::math::detail::round_off<M>();
+				if (fuzzy::math::equivelant(s0, s1, sro))
+				{
+					return true;
+				}
+
+				return false;
+			}
+
+			constexpr static void finish_prev(state_t& state)
+			{
+				assert(state.next == state.last);
+				assert(state.itr + 1 == state.last);
+				state.itr = state.last;
+				for (;state.prev != state.last; ++state.prev)
+				{
+					if (state.dst != state.end && state.dst < state.prev)
+					{
+						assert(state.dst < state.prev);
+						*state.dst = std::move(*state.prev);
+						++state.dst;
+					}
+				}
+			}
+
+			constexpr static void advance_prev(state_t& state)
+			{
+				if (state.dst != state.end && state.dst < state.prev)
+				{
+					*state.dst = std::move(*state.prev);
+					++state.dst;
+				}
+
+				state.prev = state.itr;
+				state.itr = state.next;
+				assert(state.next < state.last);
+				++state.next;
+				if (state.next == state.last)
+					finish_prev(state);
+			}
+
+			constexpr static void advance_itr(state_t& state)
+			{
+				assert(state.itr < state.next && state.next < state.last);
+				if (state.dst == state.end)
+					state.dst = state.itr;
+
+				++state.itr;
+				++state.next;
+				if (state.next == state.last)
+					finish_prev(state);
+			}
+
+		public:
 
 			/**
 			 * @brief The effect is to remove fuzzy values that are co-linear with values before and after.
-			 * @tparam M Floating-point type used for membership.
-			 * @tparam V Integral type used for value.
-			 * @tparam Container The container type used for the set.
+			 *        Value pairs that are to close (floating point) are averaged.
 			 * @param set The set to simplify in-place.
 			*/
-			template <class V, class M, template <typename T, typename Alloc> class Container>
-			requires fuzzy::numeric<V> && std::floating_point<M>
-			constexpr static void apply(fuzzy::basic_set<V, M, Container>& set)
+			constexpr static void apply(set_t& set)
 			{
-				using element_t = basic_element<V,M>;
-				using iterator = typename fuzzy::basic_set<V, M, Container>::iterator;
+				// Check sizes and initial state.
 				constexpr M zero = static_cast<M>(0);
-
 				if (set.size() == 2u && set.front().membership() == zero && set.back().membership() == zero)
 					set.clear(); // The set is indistinguishable from empty if both values are zero.
 
 				if (set.size() < 3u)
 					return; // No simplification is possible.
 
-				iterator itr_dst = set.begin();
-				iterator first = [&]()
-				{
-					iterator itr = std::find_if(set.begin(), set.end(), [](element_t const& e) -> bool { return e.membership() != zero; });
-					if (itr != set.begin())
-						--itr;
-
-					return itr;
-				}();
-				iterator last = [&]()
-				{
-					auto itr = std::find_if(set.rbegin(), set.rend(), [](element_t const &e) -> bool { return e.membership() != zero; });
-					if (itr != set.rbegin())
-						--itr;
-
-					return itr.base();
-				}();
-
-				
-				for (iterator prev = first,itr = prev + 1,next = itr + 1; next != last;)
-				{
-					if constexpr (std::floating_point<V>)
-					{
-						constexpr M value_spacing_multiplier = static_cast<M>(16);
-						constexpr M ro = value_spacing_multiplier * fuzzy::math::detail::round_off<M>();
-						if (fuzzy::math::equivelant(itr->value(), next->value(), ro))
-						{
-							constexpr M inv_div_2 = static_cast<M>(0.5l);
-							V const v = static_cast<V>(fuzzy::math::round<V>(static_cast<M>(itr->value() + next->value()) * inv_div_2));
-							M const m = (itr->membership() + next->membership()) * inv_div_2;
-							next->value(v);
-							next->membership(m);
-							std::copy(next, last, itr); // FIXME: Make this more efficient!
-							--last;
-							continue;
-						}
-					}
-
-					M const s0 = slope(*prev, *itr);
-					M const s1 = slope(*itr, *next);
-					constexpr M slope_multiplier = static_cast<M>(5);
-					constexpr M ro = slope_multiplier * fuzzy::math::detail::round_off<M>();
-					if (fuzzy::math::equivelant(s0, s1, ro))
-					{
-						std::copy(next, last, itr); // FIXME: Make this more efficient!
-						--last;
-					}
-					else
-					{
-						++prev;
-						++itr;
-						++next;
-					}
-				}
-				set.erase(last, set.end());
-
-				if (set.size() == 2u && set.front().membership() == static_cast<M>(0) && set.back().membership() == static_cast<M>(0))
-					set.clear(); // The set is indistinguishable from empty if both values are zero.
-			}
-
-			template <class V, class M, template <typename T, typename Alloc> class Container>
-			requires fuzzy::numeric<V>&& std::floating_point<M>
-			constexpr static auto trim(fuzzy::basic_set<V, M, Container>& v)
-			{
-				constexpr M zero_m = static_cast<M>(0);
-				if (v.size() < 3ull)
+				iterator first = find_first(set);
+				iterator last = find_last(set);
+				if (!check_range(set, first, last))
 					return;
 
-				auto ritr = cend(v) - 1ull;
-				auto ritr_next = ritr - 1ull;
-				for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
+				iterator const beg = set.begin();
+				iterator const end = set.end();
+				state_t state
+				{
+					.dst = (first == beg) ? end : beg,
+					.prev = first,
+					.itr = first + 1,
+					.next = first + 2,
+					.last = last,
+					.end = end
+				};
 
-				auto itr = cbegin(v);
-				auto itr_next = itr + 1ull;
-				for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
+				for (; state.prev != state.last;)
+				{
+					assert(state.prev < state.itr && state.itr + 1 == state.next && state.next != state.last);
+					if (erase_predicate(state.prev, state.itr, state.next))
+						advance_itr(state);
+					else
+						advance_prev(state);
+				}
+
+				assert(state.prev == state.last && state.itr == state.last && state.next == state.last);
+				if (state.dst != end)
+					set.erase(state.dst, end);
 			}
 		};
 
@@ -502,8 +590,7 @@ namespace fuzzy
 					M m = op_t::apply(pair.first.membership(), pair.second.membership());
 					result.insert(element_t{ v, m });
 				}
-				//trim::apply(result);
-				detail::simplify_impl::apply(result); // NOTE: This is not merely a space optimization, it is for correctness with mapping rules.
+				detail::simplify_impl<V, M, Container>::apply(result); // NOTE: This is not merely a space optimization, it is for correctness with mapping rules.
 
 				return result;
 			}

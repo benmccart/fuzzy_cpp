@@ -109,7 +109,7 @@ namespace fuzzy
 		result.insert(element_type{ range_value, range_membership });
 		result.insert(element_type{ rmin, static_cast<M>(0) });
 		result.insert(element_type{ rmax, static_cast<M>(0) });
-		detail::simplify_impl::apply(result);
+		detail::simplify_impl<V, M, Container>::apply(result);
 
 		return result;
 	}
