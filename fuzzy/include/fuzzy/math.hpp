@@ -26,7 +26,10 @@
 #ifndef FUZZY_MATH_HPP
 #define FUZZY_MATH_HPP
 
+#include <algorithm>
 #include <cassert>
+#include <limits>
+
 #include <fuzzy/element.hpp>
 
 namespace fuzzy { namespace math 
@@ -49,6 +52,20 @@ namespace fuzzy { namespace math
 			return static_cast<long long>(v);
 		else
 			return v;
+	}
+
+	/**
+	 * @brief Calculates the absolute value of a floating point type.
+	 * @tparam M Must be floating point.
+	 * @param m The value to find the absolute of.
+	 * @return The absolute value.
+	*/
+	template <class M>
+	requires std::floating_point<M>
+	constexpr M abs(M m) noexcept
+	{
+		// FUTURE: Replace this in C++23 for std::abs which will have a better implementation.
+		return ((m < static_cast<M>(0)) || (m == static_cast<M>(-0.0))) ? -m : m;
 	}
 
 	/**
@@ -78,11 +95,15 @@ namespace fuzzy { namespace math
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr M linear_interpolate(basic_element<V, M> lhs, V key, basic_element<V, M> rhs) noexcept
 	{
+		assert (lhs.value() <= key && key <= rhs.value());
 		M dy = rhs.membership() - lhs.membership();
 		M dx = static_cast<M>(promote(rhs.value()) - promote(lhs.value()));
 		M x_offset = static_cast<M>(promote(key) - promote(lhs.value()));
-		M ratio = x_offset / dx;
-		return lhs.membership() + (ratio * dy);
+		M denom_inv = static_cast<M>(1) / dx;
+		M ratio = x_offset * denom_inv;
+		//M ratio = x_offset / dx;
+		//return lhs.membership() + (ratio * dy);
+		return std::fma(ratio, dy, lhs.membership());
 	}
 
 	/**
@@ -119,35 +140,52 @@ namespace fuzzy { namespace math
 		M const s0_deltay = s0.v1.membership() - s0.v0.membership();
 		M const s1_deltax = static_cast<M>(s1.v1.value() - s1.v0.value());
 		M const s1_deltay = s1.v1.membership() - s1.v0.membership();
-		
-		M const s = (-s0_deltay * static_cast<M>(s0.v0.value() - s1.v0.value()) + s0_deltax * (s0.v0.membership() - s1.v0.membership())) / (-s1_deltax * s0_deltay + s0_deltax * s1_deltay);
-		M const t = (s1_deltax * (s0.v0.membership() - s1.v0.membership()) - s1_deltay * static_cast<M>(s0.v0.value() - s1.v0.value())) / (-s1_deltax * s0_deltay + s0_deltax * s1_deltay);
-		if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+		M const s0_s1_v_offset = static_cast<M>(s0.v0.value() - s1.v0.value());
+		M const s0_s1_m_offset = s0.v0.membership() - s1.v0.membership();
+
+		M const s_num = std::fma(s0_deltax, s0_s1_m_offset, -s0_deltay * s0_s1_v_offset);
+		M const t_num = std::fma(s1_deltax, s0_s1_m_offset, -s1_deltay * s0_s1_v_offset);
+		M const denom = std::fma(s0_deltax, s1_deltay,      -s0_deltay * s1_deltax);
+		M const inv_denom = static_cast<M>(1) / denom;
+		M const s = s_num * inv_denom;
+		M const t = t_num * inv_denom;
+
+		M constexpr eps = std::numeric_limits<M>::epsilon();
+		if (s >= -eps && s <= static_cast<M>(1) + eps && t >= -eps && t <= static_cast<M>(1) + eps)
 		{
-			V const v = s0.v0.value() + fuzzy::math::round<V>(t * s0_deltax);
-			if ((s0.v0.value() <= v && v <= s0.v1.value()) && (s1.v0.value() <= v && v <= s1.v1.value()))
+//			V const v = s0.v0.value() + fuzzy::math::round<V>(t * s0_deltax);
+			M v_rounded = fuzzy::math::round<V>(std::fma(t, s0_deltax, static_cast<M>(s0.v0.value())));
+			V const v_clamp_min = std::max(s0.v0.value(), s1.v0.value());
+			V const v_clamp_max = std::min(s0.v1.value(), s1.v1.value());
+			V const v = std::clamp(static_cast<V>(v_rounded), v_clamp_min, v_clamp_max);
+
+			M const m_old = linear_interpolate(s0.v0, v, s0.v1);
+
+			M const t_v = [&]() -> M
 			{
-				M const m = linear_interpolate(s0.v0, v, s0.v1);
-				return element_t{ v, m };
-			}
+				if constexpr (std::integral<V>)
+				{
+					M const v_inv_denom = static_cast<M>(1) / s0_deltax;
+					M const delta_v = v - s0.v0.value();
+					return delta_v * v_inv_denom;
+				}
+				else
+				{
+					return t;
+				}
+			}();
+
+			M const m = std::fma(t_v, s0_deltay, s0.v0.membership());
+			assert(m == m);
+			assert(fuzzy::math::abs(m - m_old) < 0.0001f);
+			return element_t{ v, m };
 		}
 
+		assert(!"called intersection expecting an intesection but we don't have an intersection!");
 		return element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
 	}
 
-	/**
-	 * @brief Calculates the absolute value of a floating point type.
-	 * @tparam M Must be floating point.
-	 * @param m The value to find the absolute of.
-	 * @return The absolute value.
-	*/
-	template <class M>
-	requires std::floating_point<M>
-	constexpr M abs(M m) noexcept 
-	{
-		// FUTURE: Replace this in C++23 for std::abs which will have a better implementation.
-		return ((m < static_cast<M>(0)) || (m == static_cast<M>(-0.0))) ? -m : m;
-	}
+
 
 	namespace detail
 	{
@@ -156,9 +194,9 @@ namespace fuzzy { namespace math
 		constexpr float round_off() noexcept
 		{
 			if constexpr (sizeof(M) == 4)
-				return 0.0000077f;
+				return 0.0000077f; // Loss of 7 bits ulp
 
-			return 0.00000000000015;
+			return 0.00000000000015; // Loss of 7 bits ulp
 		}
 
 	}
@@ -172,11 +210,24 @@ namespace fuzzy { namespace math
 	*/
 	template <class M>
 	requires std::floating_point<M>
-	constexpr bool equivelant(M m0, M m1) noexcept
+	constexpr bool equivelant(M m0, M m1, M ro = detail::round_off<M>()) noexcept
 	{
 		M const abs = fuzzy::math::abs(m1 - m0);
-		M const ro = detail::round_off<M>();
 		return abs <= ro;
+	}
+
+	/**
+	 * @brief A thin wrapper around operator== for floating point types in the range [0,1].
+	 * @tparam M Must be a floating point type.
+	 * @param m0 First argument.
+	 * @param m1 Second argument.
+	 * @return Whether the two arguments are equivelant.
+	*/
+	template <class V>
+	requires std::integral<V>
+	constexpr bool equivelant(V v0, V v1) noexcept
+	{
+		return v0 == v1;
 	}
 
 }}
