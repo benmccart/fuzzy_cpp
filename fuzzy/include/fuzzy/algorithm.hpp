@@ -31,6 +31,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <span>
 #include <stack>
 
@@ -132,6 +133,7 @@ namespace fuzzy
 				using iter_impl_t = typename set_t::const_iterator;
 				using element_t = basic_element<V,M>;
 				using segment_t = fuzzy::math::basic_segment<V, M>;
+				using optional_element_t = std::optional<element_t>;
 
 				const_iterator() = delete;
 
@@ -207,43 +209,34 @@ namespace fuzzy
 
 				constexpr void advance_a()
 				{
-					// FIXME: Update this to only use the natural segments (no calls to membership).
 					auto const a_next = [](value_step_iterator itr) { return ++itr; }(a_);
-					V const v0 = a_->value();
-					V const v1 = [&]()
+					auto const b_next = [&](value_step_iterator itr)
 					{
-						bool const anext = a_next != a_end_;
-						bool const b = b_ != b_end_;
-						if (anext && b)
-							return std::min(a_next->value(), b_->value());
-						else if (b)
-							return b_->value();
-						else if (anext)
-							return a_next->value();
-						else
-							return a_->value();
-					}();
+						if (itr == b_end_) 
+							return itr;
+
+						return ++itr;
+					}(b_);
 					segment_t seg_a
 					{ 
 						*a_,
-						element_t{ v1, a_set_->membership(v1) }
+						(a_next != a_end_) ? *a_next : *a_
 					};
+					element_t b0 = (b_ != b_end_) ? *b_ : *a_;
 					segment_t seg_b
 					{
-						element_t{ v0, b_set_->membership(v0) },
-						element_t{ v1, b_set_->membership(v1) },
+						b0,
+						(b_next != b_end_) ? *b_next : b0
 					};
 
-					auto rm_current = relative_membership(seg_a.v0, seg_b.v0);
-					auto rm_next = relative_membership(seg_a.v1, seg_b.v1);
-					if (do_relative_memberships_intersect(rm_current, rm_next))
+					optional_element_t intersec = find_intersection(seg_a, seg_b);
+					if (intersec)
 					{
-						element_t intersec = intersection(seg_a, seg_b);
-						bool const any_match = end_match(intersec, seg_a) || end_match(intersec, seg_b);
+						bool const any_match = end_match(*intersec, seg_a) || end_match(*intersec, seg_b);
 						if (any_match)
 							a_ = a_next;
 						else
-							a_.value(intersec.value());
+							a_.value(intersec->value());
 					}
 					else
 					{
@@ -252,43 +245,34 @@ namespace fuzzy
 				}
 				constexpr void advance_b()
 				{
-					// FIXME: Update this to only use the natural segments (no calls to membership).
-					auto const b_next = [](value_step_iterator itr) { return ++itr; }(b_);
-					V const v0 = b_->value();
-					V const v1 = [&]() -> V
+					auto const a_next = [&](value_step_iterator itr)
 					{
-						bool const a = a_ != a_end_;
-						bool const bnext = b_next != b_end_;
-						if (bnext && a)
-							return std::min(b_next->value(), a_->value());
-						else if (a)
-							return a_->value();
-						else if (bnext)
-							return b_next->value();
-						else
-							return b_->value();
-					}();
+						if (itr == a_end_)
+							return itr;
+
+						return ++itr;
+					}(a_);
+					auto const b_next = [](value_step_iterator itr) { return ++itr; }(b_);
+					element_t a0 = (a_ != a_end_) ? *a_ : *b_;
 					segment_t seg_a
 					{
-						element_t{ v0, a_set_->membership(v0) },
-						element_t{ v1, a_set_->membership(v1) }
+						a0,
+						(a_next != a_end_) ? *a_next : a0
 					};
 					segment_t seg_b
 					{
 						*b_,
-						element_t{ v1, b_set_->membership(v1) },
+						(b_next != b_end_) ? *b_next : *b_
 					};
 
-					auto rm_current = relative_membership(seg_a.v0, seg_b.v0);
-					auto rm_next = relative_membership(seg_a.v1, seg_b.v1);
-					if (do_relative_memberships_intersect(rm_current, rm_next))
+					optional_element_t intersec = find_intersection(seg_a, seg_b);
+					if (intersec)
 					{
-						element_t intersec = intersection(seg_a, seg_b);
-						bool const any_match = end_match(intersec, seg_a) || end_match(intersec, seg_b);
+						bool const any_match = end_match(*intersec, seg_a) || end_match(*intersec, seg_b);
 						if (any_match)
 							b_ = b_next;
 						else
-							b_.value(intersec.value());
+							b_.value(intersec->value());
 					}
 					else
 					{
@@ -305,10 +289,25 @@ namespace fuzzy
 					else return 0;
 				}
 
-				constexpr static bool do_relative_memberships_intersect(int rm0, int rm1)
+				constexpr static bool do_relative_memberships_intersect(segment_t const &seg_a, segment_t const &seg_b)
 				{
+					assert(seg_a.v0.value() <= seg_a.v1.value());
+					assert(seg_b.v0.value() <= seg_b.v1.value());
+					if (seg_a.v1.value() <= seg_b.v0.value() || seg_b.v1 <= seg_a.v0.value())
+						return false;
+
+					auto const rm0 = relative_membership(seg_a.v0, seg_b.v0);
+					auto const rm1 = relative_membership(seg_a.v1, seg_b.v1);
 					int const result = rm0 - rm1;
 					return (result == -2 || result == 2);
+				}
+
+				constexpr static optional_element_t find_intersection(segment_t const& seg_a, segment_t const& seg_b)
+				{
+					if (!do_relative_memberships_intersect(seg_a, seg_b))
+						return optional_element_t{};
+					
+					return intersection(seg_a, seg_b);
 				}
 
 				value_step_iterator a_;
@@ -415,6 +414,12 @@ namespace fuzzy
 
 			constexpr static bool check_range(set_t& set, iterator first, iterator last)
 			{
+				if (last < first)
+				{
+					set.clear();
+					return false;
+				}
+
 				if (last - first < 3)
 				{
 					auto itr = last;
@@ -440,34 +445,42 @@ namespace fuzzy
 
 			constexpr static bool erase_predicate(iterator const& prev, iterator const& itr, iterator const& next) noexcept
 			{
-				if constexpr (std::floating_point<V>)
+				M const s0 = slope(*prev, *next);
+				M const s1 = [&]()
 				{
-					constexpr M value_spacing_multiplier = static_cast<M>(16);
-					constexpr M vro = value_spacing_multiplier * fuzzy::math::detail::round_off<M>();
-					if (fuzzy::math::equivelant(itr->value(), next->value(), vro))
-					{
-						constexpr M inv_div_2 = static_cast<M>(0.5l);
-						V const v = static_cast<V>(fuzzy::math::round<V>(static_cast<M>(itr->value() + next->value()) * inv_div_2));
-						M const m = (itr->membership() + next->membership()) * inv_div_2;
-						next->value(v);
-						next->membership(m);
-						return true;
-					}
-				}
-				else
-				{
-					if (itr->value() == next->value())
-						return true;
-				}
-
-				M const s0 = slope(*prev, *itr);
-				M const s1 = slope(*itr, *next);
+					V const dprev = itr->value() - prev->value();
+					V const dnext = next->value() - itr->value();
+					if (dnext > dprev)
+						return slope(*itr, *next);
+					else
+						return slope(*prev, *itr);
+				}();
 				constexpr M slope_multiplier = static_cast<M>(5);
 				constexpr M sro = slope_multiplier * fuzzy::math::detail::round_off<M>();
 				if (fuzzy::math::equivelant(s0, s1, sro))
 				{
 					return true;
 				}
+
+				//if constexpr (std::floating_point<V>)
+				//{
+				//	constexpr M value_spacing_multiplier = static_cast<M>(16);
+				//	constexpr M vro = value_spacing_multiplier * fuzzy::math::detail::round_off<M>();
+				//	if (fuzzy::math::equivelant(itr->value(), next->value(), vro))
+				//	{
+				//		constexpr M inv_div_2 = static_cast<M>(0.5l);
+				//		V const v = static_cast<V>(fuzzy::math::round<V>(static_cast<M>(itr->value() + next->value()) * inv_div_2));
+				//		M const m = (itr->membership() + next->membership()) * inv_div_2;
+				//		next->value(v);
+				//		next->membership(m);
+				//		return true;
+				//	}
+				//}
+				//else
+				//{
+				//	if (itr->value() == next->value())
+				//		return true;
+				//}
 
 				return false;
 			}
@@ -476,14 +489,24 @@ namespace fuzzy
 			{
 				assert(state.next == state.last);
 				assert(state.itr + 1 == state.last);
-				state.itr = state.last;
-				for (;state.prev != state.last; ++state.prev)
+				for (;state.prev != state.last;)
 				{
 					if (state.dst != state.end && state.dst < state.prev)
 					{
 						assert(state.dst < state.prev);
 						*state.dst = std::move(*state.prev);
 						++state.dst;
+					}
+
+					if (state.itr != state.last)
+					{
+						state.prev = state.itr;
+						state.itr = state.next;
+						assert(state.itr == state.last);
+					}
+					else
+					{
+						++state.prev;
 					}
 				}
 			}

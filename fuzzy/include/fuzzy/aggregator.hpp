@@ -94,6 +94,7 @@ namespace fuzzy
 		{
 			result.insert(element_t{ pair.first.value(), func_(pair.first.membership(), pair.second.membership()) });
 		}
+		detail::simplify_impl<V,M,Container>::apply(result);
 		set_.swap(result);
 		dirty_ = true;
 	}

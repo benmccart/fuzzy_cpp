@@ -143,11 +143,6 @@ namespace fuzzy
 			mapped_range_values.insert(element_type{ value, static_cast<M>(0.0)});
 		}
 
-		// FIXME: Get rid of trim, but do we need a simplification?
-		// 
-		// Performance improvement: trim out leading/trailing sequence values with zero memberhsip as they won't contribute to results.
-		//auto const trimmed_range = detail::trim::apply<V,M,Container>(itr_domain_beg, itr_domain_end);
-
 		// Iterate the range, calculate Tconom 'sum' for every pass of the domain.
 		fuzzy::detail::set_operation_value_sequence range_seq{ mapped_range_values, rel_.range() };
 		for (element_pair_t range_v : range_seq)

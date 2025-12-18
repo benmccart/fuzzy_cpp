@@ -557,7 +557,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_cc_lr.membership(7) == 0.75f);
     REQUIRE(si_cc_lr.membership(8) == 0.75f);
     REQUIRE(si_cc_lr.membership(9) == 0.50f);
-    REQUIRE(si_cc_lr.membership(10) == 0.25f);
+    REQUIRE(equivelant(si_cc_lr.membership(10), 0.25f));
     REQUIRE(si_cc_lr.membership(11) == 0.0f);
     REQUIRE(si_cc_lr.membership(12) == 0.0f);
 
@@ -570,7 +570,7 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
     REQUIRE(si_cc_rl.membership(7) == 0.75f);
     REQUIRE(si_cc_rl.membership(8) == 0.75f);
     REQUIRE(si_cc_rl.membership(9) == 0.50f);
-    REQUIRE(si_cc_rl.membership(10) == 0.25f);
+    REQUIRE(equivelant(si_cc_rl.membership(10), 0.25f));
     REQUIRE(si_cc_rl.membership(11) == 0.0f);
     REQUIRE(si_cc_rl.membership(12) == 0.0f);
 
@@ -1337,55 +1337,37 @@ TEST_CASE("Expressions", "[Expressions]")
 		(is(t0, warm) & is(h0, humid)) >> speed.shall_be(very_fast);
         (is(t0, warm) | is(h0, somewhat_humid)) >> speed.shall_be(medium);
 
-        REQUIRE(speed.result().size() == 17u);
+        REQUIRE(speed.result().size() == 11u);
         auto itr = speed.result().begin();
         REQUIRE(equivelant(itr->value(), 600.0f));
         REQUIRE(equivelant(itr->membership(), 0.0f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 900.0f));
-        REQUIRE(equivelant(itr->membership(), 0.673364f));
-        ++itr;
         REQUIRE(equivelant(itr->value(), 928.472778f));
         REQUIRE(equivelant(itr->membership(), 0.737272f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 966.675964f));
-        REQUIRE(equivelant(itr->membership(), 0.777746f));
+        REQUIRE(equivelant(itr->value(), 960.0f));
+        REQUIRE(equivelant(itr->membership(), 0.770674f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1050.0f));
-        REQUIRE(equivelant(itr->membership(), 0.499999f));
+        REQUIRE(equivelant(itr->value(), 1014.28577f));
+        REQUIRE(equivelant(itr->membership(), 0.619047f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1100.0f));
-        REQUIRE(equivelant(itr->membership(), 0.666666f));
+        REQUIRE(equivelant(itr->value(), 1060.0f));
+        REQUIRE(equivelant(itr->membership(), 0.53333f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1155.67517f));
-        REQUIRE(equivelant(itr->membership(), 0.573874f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1200.0f));
-        REQUIRE(equivelant(itr->membership(), 0.673364f));
+        REQUIRE(equivelant(itr->value(), 1110.39709f));
+        REQUIRE(equivelant(itr->membership(), 0.472246f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1228.47278f));
         REQUIRE(equivelant(itr->membership(), 0.737272f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1266.67603f));
-        REQUIRE(equivelant(itr->membership(), 0.777746f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1275.0f));
-        REQUIRE(equivelant(itr->membership(), 0.75f));
+        REQUIRE(equivelant(itr->value(), 1260.0f));
+        REQUIRE(equivelant(itr->membership(), 0.770674f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1350.0f));
-        REQUIRE(equivelant(itr->membership(), 0.5f));
+        REQUIRE(equivelant(itr->membership(), 0.25f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1383.33337f));
-        REQUIRE(equivelant(itr->membership(), 0.388889f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1425.0f));
-        REQUIRE(equivelant(itr->membership(), 0.5625f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1426.15381f));
-        REQUIRE(equivelant(itr->membership(), 0.569230f));
-        ++itr;
-        REQUIRE(equivelant(itr->value(), 1500.0f));
-        REQUIRE(equivelant(itr->membership(), 0.428571f));
+        REQUIRE(equivelant(itr->value(), 1398.53796f));
+        REQUIRE(equivelant(itr->membership(), 0.452245f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1725.0f));
         REQUIRE(equivelant(itr->membership(), 0.0f));
@@ -1424,12 +1406,27 @@ TEST_CASE("Final", "[Final]")
 
         using namespace fuzzy::models::tsk;
         aggregator fan_voltage;
-        auto at = is(it, cool);
-        if (at.set().front().membership() == 500.0f)
-            std::cout << "haha!\n";
+        //auto at = is(it, cool);
+        //if (at.set().front().membership() == 500.0f)
+        //    std::cout << "haha!\n";
 
-        auto anp = (is(it, cool) & is(ot, chilly));
-        anp >> fan_voltage.shall_be(slow);
+        //auto anp = (is(it, cool) & is(ot, chilly));
+        //anp >> fan_voltage.shall_be(slow);
+        auto a0 = is(it, cold);
+        auto a1a = is(it, cool);
+        auto a1b = is(ot, cold);
+        auto a1 = (a1a & a1b);
+        auto a2a = is(it, cool);
+        auto a2b = is(ot, chilly);
+        auto a2 = (a2a & a2b);
+        auto a3 = (is(it, warm) & is(ot, less_than_warm));
+        auto a4 = (is(it, chilly) & is(ot, more_than_chilly));
+
+        a0 >> fan_voltage.shall_be(off);
+        a1 >> fan_voltage.shall_be(slow);
+        a2 >> fan_voltage.shall_be(medium);
+        a3 >> fan_voltage.shall_be(fast);
+        a4 >> fan_voltage.shall_be(off);
 
         //is(it, cold) >> fan_voltage.shall_be(off);
         //(is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
@@ -1441,10 +1438,10 @@ TEST_CASE("Final", "[Final]")
     };
 
     //auto v0 = control_loop_tsk(42.0f, 57.0f);
-    //REQUIRE(equivelant(v0, 0.23286f));
+    //REQUIRE(equivelant(v0, 0.230133f));
 
     //auto v1 = control_loop_tsk(57.0f, 44.0f);
-    //REQUIRE(equivelant(v1, 10.986347f));
+    //REQUIRE(equivelant(v1, 11.004322f));
 
     //std::cout << "==================== TSK ====================\n";
     //std::cout << "outdoor tempurature F, indoor tempurature F, fan VDC\n";
@@ -1454,14 +1451,14 @@ TEST_CASE("Final", "[Final]")
     //    std::cout << "44.0f, " << it << ", " << fv << "\n";
     //}
 
-    float const it2 = 48.8997879f;//48.90f;
-    float const it3 = 48.9497871f;//48.95f;
-    float const it4 = 48.9997864f;//49.00f;
-    auto v2 = control_loop_tsk(it2, 44.0f);
-    auto v3 = control_loop_tsk(it3, 44.0f);
-    auto v4 = control_loop_tsk(it4, 44.0f);
+    //float const it2 = 48.8997879f;//48.90f;
+    //float const it3 = 48.9497871f;//48.95f;
+    //float const it4 = 48.9997864f;//49.00f;
+    auto v2 = control_loop_tsk(45.9998f, 44.0f);
+    auto v3 = control_loop_tsk(46.0498f, 44.0f);
+    //auto v4 = control_loop_tsk(46.0998f, 44.0f);
 
-    if (v3 < v2 && v2 < v4)
+    if (v3 < v2)
     {
         std::cout << "we have a problem!\n";
     }

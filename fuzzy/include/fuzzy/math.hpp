@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <optional>
 
 #include <fuzzy/element.hpp>
 
@@ -101,9 +102,8 @@ namespace fuzzy { namespace math
 		M x_offset = static_cast<M>(promote(key) - promote(lhs.value()));
 		M denom_inv = static_cast<M>(1) / dx;
 		M ratio = x_offset * denom_inv;
-		//M ratio = x_offset / dx;
-		//return lhs.membership() + (ratio * dy);
-		return std::fma(ratio, dy, lhs.membership());
+		M const result =  std::fma(ratio, dy, lhs.membership());
+		return result;
 	}
 
 	/**
@@ -130,7 +130,7 @@ namespace fuzzy { namespace math
 	*/
 	template <class V, class M>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr basic_element<V, M> intersection(basic_segment<V, M> const& s0, basic_segment<V, M> const& s1)
+	constexpr std::optional<basic_element<V, M>> intersection(basic_segment<V, M> const& s0, basic_segment<V, M> const& s1)
 	{
 		using element_t = basic_element<V, M>;
 		assert(s0.v0.value() < s0.v1.value());
@@ -181,8 +181,7 @@ namespace fuzzy { namespace math
 			return element_t{ v, m };
 		}
 
-		assert(!"called intersection expecting an intesection but we don't have an intersection!");
-		return element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+		return std::optional<element_t>{};
 	}
 
 
