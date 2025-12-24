@@ -31,6 +31,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <memory_resource>
 #include <optional>
 #include <span>
 #include <stack>
@@ -101,19 +102,19 @@ namespace fuzzy
 				constexpr reference operator*() const                            { return value_;         }
 				constexpr pointer operator->() const                             { return &value_;        }
 
-				void value(V v)
+				void value(V /*v*/)
 				{
-					assert(v > itr_->value());
-					auto next = [](iter_impl_t itr) { return ++itr; }(itr_);
-					if (next == cend(*set_))
-					{
-						itr_ = next;
-						value_ = element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
-					}
-					else
-					{
-						value_ = element_t{ v, set_->membership(v) };
-					}
+					//assert(v > itr_->value());
+					//auto next = [](iter_impl_t itr) { return ++itr; }(itr_);
+					//if (next == cend(*set_))
+					//{
+					//	itr_ = next;
+					//	value_ = element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+					//}
+					//else
+					//{
+					//	value_ = element_t{ v, set_->membership(v) };
+					//}
 				}
 
 			private:
@@ -122,7 +123,7 @@ namespace fuzzy
 				element_t value_;
 			};
 
-			class const_iterator 
+			class const_iterator
 			{
 			public:
 				using iterator_category = std::forward_iterator_tag;
@@ -131,40 +132,58 @@ namespace fuzzy
 				using pointer = value_t*;
 				using reference = value_t;
 				using iter_impl_t = typename set_t::const_iterator;
-				using element_t = basic_element<V,M>;
+				using element_t = basic_element<V, M>;
 				using segment_t = fuzzy::math::basic_segment<V, M>;
 				using optional_element_t = std::optional<element_t>;
 
 				const_iterator() = delete;
 
-				constexpr explicit const_iterator(iter_impl_t a, set_t const &a_set, iter_impl_t b, set_t const &b_set)
-					: a_(a, a_set)
-					, a_end_(cend(a_set), a_set)
-					, a_set_(&a_set) 
-					, b_(b, b_set)
-					, b_end_(cend(b_set), b_set)
-					, b_set_(&b_set) {}
+				constexpr explicit const_iterator(iter_impl_t a, set_t const& a_set, iter_impl_t b, set_t const& b_set)
+					: a_(a)
+					, a_end_(a_set.cend())
+					, a_set_(&a_set)
+					, b_(b)
+					, b_end_(b_set.cend())
+					, b_set_(&b_set)
+					, last_(find_first(a, a_set.cend(), b, b_set.cend()))
+					, a_value_(bad_value())
+					, b_value_(bad_value())
+				{
+					if (a_ != a_end_ && (b_ == b_end_ || a_->value() <= b_->value()))
+						set_values(a_, b_end_);
+					if (b_ != b_end_ && (a_ == a_end_ || a_->value() >= b_->value()))
+						set_values(a_end_, b_);
+
+					if (!((a_value_ != bad_value() && b_value_ != bad_value()) || (a_ == a_end_ && b_ == b_end_)))
+					{
+						[[maybe_unused]] bool break_here = true;
+					}
+					assert((a_value_ != bad_value() && b_value_ != bad_value()) || (a_ == a_end_ && b_ == b_end_));
+				}
 
 				constexpr const_iterator(const_iterator const&) = default;
 
 				constexpr const_iterator& operator++()
 				{
-					if (a_ != a_end_ && b_ != b_end_)
+					advance adv = determin_advance();
+					switch (adv)
 					{
-						V av = a_->value();
-						V bv = b_->value();
-						if (av < bv)
-							advance_a();
-						else if (bv < av)
-							advance_b();
-						else { advance_a(); advance_b(); }
-					}
-					else if (a_ != a_end_)
-						advance_a();
-					else if (b_ != b_end_)
-						advance_b();
+						case advance::to_a: advance_to_a(); break;
+						case advance::to_b: advance_to_b(); break;
+						case advance::a_to_next:  advance_a_to_next(); break;
+						case advance::b_to_next:  advance_b_to_next(); break;
+						case advance::a_and_b_to_next: advance_a_and_b_to_next(); break;
+						case advance::a_to_end: advance_a_to_end(); break;
+						case advance::b_to_end: advance_b_to_end(); break;
+						case advance::a_and_b_to_end: advance_a_and_b_to_end(); break;
 
-					 return *this; 
+						//case advance::a_and_b:
+						//	advance_a();
+						//	advance_b();
+						//	break;
+					}
+
+					return *this; 
 				}
 
 				constexpr const_iterator operator++(int)
@@ -180,142 +199,535 @@ namespace fuzzy
 					return (a_ == o.a_ && b_ == o.b_);
 				}
 
-				constexpr reference operator*() const
+				constexpr reference operator*()
 				{
-					if (a_ != a_end_ && b_ != b_end_)
-					{
-						V av = a_->value();
-						V bv = b_->value();
-						if (av < bv)
-							return value_t{ *a_, element_t{ av, b_set_->membership(av)} };
-						else if (bv < av)
-							return value_t{ element_t{ bv, a_set_->membership(bv)}, *b_ };
-						else
-							return value_t{ *a_, *b_ };
-					}
-					else if (a_ != a_end_)
-						return value_t{ *a_, element_t{ a_->value(), b_set_->membership(a_->value())} };
-					else if (b_ != b_end_)
-						return value_t{ element_t{ b_->value(), a_set_->membership(b_->value()) }, * b_ };
-
-					return value_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+					return dref_impl();
+					//last_v_ = ref.first.value();
+					//return ref;
 				}
+
+				//constexpr reference operator*() const
+				//{
+				//	??	
+				//}
+
 	
 			private:
-				constexpr bool end_match(element_t e, segment_t s) noexcept
+
+				enum class advance
+				{
+					to_a,
+					to_b,
+					a_to_end,
+					b_to_end,
+					a_and_b_to_end,
+					a_to_next,
+					b_to_next,
+					a_and_b_to_next
+				};
+
+				enum class iterator_tag
+				{
+					a_next = 1,
+					b_next,
+					a,
+					b,
+				};
+
+				static constexpr element_t bad_value() noexcept
+				{
+					element_t bad{ std::numeric_limits<V>::max(), static_cast<M>(0) };
+					bad.membership(-1);
+					return bad;
+				}
+
+				static constexpr advance tag_to_end(iterator_tag tag) noexcept
+				{
+					assert(tag == iterator_tag::a || tag == iterator_tag::b);
+					return (tag == iterator_tag::a) ? advance::a_to_end : advance::b_to_end;
+				}
+
+				static constexpr advance tag_to_advance(iterator_tag tag) noexcept
+				{
+					switch (tag)
+					{
+						case iterator_tag::a: return advance::to_a;
+						case iterator_tag::a_next: return advance::a_to_next;
+						case iterator_tag::b: return advance::to_b;
+						case iterator_tag::b_next: return advance::b_to_next;
+					}
+
+					assert(!"invalid enumerated value");
+					return advance::a_and_b_to_end;
+				}
+
+				static constexpr advance tag_to_advance(iterator_tag n, iterator_tag an) noexcept
+				{
+					if ((n == iterator_tag::a_next && an == iterator_tag::b_next) ||
+						(n == iterator_tag::b_next && an == iterator_tag::a_next))
+					{
+						return advance::a_and_b_to_next;
+					}
+
+					return tag_to_advance(n);
+				}
+
+				
+
+				struct advance_data
+				{
+					iter_impl_t itr;
+					iterator_tag tag;
+				};
+
+				constexpr reference dref_impl() const
+				{
+					if (intersection_)
+						return value_t{ *intersection_, *intersection_ };
+					else
+					{
+						assert(a_value_.value() == b_value_.value());
+						return value_t{ a_value_, b_value_ };
+					}
+
+					//if (a_ != a_end_ && b_ != b_end_)
+					//{
+					//	V av = a_->value();
+					//	V bv = b_->value();
+
+					//	M am = a_->membership();
+					//	M bm = b_->membership();
+
+					//	if (av <= last_v_)
+					//	{
+					//		av = last_v_;
+					//		am = a_set_->membership(av);
+					//	}
+					//	if (bv <= last_v_)
+					//	{
+					//		bv = last_v_;
+					//		bm = b_set_->membership(bv);
+					//	}
+
+					//	if (av < bv)
+					//		return value_t{ element_t{av, am}, element_t{av, b_set_->membership(av)} };
+					//	else if (bv < av)
+					//		return value_t{ element_t{bv, a_set_->membership(bv)}, element_t{bv, bm} };
+					//	else
+					//		return value_t{ element_t{av, am}, element_t{bv, bm} };
+					//}
+					//else if (a_ != a_end_)
+					//	return value_t{ *a_, element_t{ a_->value(), b_set_->membership(a_->value())} };
+					//else if (b_ != b_end_)
+					//	return value_t{ element_t{ b_->value(), a_set_->membership(b_->value()) }, *b_ };
+
+					//return value_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
+				}
+
+				constexpr static void push_back(std::array<advance_data, 4>& data, std::size_t& data_size, advance_data&& adv)
+				{
+					data.at(data_size) = std::move(adv);
+					++data_size;
+				}
+
+				constexpr advance determin_advance() const
+				{
+					assert(a_ != a_end_ || b_ != b_end_);
+
+					// Add and sort relevant data (NOTE: Replace this with pmr::monotonic_buffer_resource when migrating to C++26)
+					std::array<advance_data, 4> data_buffer;
+					std::size_t data_size = 0u;
+
+					iter_impl_t const a_next = (a_ != a_end_) ? (a_ + 1) : a_end_;
+					iter_impl_t const b_next = (b_ != b_end_) ? (b_ + 1) : b_end_;
+					if (a_ != a_end_)
+						push_back(data_buffer, data_size, advance_data{ a_, iterator_tag::a });
+					if (a_next != a_end_)
+						push_back(data_buffer, data_size, advance_data{ a_next, iterator_tag::a_next });
+					if (b_ != b_end_)
+						push_back(data_buffer, data_size, advance_data{ b_, iterator_tag::b });
+					if (b_next != b_end_)
+						push_back(data_buffer, data_size, advance_data{ b_next, iterator_tag::b_next });
+
+					// Handle special case where we are completing a single side.
+					std::span<advance_data> data{ data_buffer.data(), data_size };
+					assert(!data.empty());
+					if (data.size() == 1u)
+						return tag_to_end(data.front().tag);
+
+					// Find the first item that is greater than 'last'
+					std::sort(data.begin(), data.end(), [](advance_data const& lhs, advance_data const& rhs) -> bool
+					{
+						if (lhs.itr->value() == rhs.itr->value())
+							return lhs.tag < rhs.tag;
+
+						return lhs.itr->value() < rhs.itr->value();
+					});
+					auto const next = std::find_if(data.begin(), data.end(), [&](advance_data const item) -> bool
+					{
+						return item.itr->value() > last_->value();
+					});
+
+					// Handle special case where we are at the end.
+					if (next == data.end())
+					{
+						assert((next - 1)->itr->value() == last_->value());
+						return advance::a_and_b_to_end;
+					}
+
+					assert(next != data.begin());
+					assert((next-1)->itr->value() == last_->value());
+					assert(next->itr->value() > last_->value());
+
+					// Check for the simple case where there is only one matching value.
+					auto after_next = (next+1);
+					if (after_next == data.end())
+						return tag_to_advance(next->tag);
+
+					// Check for the next simplest case where the next two values don't match.
+					if (next->itr->value() != after_next->itr->value())
+						return tag_to_advance(next->tag);
+
+					// Handle the complex case where values match and we need to see if they are the same category.
+					return tag_to_advance(next->tag, after_next->tag);
+
+
+
+					//// Check for advancing to a/b.
+					//if (a_ != a_end_ && last_->value() < a_->value())
+					//	return advance_option::advance_to_a;
+					//if (b_ != b_end_ && last_->value() < b_->value())
+					//	return advance_option::advance_to_b;
+
+					//// Check special end conditions for special handling.
+					//if (a_next == a_end_ && b_next == b_end_)
+					//{
+					//	if (a_ == a_end_)
+					//		return advance_option::advance_b_to_next;
+					//	if (b_ == b_end_)
+					//		return advance_option::advance_a_to_next;
+
+					//	return advance_option::a_and_b; // FIXME: Maybe simpler to just have a 'complete' function?
+					//}
+					//if (a_next != a_end_ && b_next == b_end_)
+					//{
+					//	if (b_ == b_end_)
+					//		return advance_option::advance_a_to_next;
+					//	if (a_->value() < b_->value())
+					//		return advance_option::a_only;
+					//	if (b_->value() < a_->value())
+					//		return advance_option::b_only;
+
+					//	return advance_option::a_and_b;
+					//}
+					//if (b_next != b_end_ && a_next == a_end_)
+					//{
+					//	if (a_ == a_end_)
+					//		return advance_option::b_only;
+					//	if (b_->value() < a_->value())
+					//		return advance_option::b_only;
+					//	if (a_->value() < b_->value())
+					//		return advance_option::a_only;
+
+					//	return advance_option::a_and_b;
+					//}
+
+					//// Normal logic 
+					//if (a_next->value() < b_next->value())
+					//	return advance_option::a_only;
+					//if (b_next->value() < a_next->value())
+					//	return advance_option::b_only;
+
+					//return advance_option::a_and_b;
+				}
+
+				constexpr void set_values(iter_impl_t a, iter_impl_t b)
+				{
+					if (a != a_end_)
+					{
+						a_ = a;
+						last_ = a;
+						a_value_ = element_t{ *a };
+					}
+					else
+					{
+						assert(b != b_end_);
+						a_value_ = element_t{ b->value(), a_set_->membership(b->value()) };
+					}
+
+					if (b != b_end_)
+					{
+						b_ = b;
+						last_ = b;
+						b_value_ = element_t{ *b };
+					}
+					else
+					{
+						assert(a != a_end_);
+						b_value_ = element_t{ a->value(), b_set_->membership(a->value()) };
+					}
+				}
+
+				constexpr iter_impl_t find_first(iter_impl_t const &a, iter_impl_t const &a_end, iter_impl_t const &b, iter_impl_t const &b_end)
+				{
+					if (a == a_end && b == b_end)
+						return a;
+					if (a == a_end)
+						return b;
+					if (b == b_end)
+						return a;
+
+					return (a->value() < b->value()) ? a : b;
+				}
+
+				constexpr bool end_match(element_t e, segment_t s) noexcept // FIXME: Is this even used?
 				{
 					return fuzzy::math::equivelant(e.value(), s.v0.value()) || fuzzy::math::equivelant(e.value(), s.v1.value());
 				}
 
-				constexpr void advance_a()
+				constexpr void advance_a_to_end()
 				{
-					auto const a_next = [](value_step_iterator itr) { return ++itr; }(a_);
-					auto const b_next = [&](value_step_iterator itr)
-					{
-						if (itr == b_end_) 
-							return itr;
-
-						return ++itr;
-					}(b_);
-					segment_t seg_a
-					{ 
-						*a_,
-						(a_next != a_end_) ? *a_next : *a_
-					};
-					element_t b0 = (b_ != b_end_) ? *b_ : *a_;
-					segment_t seg_b
-					{
-						b0,
-						(b_next != b_end_) ? *b_next : b0
-					};
-
-					optional_element_t intersec = find_intersection(seg_a, seg_b);
-					if (intersec)
-					{
-						bool const any_match = end_match(*intersec, seg_a) || end_match(*intersec, seg_b);
-						if (any_match)
-							a_ = a_next;
-						else
-							a_.value(intersec->value());
-					}
-					else
-					{
-						a_ = a_next;
-					}
+					a_ = a_end_;
 				}
-				constexpr void advance_b()
+
+				constexpr void advance_b_to_end()
 				{
-					auto const a_next = [&](value_step_iterator itr)
-					{
-						if (itr == a_end_)
-							return itr;
+					b_ = b_end_;
+				}
 
-						return ++itr;
-					}(a_);
-					auto const b_next = [](value_step_iterator itr) { return ++itr; }(b_);
-					element_t a0 = (a_ != a_end_) ? *a_ : *b_;
-					segment_t seg_a
-					{
-						a0,
-						(a_next != a_end_) ? *a_next : a0
-					};
-					segment_t seg_b
-					{
-						*b_,
-						(b_next != b_end_) ? *b_next : *b_
-					};
+				constexpr void advance_a_and_b_to_end()
+				{
+					advance_a_to_end();
+					advance_b_to_end();
+				}
 
-					optional_element_t intersec = find_intersection(seg_a, seg_b);
-					if (intersec)
+				constexpr void advance_to_a()
+				{
+					set_values(a_, b_end_);
+				}
+
+				constexpr void advance_to_b()
+				{
+					set_values(a_end_, b_);
+				}
+
+				constexpr void advance_a_to_next()
+				{
+					assert(a_ != a_end_);
+					iter_impl_t const a_next = a_ + 1;
+					iter_impl_t const b_next = (b_ == b_end_) ? b_ : b_ + 1;
+					assert(a_next != a_end_);
+
+					if (b_next == b_end_)
 					{
-						bool const any_match = end_match(*intersec, seg_a) || end_match(*intersec, seg_b);
-						if (any_match)
-							b_ = b_next;
-						else
-							b_.value(intersec->value());
+						intersection_.reset();
+						set_values(a_next, b_end_);
+						return; // Completing 'a'.
 					}
-					else
+
+					if (intersection_)
 					{
-						b_ = b_next;
+						intersection_.reset();
+						set_values(a_next, b_end_);
+						return; // Advance to next 'a' segment.
+					}
+
+					// Check for intersection on current 'a' segment.
+					segment_t seg_a{ *a_, *a_next };
+					segment_t seg_b{ *b_, *b_next };
+					intersection_ = intersection(seg_a, seg_b);
+					if (!intersection_)
+					{
+						// No intersection, advance to next 'a' segment.
+						set_values(a_next, b_end_);
 					}
 				}
 
-				constexpr static int relative_membership(element_t e0, element_t e1)
+				constexpr void advance_b_to_next()
 				{
-					if (e0.membership() < e1.membership())
-						return -1;
-					else if (e0.membership() > e1.membership())
-						return 1;
-					else return 0;
+					assert(b_ != b_end_);
+					iter_impl_t const a_next = (a_ == a_end_) ? a_ : a_ + 1;
+					iter_impl_t const b_next = b_ + 1;
+					assert(b_next != b_end_);
+
+					if (a_next == a_end_)
+					{
+						intersection_.reset();
+						set_values(a_end_, b_next);
+						return; // Completing 'b'
+					}
+
+					if (intersection_)
+					{
+						intersection_.reset();
+						set_values(a_end_, b_next);
+						return; // Advance to next 'b' segment.
+					}
+
+					// Check for intersection on current 'b' segment.
+					segment_t seg_a{ *a_, *a_next };
+					segment_t seg_b{ *b_, *b_next };
+					intersection_ = intersection(seg_a, seg_b);
+					if (!intersection_)
+					{
+						// No intersection, advance to next 'b' segment.
+						set_values(a_end_, b_next);
+					}
 				}
 
-				constexpr static bool do_relative_memberships_intersect(segment_t const &seg_a, segment_t const &seg_b)
+				constexpr void advance_a_and_b_to_next()
 				{
-					assert(seg_a.v0.value() <= seg_a.v1.value());
-					assert(seg_b.v0.value() <= seg_b.v1.value());
-					if (seg_a.v1.value() <= seg_b.v0.value() || seg_b.v1 <= seg_a.v0.value())
-						return false;
+					assert(a_ != a_end_);
+					assert(b_ != b_end_);
+					iter_impl_t const a_next = a_ + 1;
+					iter_impl_t const b_next = b_ + 1;
+					assert(a_next != a_end_);
+					assert(b_next != b_end_);
 
-					auto const rm0 = relative_membership(seg_a.v0, seg_b.v0);
-					auto const rm1 = relative_membership(seg_a.v1, seg_b.v1);
-					int const result = rm0 - rm1;
-					return (result == -2 || result == 2);
+					if (intersection_)
+					{
+						intersection_.reset();
+						set_values(a_next, b_next);
+						assert(a_->value() == b_->value());
+						return; // Advance to next 'b' segment.
+					}
+
+					// Check for intersection on current 'b' segment.
+					segment_t seg_a{ *a_, *a_next };
+					segment_t seg_b{ *b_, *b_next };
+					intersection_ = intersection(seg_a, seg_b);
+					if (!intersection_)
+					{
+						// No intersection, advance to next 'b' segment.
+						set_values(a_next, b_next);
+						assert(a_->value() == b_->value());
+					}
 				}
 
-				constexpr static optional_element_t find_intersection(segment_t const& seg_a, segment_t const& seg_b)
-				{
-					if (!do_relative_memberships_intersect(seg_a, seg_b))
-						return optional_element_t{};
-					
-					return intersection(seg_a, seg_b);
-				}
+				//constexpr void advance_a()
+				//{
+				//	auto const a_next = [](value_step_iterator itr) { return ++itr; }(a_);
+				//	auto const b_next = [&](value_step_iterator itr)
+				//	{
+				//		if (itr == b_end_) 
+				//			return itr;
 
-				value_step_iterator a_;
-				value_step_iterator const a_end_;
+				//		return ++itr;
+				//	}(b_);
+
+				//	if (a_next == a_end_ || b_next == b_end_)
+				//	{
+				//		intersection_.reset();
+				//		a_ = a_next;
+				//		last_ = a_;
+				//		return; // Completing 'a'.
+				//	}
+
+				//	if (intersection_)
+				//	{
+				//		intersection_.reset();
+				//		a_ = a_next;
+				//		last_ = a_;
+				//		return; // Advance to next 'a' segment.
+				//	}
+
+				//	// Check for intersection on current 'a' segment.
+				//	segment_t seg_a{ *a_, *a_next };
+				//	segment_t seg_b{ *b_, *b_next };
+				//	intersection_ = intersection(seg_a, seg_b);
+				//	if (intersection_)
+				//	{
+				//		assert(!end_match(*intersection_, seg_a) && !end_match(*intersection_, seg_b));
+				//		a_.value(intersection_->value());
+				//	}
+				//	else
+				//	{
+				//		// No intersection, advance to next 'a' segment.
+				//		a_ = a_next;
+				//		last_ = a_;
+				//	}
+				//}
+				//constexpr void advance_b()
+				//{
+				//	auto const a_next = [&](value_step_iterator itr)
+				//	{
+				//		if (itr == a_end_)
+				//			return itr;
+
+				//		return ++itr;
+				//	}(a_);
+				//	auto const b_next = [](value_step_iterator itr) { return ++itr; }(b_);
+
+				//	if (a_next == a_end_ || b_next == b_end_)
+				//	{
+				//		intersection_.reset();
+				//		b_ = b_next;
+				//		last_ = b_;
+				//		return; // Completing 'b'
+				//	}
+
+				//	if (intersection_)
+				//	{
+				//		intersection_.reset();
+				//		b_ = b_next;
+				//		last_ = b_;
+				//		return; // Advance to next 'b' segment.
+				//	}
+
+				//	// Check for intersection on current 'b' segment.
+				//	segment_t seg_a{ *a_, *a_next };
+				//	segment_t seg_b{ *b_, *b_next };
+				//	intersection_ = intersection(seg_a, seg_b);
+				//	if (intersection_)
+				//	{
+				//		assert(!end_match(*intersection_, seg_a) && !end_match(*intersection_, seg_b));
+				//		b_.value(intersection_->value());
+				//	}
+				//	else
+				//	{
+				//		// No intersection, advance to next 'b' segment.
+				//		b_ = b_next;
+				//		last_ = b_;
+				//	}
+				//}
+
+				//constexpr static int relative_membership(element_t e0, element_t e1)
+				//{
+				//	if (e0.membership() < e1.membership())
+				//		return -1;
+				//	else if (e0.membership() > e1.membership())
+				//		return 1;
+				//	else return 0;
+				//}
+
+				//constexpr static bool do_relative_memberships_intersect(segment_t const &seg_a, segment_t const &seg_b)
+				//{
+				//	assert(seg_a.v0.value() <= seg_a.v1.value());
+				//	assert(seg_b.v0.value() <= seg_b.v1.value());
+				//	if (seg_a.v1.value() <= seg_b.v0.value() || seg_b.v1 <= seg_a.v0.value())
+				//		return false;
+
+				//	auto const rm0 = relative_membership(seg_a.v0, seg_b.v0);
+				//	auto const rm1 = relative_membership(seg_a.v1, seg_b.v1);
+				//	int const result = rm0 - rm1;
+				//	return (result == -2 || result == 2);
+				//}
+
+				//constexpr static optional_element_t find_intersection(segment_t const& seg_a, segment_t const& seg_b)
+				//{
+				//	return intersection(seg_a, seg_b);
+				//}
+
+				iter_impl_t a_;
+				iter_impl_t const a_end_;
 				set_t const *a_set_;
-				value_step_iterator b_;
-				value_step_iterator const b_end_;
+				iter_impl_t b_;
+				iter_impl_t const b_end_;
 				set_t const *b_set_;
+				optional_element_t intersection_;
+				iter_impl_t last_;
+				element_t a_value_;
+				element_t b_value_;
 			};
 			
 			

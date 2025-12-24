@@ -33,14 +33,23 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-//constexpr bool equivelant(float v0, float v1)
-//{
-//    return std::abs(v1 - v0) < 0.00001f;
-//}
+
 
 
 using namespace fuzzy;
 using fuzzy::math::equivelant;
+using int_element = basic_element<int,float>;
+using element = basic_element<float,float>;
+
+constexpr bool equivelant(int_element const& lhs, int_element const& rhs)
+{
+    return lhs.value() == rhs.value() && equivelant(lhs.membership(), rhs.membership());
+}
+
+constexpr bool equivelant(element const& lhs, element const& rhs)
+{
+    return equivelant(lhs.value(), rhs.value()) && equivelant(lhs.membership(), rhs.membership());
+}
 
 TEST_CASE("membership-bounds-check", "[boundscheck]")
 {
@@ -548,31 +557,319 @@ TEST_CASE("SET-complement", "[SET_complement]")
 
 TEST_CASE("SET-intersection", "[SET_intersection]")
 {
-    // Common case left-right
-    int_set si_cc_lr = set_intersection<fuzzy::minimum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
-    REQUIRE(si_cc_lr.membership(3) == 0.0f);
-    REQUIRE(si_cc_lr.membership(4) == 0.0f);
-    REQUIRE(si_cc_lr.membership(5) == 0.25f);
-    REQUIRE(si_cc_lr.membership(6) == 0.50f);
-    REQUIRE(si_cc_lr.membership(7) == 0.75f);
-    REQUIRE(si_cc_lr.membership(8) == 0.75f);
-    REQUIRE(si_cc_lr.membership(9) == 0.50f);
-    REQUIRE(equivelant(si_cc_lr.membership(10), 0.25f));
-    REQUIRE(si_cc_lr.membership(11) == 0.0f);
-    REQUIRE(si_cc_lr.membership(12) == 0.0f);
+    using int_element = basic_element<int, float>;
+    using element = basic_element<float, float>;
+
+    // No overlap case L-R,
+    {
+		int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(16, 20, 24));
+		REQUIRE(s.size() == 0u);
+    }
+
+    // No overlap case R-L,
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(16, 20, 24), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Touching case R-L
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Touching case L-R
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Perfectly overlapped
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{4, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{8, 1.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{12, 0.0f}));
+    }
+
+    // Half overlap case (idiomatic) L-R
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(8, 12, 16));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{8, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{10, 0.5f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{12, 0.0f}));
+    }
+
+    // Half overlap case (idiomatic) R-L
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(8, 12, 16), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{8, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{10, 0.5f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{12, 0.0f}));
+    }
+
+    // Cap over cap case L-R
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(6, 8, 10));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{6, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{8, 1.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{10, 0.0f}));
+    }
+
+    // Cap over cap case R-L
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(6, 8, 10), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{6, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{8, 1.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{10, 0.0f}));
+    }
+
+    // Triangle overlaps segment-0 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 6.0f, 8.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{4.0f, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{6.666667f, 0.666667f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{8.0f, 0.0f}));
+    }
+
+    // Triangle overlaps segment-0 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(4.0f, 6.0f, 8.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(8.0f, 10.0f, 12.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(8.0f, 10.0f, 12.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+
+    // Triangle intersects segment-0 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(5.0f, 6.0f, 7.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{5.0f, 0.0f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{5.333333f, 0.333333f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{6.4f, 0.6f}));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{7.0f, 0.0f}));
+    }
+
+    // Triangle intersects segment-0 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(5.0f, 6.0f, 7.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 5.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(9.0f, 10.0f, 11.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 9.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 11.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(9.0f, 10.0f, 11.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 9.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 11.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(6.0f, 8.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 8.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(6.0f, 7.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 7.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+
+
+
+
+
+
+
+
+
+
+    // Nearly overlapped case.
+    {
+        int_set si_cc_lr = set_intersection<fuzzy::minimum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
+        REQUIRE(si_cc_lr.size() == 4u);
+        auto itr = si_cc_lr.cbegin();
+        REQUIRE(*itr == int_element{4,0.0f});
+        ++itr;
+        REQUIRE(*itr == int_element{7, 0.75f});
+        ++itr;
+        REQUIRE(*itr == int_element{8, 0.75f});
+        ++itr;
+        REQUIRE(*itr == int_element{11, 0.0f});
+    }
 
     // Common case right-left
-    int_set si_cc_rl = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
-    REQUIRE(si_cc_rl.membership(3) == 0.0f);
-    REQUIRE(si_cc_rl.membership(4) == 0.0f);
-    REQUIRE(si_cc_rl.membership(5) == 0.25f);
-    REQUIRE(si_cc_rl.membership(6) == 0.50f);
-    REQUIRE(si_cc_rl.membership(7) == 0.75f);
-    REQUIRE(si_cc_rl.membership(8) == 0.75f);
-    REQUIRE(si_cc_rl.membership(9) == 0.50f);
-    REQUIRE(equivelant(si_cc_rl.membership(10), 0.25f));
-    REQUIRE(si_cc_rl.membership(11) == 0.0f);
-    REQUIRE(si_cc_rl.membership(12) == 0.0f);
+    {
+        int_set si_cc_rl = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
+        REQUIRE(si_cc_rl.membership(3) == 0.0f);
+        REQUIRE(si_cc_rl.membership(4) == 0.0f);
+        REQUIRE(si_cc_rl.membership(5) == 0.25f);
+        REQUIRE(si_cc_rl.membership(6) == 0.50f);
+        REQUIRE(si_cc_rl.membership(7) == 0.75f);
+        REQUIRE(si_cc_rl.membership(8) == 0.75f);
+        REQUIRE(si_cc_rl.membership(9) == 0.50f);
+        REQUIRE(equivelant(si_cc_rl.membership(10), 0.25f));
+        REQUIRE(si_cc_rl.membership(11) == 0.0f);
+        REQUIRE(si_cc_rl.membership(12) == 0.0f);
+    }
+
+    // Common case left-right
 
     // Boundary case left-right
     int_set si_bc_lr = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
@@ -1345,8 +1642,8 @@ TEST_CASE("Expressions", "[Expressions]")
         REQUIRE(equivelant(itr->value(), 928.472778f));
         REQUIRE(equivelant(itr->membership(), 0.737272f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 960.0f));
-        REQUIRE(equivelant(itr->membership(), 0.770674f));
+        REQUIRE(equivelant(itr->value(), 966.675903f));
+        REQUIRE(equivelant(itr->membership(), 0.777747f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1014.28577f));
         REQUIRE(equivelant(itr->membership(), 0.619047f));

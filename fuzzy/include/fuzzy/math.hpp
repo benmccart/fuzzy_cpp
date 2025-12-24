@@ -84,6 +84,49 @@ namespace fuzzy { namespace math
 			return static_cast<M>(std::round(number));
 	}
 
+	namespace detail
+	{
+		template <class M>
+		requires std::floating_point<M>
+		constexpr float round_off() noexcept
+		{
+			if constexpr (sizeof(M) == 4)
+				return 0.0000077f; // Loss of 7 bits ulp
+
+			return 0.00000000000015; // Loss of 7 bits ulp
+		}
+	}
+
+
+	/**
+	 * @brief A fudged version of operator== for floating point types in the range [0,1].
+	 * @tparam M Must be a floating point type.
+	 * @param m0 First argument.
+	 * @param m1 Second argument.
+	 * @return Whether the two arguments are equivelant.
+	*/
+	template <class M>
+	requires std::floating_point<M>
+	constexpr bool equivelant(M m0, M m1, M ro = detail::round_off<M>()) noexcept
+	{
+		M const abs = fuzzy::math::abs(m1 - m0);
+		return abs <= ro;
+	}
+
+	/**
+	 * @brief A thin wrapper around operator== for floating point types in the range [0,1].
+	 * @tparam M Must be a floating point type.
+	 * @param m0 First argument.
+	 * @param m1 Second argument.
+	 * @return Whether the two arguments are equivelant.
+	*/
+	template <class V>
+	requires std::integral<V>
+	constexpr bool equivelant(V v0, V v1) noexcept
+	{
+		return v0 == v1;
+	}
+
 	/**
 	* Strict linear interpolation based on line segment from two points at the point 'key', which must be 
 	* in in the range [lhs, rhs].
@@ -154,12 +197,18 @@ namespace fuzzy { namespace math
 		if (s >= -eps && s <= static_cast<M>(1) + eps && t >= -eps && t <= static_cast<M>(1) + eps)
 		{
 //			V const v = s0.v0.value() + fuzzy::math::round<V>(t * s0_deltax);
-			M v_rounded = fuzzy::math::round<V>(std::fma(t, s0_deltax, static_cast<M>(s0.v0.value())));
+			V v_rounded = static_cast<V>(fuzzy::math::round<V>(std::fma(t, s0_deltax, static_cast<M>(s0.v0.value()))));
 			V const v_clamp_min = std::max(s0.v0.value(), s1.v0.value());
 			V const v_clamp_max = std::min(s0.v1.value(), s1.v1.value());
+
+			if (v_rounded < v_clamp_min || fuzzy::math::equivelant(v_rounded, v_clamp_min) ||
+			   (v_clamp_max < v_rounded) || fuzzy::math::equivelant(v_clamp_max, v_rounded))
+			{
+				return std::optional<element_t>{};
+			}
 			V const v = std::clamp(static_cast<V>(v_rounded), v_clamp_min, v_clamp_max);
 
-			M const m_old = linear_interpolate(s0.v0, v, s0.v1);
+//			M const m_old = linear_interpolate(s0.v0, v, s0.v1); // FIXME: this old code is not used anymore!
 
 			M const t_v = [&]() -> M
 			{
@@ -175,58 +224,13 @@ namespace fuzzy { namespace math
 				}
 			}();
 
-			M const m = std::fma(t_v, s0_deltay, s0.v0.membership());
+			M const m = std::fma(t_v, s0_deltay, s0.v0.membership()); // FIXME: Should t_v be matched with s1 instead of s0?
 			assert(m == m);
-			assert(fuzzy::math::abs(m - m_old) < 0.0001f);
+			//assert(fuzzy::math::abs(m - m_old) < 0.0001f);
 			return element_t{ v, m };
 		}
 
 		return std::optional<element_t>{};
-	}
-
-
-
-	namespace detail
-	{
-		template <class M>
-		requires std::floating_point<M>
-		constexpr float round_off() noexcept
-		{
-			if constexpr (sizeof(M) == 4)
-				return 0.0000077f; // Loss of 7 bits ulp
-
-			return 0.00000000000015; // Loss of 7 bits ulp
-		}
-
-	}
-
-	/**
-	 * @brief A fudged version of operator== for floating point types in the range [0,1].
-	 * @tparam M Must be a floating point type.
-	 * @param m0 First argument.
-	 * @param m1 Second argument.
-	 * @return Whether the two arguments are equivelant.
-	*/
-	template <class M>
-	requires std::floating_point<M>
-	constexpr bool equivelant(M m0, M m1, M ro = detail::round_off<M>()) noexcept
-	{
-		M const abs = fuzzy::math::abs(m1 - m0);
-		return abs <= ro;
-	}
-
-	/**
-	 * @brief A thin wrapper around operator== for floating point types in the range [0,1].
-	 * @tparam M Must be a floating point type.
-	 * @param m0 First argument.
-	 * @param m1 Second argument.
-	 * @return Whether the two arguments are equivelant.
-	*/
-	template <class V>
-	requires std::integral<V>
-	constexpr bool equivelant(V v0, V v1) noexcept
-	{
-		return v0 == v1;
 	}
 
 }}

@@ -92,7 +92,12 @@ namespace fuzzy
 		detail::set_operation_value_sequence<V, M, Container> seq{ set_, input };
 		for (pair_t const& pair : seq)
 		{
-			result.insert(element_t{ pair.first.value(), func_(pair.first.membership(), pair.second.membership()) });
+			auto itr = result.insert(element_t{ pair.first.value(), static_cast<M>(0)});
+			if (itr.first != result.end())
+			{
+				M m = func_(pair.first.membership(), pair.second.membership());
+				itr.first->membership(m); // Workaround for aggregated results that exceed the valid range for element's constructor.
+			}
 		}
 		detail::simplify_impl<V,M,Container>::apply(result);
 		set_.swap(result);
