@@ -59,70 +59,6 @@ namespace fuzzy
 			using element_t = typename set_t::element_type;
 			using value_t = std::pair<element_t,element_t>;
 
-			class value_step_iterator
-			{
-			public:
-				using iterator_category = std::forward_iterator_tag;
-				using value_type = element_t;
-				using difference_type = std::ptrdiff_t;
-				using pointer = value_type const*;
-				using reference = value_type;
-				using iter_impl_t = typename set_t::const_iterator;
-
-				value_step_iterator() = delete;
-
-				constexpr explicit value_step_iterator(iter_impl_t itr, set_t const& set) : itr_(itr), set_(&set), value_({ static_cast<V>(0), static_cast<M>(0) })
-				{
-					if (itr_ != cend(*set_))
-						value_ = *itr_;
-				}
-
-				constexpr value_step_iterator(value_step_iterator const&) = default;
-
-
-				constexpr value_step_iterator& operator++()
-				{
-					++itr_;
-					if (itr_ != cend(*set_))
-						value_ = *itr_;
-
-					return *this; 
-				}
-
-				constexpr value_step_iterator operator++(int)
-				{
-					value_step_iterator retval = *this;
-					++(*this);
-					return retval;
-				}
-
-				constexpr bool operator!=(value_step_iterator const& o) const    { return !(*this == o);  }
-				constexpr bool operator==(value_step_iterator const& o) const    { return itr_ == o.itr_; }
-
-				constexpr reference operator*() const                            { return value_;         }
-				constexpr pointer operator->() const                             { return &value_;        }
-
-				void value(V /*v*/)
-				{
-					//assert(v > itr_->value());
-					//auto next = [](iter_impl_t itr) { return ++itr; }(itr_);
-					//if (next == cend(*set_))
-					//{
-					//	itr_ = next;
-					//	value_ = element_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
-					//}
-					//else
-					//{
-					//	value_ = element_t{ v, set_->membership(v) };
-					//}
-				}
-
-			private:
-				iter_impl_t itr_;
-				set_t const *set_;
-				element_t value_;
-			};
-
 			class const_iterator
 			{
 			public:
@@ -176,11 +112,7 @@ namespace fuzzy
 						case advance::a_to_end: advance_a_to_end(); break;
 						case advance::b_to_end: advance_b_to_end(); break;
 						case advance::a_and_b_to_end: advance_a_and_b_to_end(); break;
-
-						//case advance::a_and_b:
-						//	advance_a();
-						//	advance_b();
-						//	break;
+						default: assert(!"invalid advance instruction");
 					}
 
 					return *this; 
@@ -272,8 +204,6 @@ namespace fuzzy
 					return tag_to_advance(n);
 				}
 
-				
-
 				struct advance_data
 				{
 					iter_impl_t itr;
@@ -283,45 +213,14 @@ namespace fuzzy
 				constexpr reference dref_impl() const
 				{
 					if (intersection_)
+					{
 						return value_t{ *intersection_, *intersection_ };
+					}
 					else
 					{
 						assert(a_value_.value() == b_value_.value());
 						return value_t{ a_value_, b_value_ };
 					}
-
-					//if (a_ != a_end_ && b_ != b_end_)
-					//{
-					//	V av = a_->value();
-					//	V bv = b_->value();
-
-					//	M am = a_->membership();
-					//	M bm = b_->membership();
-
-					//	if (av <= last_v_)
-					//	{
-					//		av = last_v_;
-					//		am = a_set_->membership(av);
-					//	}
-					//	if (bv <= last_v_)
-					//	{
-					//		bv = last_v_;
-					//		bm = b_set_->membership(bv);
-					//	}
-
-					//	if (av < bv)
-					//		return value_t{ element_t{av, am}, element_t{av, b_set_->membership(av)} };
-					//	else if (bv < av)
-					//		return value_t{ element_t{bv, a_set_->membership(bv)}, element_t{bv, bm} };
-					//	else
-					//		return value_t{ element_t{av, am}, element_t{bv, bm} };
-					//}
-					//else if (a_ != a_end_)
-					//	return value_t{ *a_, element_t{ a_->value(), b_set_->membership(a_->value())} };
-					//else if (b_ != b_end_)
-					//	return value_t{ element_t{ b_->value(), a_set_->membership(b_->value()) }, *b_ };
-
-					//return value_t{ std::numeric_limits<V>::max(), std::numeric_limits<M>::quiet_NaN() };
 				}
 
 				constexpr static void push_back(std::array<advance_data, 4>& data, std::size_t& data_size, advance_data&& adv)
@@ -390,55 +289,6 @@ namespace fuzzy
 
 					// Handle the complex case where values match and we need to see if they are the same category.
 					return tag_to_advance(next->tag, after_next->tag);
-
-
-
-					//// Check for advancing to a/b.
-					//if (a_ != a_end_ && last_->value() < a_->value())
-					//	return advance_option::advance_to_a;
-					//if (b_ != b_end_ && last_->value() < b_->value())
-					//	return advance_option::advance_to_b;
-
-					//// Check special end conditions for special handling.
-					//if (a_next == a_end_ && b_next == b_end_)
-					//{
-					//	if (a_ == a_end_)
-					//		return advance_option::advance_b_to_next;
-					//	if (b_ == b_end_)
-					//		return advance_option::advance_a_to_next;
-
-					//	return advance_option::a_and_b; // FIXME: Maybe simpler to just have a 'complete' function?
-					//}
-					//if (a_next != a_end_ && b_next == b_end_)
-					//{
-					//	if (b_ == b_end_)
-					//		return advance_option::advance_a_to_next;
-					//	if (a_->value() < b_->value())
-					//		return advance_option::a_only;
-					//	if (b_->value() < a_->value())
-					//		return advance_option::b_only;
-
-					//	return advance_option::a_and_b;
-					//}
-					//if (b_next != b_end_ && a_next == a_end_)
-					//{
-					//	if (a_ == a_end_)
-					//		return advance_option::b_only;
-					//	if (b_->value() < a_->value())
-					//		return advance_option::b_only;
-					//	if (a_->value() < b_->value())
-					//		return advance_option::a_only;
-
-					//	return advance_option::a_and_b;
-					//}
-
-					//// Normal logic 
-					//if (a_next->value() < b_next->value())
-					//	return advance_option::a_only;
-					//if (b_next->value() < a_next->value())
-					//	return advance_option::b_only;
-
-					//return advance_option::a_and_b;
 				}
 
 				constexpr void set_values(iter_impl_t a, iter_impl_t b)
@@ -478,11 +328,6 @@ namespace fuzzy
 						return a;
 
 					return (a->value() < b->value()) ? a : b;
-				}
-
-				constexpr bool end_match(element_t e, segment_t s) noexcept // FIXME: Is this even used?
-				{
-					return fuzzy::math::equivelant(e.value(), s.v0.value()) || fuzzy::math::equivelant(e.value(), s.v1.value());
 				}
 
 				constexpr void advance_a_to_end()
@@ -603,120 +448,6 @@ namespace fuzzy
 						assert(a_->value() == b_->value());
 					}
 				}
-
-				//constexpr void advance_a()
-				//{
-				//	auto const a_next = [](value_step_iterator itr) { return ++itr; }(a_);
-				//	auto const b_next = [&](value_step_iterator itr)
-				//	{
-				//		if (itr == b_end_) 
-				//			return itr;
-
-				//		return ++itr;
-				//	}(b_);
-
-				//	if (a_next == a_end_ || b_next == b_end_)
-				//	{
-				//		intersection_.reset();
-				//		a_ = a_next;
-				//		last_ = a_;
-				//		return; // Completing 'a'.
-				//	}
-
-				//	if (intersection_)
-				//	{
-				//		intersection_.reset();
-				//		a_ = a_next;
-				//		last_ = a_;
-				//		return; // Advance to next 'a' segment.
-				//	}
-
-				//	// Check for intersection on current 'a' segment.
-				//	segment_t seg_a{ *a_, *a_next };
-				//	segment_t seg_b{ *b_, *b_next };
-				//	intersection_ = intersection(seg_a, seg_b);
-				//	if (intersection_)
-				//	{
-				//		assert(!end_match(*intersection_, seg_a) && !end_match(*intersection_, seg_b));
-				//		a_.value(intersection_->value());
-				//	}
-				//	else
-				//	{
-				//		// No intersection, advance to next 'a' segment.
-				//		a_ = a_next;
-				//		last_ = a_;
-				//	}
-				//}
-				//constexpr void advance_b()
-				//{
-				//	auto const a_next = [&](value_step_iterator itr)
-				//	{
-				//		if (itr == a_end_)
-				//			return itr;
-
-				//		return ++itr;
-				//	}(a_);
-				//	auto const b_next = [](value_step_iterator itr) { return ++itr; }(b_);
-
-				//	if (a_next == a_end_ || b_next == b_end_)
-				//	{
-				//		intersection_.reset();
-				//		b_ = b_next;
-				//		last_ = b_;
-				//		return; // Completing 'b'
-				//	}
-
-				//	if (intersection_)
-				//	{
-				//		intersection_.reset();
-				//		b_ = b_next;
-				//		last_ = b_;
-				//		return; // Advance to next 'b' segment.
-				//	}
-
-				//	// Check for intersection on current 'b' segment.
-				//	segment_t seg_a{ *a_, *a_next };
-				//	segment_t seg_b{ *b_, *b_next };
-				//	intersection_ = intersection(seg_a, seg_b);
-				//	if (intersection_)
-				//	{
-				//		assert(!end_match(*intersection_, seg_a) && !end_match(*intersection_, seg_b));
-				//		b_.value(intersection_->value());
-				//	}
-				//	else
-				//	{
-				//		// No intersection, advance to next 'b' segment.
-				//		b_ = b_next;
-				//		last_ = b_;
-				//	}
-				//}
-
-				//constexpr static int relative_membership(element_t e0, element_t e1)
-				//{
-				//	if (e0.membership() < e1.membership())
-				//		return -1;
-				//	else if (e0.membership() > e1.membership())
-				//		return 1;
-				//	else return 0;
-				//}
-
-				//constexpr static bool do_relative_memberships_intersect(segment_t const &seg_a, segment_t const &seg_b)
-				//{
-				//	assert(seg_a.v0.value() <= seg_a.v1.value());
-				//	assert(seg_b.v0.value() <= seg_b.v1.value());
-				//	if (seg_a.v1.value() <= seg_b.v0.value() || seg_b.v1 <= seg_a.v0.value())
-				//		return false;
-
-				//	auto const rm0 = relative_membership(seg_a.v0, seg_b.v0);
-				//	auto const rm1 = relative_membership(seg_a.v1, seg_b.v1);
-				//	int const result = rm0 - rm1;
-				//	return (result == -2 || result == 2);
-				//}
-
-				//constexpr static optional_element_t find_intersection(segment_t const& seg_a, segment_t const& seg_b)
-				//{
-				//	return intersection(seg_a, seg_b);
-				//}
 
 				iter_impl_t a_;
 				iter_impl_t const a_end_;
@@ -873,26 +604,6 @@ namespace fuzzy
 				{
 					return true;
 				}
-
-				//if constexpr (std::floating_point<V>)
-				//{
-				//	constexpr M value_spacing_multiplier = static_cast<M>(16);
-				//	constexpr M vro = value_spacing_multiplier * fuzzy::math::detail::round_off<M>();
-				//	if (fuzzy::math::equivelant(itr->value(), next->value(), vro))
-				//	{
-				//		constexpr M inv_div_2 = static_cast<M>(0.5l);
-				//		V const v = static_cast<V>(fuzzy::math::round<V>(static_cast<M>(itr->value() + next->value()) * inv_div_2));
-				//		M const m = (itr->membership() + next->membership()) * inv_div_2;
-				//		next->value(v);
-				//		next->membership(m);
-				//		return true;
-				//	}
-				//}
-				//else
-				//{
-				//	if (itr->value() == next->value())
-				//		return true;
-				//}
 
 				return false;
 			}
