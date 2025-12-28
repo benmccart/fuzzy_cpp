@@ -555,6 +555,37 @@ TEST_CASE("SET-complement", "[SET_complement]")
     REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 }
 
+TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
+{
+    int_set a_even = make_triangle<float>(16, 24, 32);
+    int_set b_even = make_triangle<float>(24, 32, 40);
+    int_set c1_even = set_intersection<fuzzy::minimum>(a_even, b_even);
+    REQUIRE(c1_even.size() == 3);
+    REQUIRE(c1_even.membership(24) == 0.0f);
+    REQUIRE(c1_even.membership(28) == 0.5f);
+    REQUIRE(c1_even.membership(32) == 0.0f);
+
+    int_set c2_even = set_intersection<fuzzy::minimum>(b_even, a_even);
+    REQUIRE(c2_even.size() == 3);
+    REQUIRE(c2_even.membership(24) == 0.0f);
+    REQUIRE(c2_even.membership(28) == 0.5f);
+    REQUIRE(c2_even.membership(32) == 0.0f);
+
+    int_set a_minor = make_triangle<float>(16, 24, 32);
+    int_set b_minor = make_triangle<float>(28, 36, 44);
+    int_set c1_minor = set_intersection<fuzzy::minimum>(a_minor, b_minor);
+    REQUIRE(c1_minor.size() == 3);
+    REQUIRE(c1_minor.membership(28) == 0.0f);
+    REQUIRE(c1_minor.membership(30) == 0.25f);
+    REQUIRE(c1_minor.membership(32) == 0.0f);
+
+    int_set c2_minor = set_intersection<fuzzy::minimum>(b_minor, a_minor);
+    REQUIRE(c2_minor.size() == 3);
+    REQUIRE(c2_minor.membership(28) == 0.0f);
+    REQUIRE(c2_minor.membership(30) == 0.25f);
+    REQUIRE(c2_minor.membership(32) == 0.0f);
+}
+
 TEST_CASE("SET-intersection", "[SET_intersection]")
 {
     using int_element = basic_element<int, float>;
@@ -910,104 +941,492 @@ TEST_CASE("SET-intersection", "[SET_intersection]")
         set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {0.0f, 1.0f}, {4.0f, 0.0f} });
         REQUIRE(s.size() == 0u);
     }
-
-
-}
-
-TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
-{
-    int_set a_even = make_triangle<float>(16, 24, 32);
-    int_set b_even = make_triangle<float>(24, 32, 40);
-    int_set c1_even = set_intersection<fuzzy::minimum>(a_even, b_even);
-    REQUIRE(c1_even.size() == 3);
-    REQUIRE(c1_even.membership(24) == 0.0f);
-    REQUIRE(c1_even.membership(28) == 0.5f);
-    REQUIRE(c1_even.membership(32) == 0.0f);
-
-    int_set c2_even = set_intersection<fuzzy::minimum>(b_even, a_even);
-    REQUIRE(c2_even.size() == 3);
-    REQUIRE(c2_even.membership(24) == 0.0f);
-    REQUIRE(c2_even.membership(28) == 0.5f);
-    REQUIRE(c2_even.membership(32) == 0.0f);
-
-    int_set a_minor = make_triangle<float>(16, 24, 32);
-    int_set b_minor = make_triangle<float>(28, 36, 44);
-    int_set c1_minor = set_intersection<fuzzy::minimum>(a_minor, b_minor);
-    REQUIRE(c1_minor.size() == 3);
-    REQUIRE(c1_minor.membership(28) == 0.0f);
-    REQUIRE(c1_minor.membership(30) == 0.25f);
-    REQUIRE(c1_minor.membership(32) == 0.0f);
-
-    int_set c2_minor = set_intersection<fuzzy::minimum>(b_minor, a_minor);
-    REQUIRE(c2_minor.size() == 3);
-    REQUIRE(c2_minor.membership(28) == 0.0f);
-    REQUIRE(c2_minor.membership(30) == 0.25f);
-    REQUIRE(c2_minor.membership(32) == 0.0f);
 }
 
 TEST_CASE("SET-union", "[SET_union]")
 {
-    // Common case 
-    int_set su_cc_lr = set_union<fuzzy::maximum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12));
-    REQUIRE(su_cc_lr.membership(3) == 0.0f);
-    REQUIRE(su_cc_lr.membership(4) == 0.25f);
-    REQUIRE(su_cc_lr.membership(5) == 0.50f);
-    REQUIRE(su_cc_lr.membership(6) == 0.75f);
-    REQUIRE(su_cc_lr.membership(7) == 1.0f);
-    REQUIRE(su_cc_lr.membership(8) == 1.0f);
-    REQUIRE(su_cc_lr.membership(9) == 0.75f);
-    REQUIRE(su_cc_lr.membership(10) == 0.50f);
-    REQUIRE(su_cc_lr.membership(11) == 0.25f);
-    REQUIRE(su_cc_lr.membership(12) == 0.0f);
+    using int_element = basic_element<int, float>;
+    using element = basic_element<float, float>;
 
-    int_set su_cc_rl = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11));
-    REQUIRE(su_cc_rl.membership(3) == 0.0f);
-    REQUIRE(su_cc_rl.membership(4) == 0.25f);
-    REQUIRE(su_cc_rl.membership(5) == 0.50f);
-    REQUIRE(su_cc_rl.membership(6) == 0.75f);
-    REQUIRE(su_cc_rl.membership(7) == 1.0f);
-    REQUIRE(su_cc_rl.membership(8) == 1.0f);
-    REQUIRE(su_cc_rl.membership(9) == 0.75f);
-    REQUIRE(su_cc_rl.membership(10) == 0.50f);
-    REQUIRE(su_cc_rl.membership(11) == 0.25f);
-    REQUIRE(su_cc_rl.membership(12) == 0.0f);
+    // Triangle No overlap case L-R,
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(16, 20, 24));
+        REQUIRE(s.size() == 6u);
 
-    // Boundary case
-    int_set su_bc_lr = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
-    REQUIRE(su_bc_lr.membership(3) == 0.0f);
-    REQUIRE(su_bc_lr.membership(4) == 0.0f);
-    REQUIRE(su_bc_lr.membership(5) == 0.25f);
-    REQUIRE(su_bc_lr.membership(11) == 0.25f);
-    REQUIRE(su_bc_lr.membership(12) == 0.0f);
-    REQUIRE(su_bc_lr.membership(13) == 0.25f);
-    REQUIRE(su_bc_lr.membership(16) == 1.0f);
-    REQUIRE(su_bc_lr.membership(20) == 0.0f);
-    REQUIRE(su_bc_lr.membership(21) == 0.0f);
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 24, 0.0f }));
+    }
 
-    // Boundaries past each-other case
-    int_set su_bp_lr = set_union<fuzzy::maximum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20));
-    REQUIRE(su_bp_lr.membership(-13) == 0.0f);
-    REQUIRE(su_bp_lr.membership(-12) == 0.0f);
-    REQUIRE(su_bp_lr.membership(-5) == 0.25f);
-    REQUIRE(su_bp_lr.membership(-3) == 0.0f);
-    REQUIRE(su_bp_lr.membership(11) == 0.0f);
-    REQUIRE(su_bp_lr.membership(12) == 0.0f);
-    REQUIRE(su_bp_lr.membership(16) == 1.0f);
-    REQUIRE(su_bp_lr.membership(17) == 0.75f);
-    REQUIRE(su_bp_lr.membership(20) == 0.0f);
-    REQUIRE(su_bp_lr.membership(21) == 0.0f);
+    // Triangle No overlap case R-L,
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(16, 20, 24), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 6u);
+        
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 24, 0.0f }));
+    }
 
-    int_set su_bp_rl = set_union<fuzzy::maximum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4));
-    REQUIRE(su_bp_rl.membership(-13) == 0.0f);
-    REQUIRE(su_bp_rl.membership(-12) == 0.0f);
-    REQUIRE(su_bp_rl.membership(-5) == 0.25f);
-    REQUIRE(su_bp_rl.membership(-3) == 0.0f);
-    REQUIRE(su_bp_rl.membership(11) == 0.0f);
-    REQUIRE(su_bp_rl.membership(12) == 0.0f);
-    REQUIRE(su_bp_rl.membership(16) == 1.0f);
-    REQUIRE(su_bp_rl.membership(17) == 0.75f);
-    REQUIRE(su_bp_rl.membership(20) == 0.0f);
-    REQUIRE(su_bp_rl.membership(21) == 0.0f);
+    // Triangle Touching case R-L
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 0.0f }));
+    }
+
+    // Triangle Touching case L-R
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 0.0f }));
+    }
+
+    // Perfectly overlapped
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Half overlap case (idiomatic) L-R
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(8, 12, 16));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+    }
+
+    // Half overlap case (idiomatic) R-L
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(8, 12, 16), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+    }
+
+    // Cap over cap case L-R
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(6, 8, 10));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;        
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Cap over cap case R-L
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(6, 8, 10), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Triangle overlaps segment-0 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 6.0f, 8.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-0 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(4.0f, 6.0f, 8.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(8.0f, 10.0f, 12.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(8.0f, 10.0f, 12.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+
+    // Triangle intersects segment-0 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(5.0f, 6.0f, 7.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-0 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(5.0f, 6.0f, 7.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(9.0f, 10.0f, 11.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(9.0f, 10.0f, 11.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(6.0f, 8.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 8.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(6.0f, 7.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 7.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Single segment intersection overlapped L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {4.0f, 1.0f}, {8.0f, 0.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection overlapped R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 1.0f}, {8.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+    }
+
+
+    // Single segment intersection offset L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {3.0f, 0.0f}, {7.0f, 1.0f} }, set{ {4.0f, 1.0f}, {8.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.5f, 0.625f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection offset R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 1.0f}, {8.0f, 0.0f} }, set{ {3.0f, 0.0f}, {7.0f, 1.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.5f, 0.625f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+
+    }
+
+    // Single segment intersection disjoint L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {-1.0f, 1.0f}, {3.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ -1.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    // Single segment intersection disjoint R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {-1.0f, 1.0f}, {3.0f, 0.0f} });
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ -1.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    // Signle segment touching L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {0.0f, 1.0f}, {4.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 0.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    // Signle segment touching R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {0.0f, 1.0f}, {4.0f, 0.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 0.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
 }
 
 TEST_CASE("SET-somewhat", "[SET_somewhat]")
