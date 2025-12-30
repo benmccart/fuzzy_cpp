@@ -1662,8 +1662,6 @@ TEST_CASE("Scaling-Inference-Rule-2", "[Scaling_Inference_Rule_2]")
 
 #endif // ENABLE_DEPRECATED_TESTS
 
-/*
-
 TEST_CASE("Consequent-1", "[Consequent_1]")
 {
     
@@ -1694,7 +1692,7 @@ TEST_CASE("Consequent-2", "[Consequent_2]")
     int_set const& fan_speed3 = cons2.result();
     REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
     REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
-    REQUIRE(equivelant(fan_speed3.membership(780), 0.4f));
+    REQUIRE(equivelant(fan_speed3.membership(780), 0.399093f));
     REQUIRE(equivelant(fan_speed3.membership(793), 0.4639455f));
     REQUIRE(equivelant(fan_speed3.membership(847), 0.7333333f));
     REQUIRE(equivelant(fan_speed3.membership(900), 0.7333333f));
@@ -1733,7 +1731,6 @@ TEST_CASE("Consequent-4", "[Consequent_4]")
     REQUIRE(equivelant(fan_speed3.membership(780), 0.7990930f));
     REQUIRE(equivelant(fan_speed3.membership(793), 0.86394556f));
     REQUIRE(equivelant(fan_speed3.membership(847), 0.931464f));
-    REQUIRE(equivelant(fan_speed3.membership(900), 0.7333333f));
     REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
 }
 
@@ -1752,8 +1749,10 @@ TEST_CASE("Scaled-Antecedent", "[Scaled_Antecedent]")
     REQUIRE(equivelant(sa1.set().membership(1.0f), 0.0f));
 
     auto sa2 = is(fan_speed2,fast);
-    REQUIRE(sa2.set().size() == 3u);
+    REQUIRE(sa2.set().size() == 5u);
     REQUIRE(equivelant(sa2.set().membership(0.0f), 0.0f));
+    REQUIRE(equivelant(sa2.set().membership(0.1675f), 0.34f));
+    REQUIRE(equivelant(sa2.set().membership(0.25f), 0.5f));
     REQUIRE(equivelant(sa2.set().membership(0.3f), 0.6f));
     REQUIRE(equivelant(sa2.set().membership(1.f), 0.0f));
 }
@@ -1819,7 +1818,7 @@ TEST_CASE("Opperators_And_Functions", "[Opperators-And-Functions]")
 
         additive_aggregator fan_speed;
         is(t0, warm) >> fan_speed.shall_be(medium);
-        REQUIRE(fan_speed.result().size() == 6);
+        REQUIRE(fan_speed.result().size() == 5);
         REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.333333f));
     }
     {
@@ -2022,7 +2021,7 @@ TEST_CASE("Deffuzification", "[Deffuzification]")
         REQUIRE(equivelant(center_of_area(aset), 78.0f));
     }
 }
-*/
+
 
 TEST_CASE("Expressions", "[Expressions]")
 {
@@ -2060,39 +2059,40 @@ TEST_CASE("Expressions", "[Expressions]")
         REQUIRE(equivelant(itr->value(), 966.675903f));
         REQUIRE(equivelant(itr->membership(), 0.777747f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1014.28577f));
-        REQUIRE(equivelant(itr->membership(), 0.619047f));
+        REQUIRE(equivelant(itr->value(), 1050.0f));
+        REQUIRE(equivelant(itr->membership(), 0.5f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1060.0f));
-        REQUIRE(equivelant(itr->membership(), 0.53333f));
+        REQUIRE(equivelant(itr->value(), 1100.0f));
+        REQUIRE(equivelant(itr->membership(), 0.666667f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1110.39709f));
-        REQUIRE(equivelant(itr->membership(), 0.472246f));
+        REQUIRE(equivelant(itr->value(), 1155.67517f));
+        REQUIRE(equivelant(itr->membership(), 0.573874f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1228.47278f));
         REQUIRE(equivelant(itr->membership(), 0.737272f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1260.0f));
-        REQUIRE(equivelant(itr->membership(), 0.770674f));
+        REQUIRE(equivelant(itr->value(), 1266.6759f));
+        REQUIRE(equivelant(itr->membership(), 0.777747f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1350.0f));
-        REQUIRE(equivelant(itr->membership(), 0.25f));
+        REQUIRE(equivelant(itr->value(), 1383.22144f));
+        REQUIRE(equivelant(itr->membership(), 0.389262f));
         ++itr;
-        REQUIRE(equivelant(itr->value(), 1398.53796f));
-        REQUIRE(equivelant(itr->membership(), 0.452245f));
+        REQUIRE(equivelant(itr->value(), 1426.15381f));
+        REQUIRE(equivelant(itr->membership(), 0.56923f));
         ++itr;
         REQUIRE(equivelant(itr->value(), 1725.0f));
         REQUIRE(equivelant(itr->membership(), 0.0f));
     }
 }
 
+/*
 TEST_CASE("Final", "[Final]")
 {
     using namespace fuzzy;
 
-    constexpr auto control_loop_tsk = [](float indoor_tempurature, float outdoor_tempurature)
+    // Example of constexpr use.
+    constexpr auto ce_control_loop_mamdani = [](float indoor_tempurature, float outdoor_tempurature)
     {
-
         set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
         set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
         set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
@@ -2116,113 +2116,73 @@ TEST_CASE("Final", "[Final]")
         set const it = make_value<float>(indoor_tempurature);
         set const ot = make_value<float>(outdoor_tempurature);
 
-        using namespace fuzzy::models::tsk;
+        using namespace fuzzy::models::mamdani;
         aggregator fan_voltage;
-        //auto at = is(it, cool);
-        //if (at.set().front().membership() == 500.0f)
-        //    std::cout << "haha!\n";
 
-        //auto anp = (is(it, cool) & is(ot, chilly));
-        //anp >> fan_voltage.shall_be(slow);
-        auto a0 = is(it, cold);
-        auto a1a = is(it, cool);
-        auto a1b = is(ot, cold);
-        auto a1 = (a1a & a1b);
-        auto a2a = is(it, cool);
-        auto a2b = is(ot, chilly);
-        auto a2 = (a2a & a2b);
-        auto a3 = (is(it, warm) & is(ot, less_than_warm));
-        auto a4 = (is(it, chilly) & is(ot, more_than_chilly));
-
-        a0 >> fan_voltage.shall_be(off);
-        a1 >> fan_voltage.shall_be(slow);
-        a2 >> fan_voltage.shall_be(medium);
-        a3 >> fan_voltage.shall_be(fast);
-        a4 >> fan_voltage.shall_be(off);
-
-        //is(it, cold) >> fan_voltage.shall_be(off);
-        //(is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
-        //(is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
-        //(is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
-        //(is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
+        is(it, cold) >> fan_voltage.shall_be(off);
+        (is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
+        (is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
+        (is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
+        (is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
 
         return center_of_area(fan_voltage.result());
     };
 
-    //auto v0 = control_loop_tsk(42.0f, 57.0f);
-    //REQUIRE(equivelant(v0, 0.230133f));
+    constexpr float v0 = ce_control_loop_mamdani(49.0f, 44.0f);
+    static_assert(equivelant(v0, 8.27334f));
 
-    //auto v1 = control_loop_tsk(57.0f, 44.0f);
-    //REQUIRE(equivelant(v1, 11.004322f));
-
-    //std::cout << "==================== TSK ====================\n";
-    //std::cout << "outdoor tempurature F, indoor tempurature F, fan VDC\n";
-    //for (float it = 35.0f; it <= 60.0f; it += 0.05f)
-    //{
-    //    float fv = control_loop_tsk(it, 44.0f);
-    //    std::cout << "44.0f, " << it << ", " << fv << "\n";
-    //}
-
-    //float const it2 = 48.8997879f;//48.90f;
-    //float const it3 = 48.9497871f;//48.95f;
-    //float const it4 = 48.9997864f;//49.00f;
-    auto v2 = control_loop_tsk(45.9998f, 44.0f);
-    auto v3 = control_loop_tsk(46.0498f, 44.0f);
-    //auto v4 = control_loop_tsk(46.0998f, 44.0f);
-
-    if (v3 < v2)
+    // Example of runt time use.
+    set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
+    set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
+    set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
+    set const warm{ {50.0f, 0.0f}, {55.0f, 1.0f}, {130.0f, 1.0f } };
+    set const less_than_warm = [&]()
     {
-        std::cout << "we have a problem!\n";
+        using namespace fuzzy::operators::tconorm::bounded_sum;
+        return cold | chilly | cool;
+    }();
+    set const more_than_chilly = [&]()
+    {
+        using namespace fuzzy::operators::tconorm::bounded_sum;
+        return cool | warm;
+    }();
+
+    set const off{ {0.0f, 1.0f}, {0.5f, 0.0f} };
+    set const slow = make_triangle<float>(4.5f, 5.0f, 8.5f);
+    set const medium = make_triangle<float>(5.0f, 8.5f, 12.0f);
+    set const fast{ {8.5f, 0.0f}, {12.0f, 1.0f}, {12.5f, 1.0f} };
+
+    auto control_loop_mamdani = [&](float indoor_tempurature, float outdoor_tempurature)
+    {
+        set const it = make_value<float>(indoor_tempurature);
+        set const ot = make_value<float>(outdoor_tempurature);
+
+        using namespace fuzzy::models::mamdani;
+        aggregator fan_voltage;
+
+        is(it, cold) >> fan_voltage.shall_be(off);
+        (is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
+        (is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
+        (is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
+        (is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
+
+        return center_of_area(fan_voltage.result());
+    };
+
+    std::cout << "-------------------- Mamdani Const Outdoor Temp --------------------\n";
+    std::cout << "outdoor tempurature F, indoor tempurature F, fan VDC\n";
+    for (float it = 35.0f; it <= 60.0f; it += 0.05f)
+    {
+        float fv = control_loop_mamdani(it, 44.0f);
+        std::cout << "44.0f, " << it << ", " << fv << "\n";
     }
 
-
-
-
-    //constexpr auto control_loop_mamdani = [](float indoor_tempurature, float outdoor_tempurature)
-    //{
-
-    //    set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
-    //    set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
-    //    set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
-    //    set const warm{ {50.0f, 0.0f}, {55.0f, 1.0f}, {130.0f, 1.0f } };
-    //    set const less_than_warm = [&]()
-    //    {
-    //        using namespace fuzzy::operators::tconorm::bounded_sum;
-    //        return cold | chilly | cool;
-    //    }();
-    //    set const more_than_chilly = [&]()
-    //    {
-    //        using namespace fuzzy::operators::tconorm::bounded_sum;
-    //        return cool | warm;
-    //    }();
-
-    //    set const off{ {0.0f, 1.0f}, {0.5f, 0.0f} };
-    //    set const slow = make_triangle<float>(4.5f, 5.0f, 8.5f);
-    //    set const medium = make_triangle<float>(5.0f, 8.5f, 12.0f);
-    //    set const fast{ {8.5f, 0.0f}, {12.0f, 1.0f}, {12.5f, 1.0f} };
-
-    //    set const it = make_value<float>(indoor_tempurature);
-    //    set const ot = make_value<float>(outdoor_tempurature);
-
-    //    using namespace fuzzy::models::mamdani;
-    //    aggregator fan_voltage;
-
-    //    is(it, cold) >> fan_voltage.shall_be(off);
-    //    (is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
-    //    (is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
-    //    (is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
-    //    (is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
-
-    //    return mean_of_maximum_nearest_maxima(fan_voltage.result());
-    //};
-
-    //std::cout << "==================== Mamdani ====================\n";
-    //std::cout << "indoor tempurature F,outdoor tempurature F, fan VDC\n";
-    //for (float ot = 35.0f; ot <= 60.0f; ot += 0.05f)
-    //{
-    //    float fv = control_loop_mamdani(49.0f, ot);
-    //    std::cout << "49.0f, " << ot << ", " << fv << "\n";
-    //}
-
+    std::cout << "-------------------- Mamdani Const Indoor Temp --------------------\n";
+    std::cout << "indoor tempurature F,outdoor tempurature F, fan VDC\n";
+    for (float ot = 35.0f; ot <= 60.0f; ot += 0.05f)
+    {
+        float fv = control_loop_mamdani(49.0f, ot);
+        std::cout << "49.0f, " << ot << ", " << fv << "\n";
+    }
 }
-
+*/

@@ -30,6 +30,7 @@
 #include <cassert>
 #include <limits>
 #include <optional>
+#include <type_traits>
 
 #include <fuzzy/element.hpp>
 
@@ -53,6 +54,16 @@ namespace fuzzy { namespace math
 			return static_cast<long long>(v);
 		else
 			return v;
+	}
+
+	template <class M>
+	requires std::floating_point<M>
+	constexpr M fma(M x, M y, M z) noexcept
+	{
+		if (std::is_constant_evaluated()) // FUTURE: Replace this with 'if consteval' in C++23.
+			return (x * y) + z;
+		else
+			return std::fma(x,y,z);
 	}
 
 	/**
@@ -145,7 +156,7 @@ namespace fuzzy { namespace math
 		M x_offset = static_cast<M>(promote(key) - promote(lhs.value()));
 		M denom_inv = static_cast<M>(1) / dx;
 		M ratio = x_offset * denom_inv;
-		M const result =  std::fma(ratio, dy, lhs.membership());
+		M const result =  fma(ratio, dy, lhs.membership());
 		return result;
 	}
 
@@ -186,9 +197,12 @@ namespace fuzzy { namespace math
 		M const s0_s1_v_offset = static_cast<M>(s0.v0.value() - s1.v0.value());
 		M const s0_s1_m_offset = s0.v0.membership() - s1.v0.membership();
 
-		M const s_num = std::fma(s0_deltax, s0_s1_m_offset, -s0_deltay * s0_s1_v_offset);
-		M const t_num = std::fma(s1_deltax, s0_s1_m_offset, -s1_deltay * s0_s1_v_offset);
-		M const denom = std::fma(s0_deltax, s1_deltay,      -s0_deltay * s1_deltax);
+		M const s_num = fma(s0_deltax, s0_s1_m_offset, -s0_deltay * s0_s1_v_offset);
+		M const t_num = fma(s1_deltax, s0_s1_m_offset, -s1_deltay * s0_s1_v_offset);
+		M const denom = fma(s0_deltax, s1_deltay,      -s0_deltay * s1_deltax);
+		if (denom == static_cast<M>(0))
+			return std::optional<element_t>{};
+
 		M const inv_denom = static_cast<M>(1) / denom;
 		M const s = s_num * inv_denom;
 		M const t = t_num * inv_denom;
@@ -196,8 +210,7 @@ namespace fuzzy { namespace math
 		M constexpr eps = std::numeric_limits<M>::epsilon();
 		if (s >= -eps && s <= static_cast<M>(1) + eps && t >= -eps && t <= static_cast<M>(1) + eps)
 		{
-//			V const v = s0.v0.value() + fuzzy::math::round<V>(t * s0_deltax);
-			V v_rounded = static_cast<V>(fuzzy::math::round<V>(std::fma(t, s0_deltax, static_cast<M>(s0.v0.value()))));
+			V v_rounded = static_cast<V>(fuzzy::math::round<V>(fma(t, s0_deltax, static_cast<M>(s0.v0.value()))));
 			V const v_clamp_min = std::max(s0.v0.value(), s1.v0.value());
 			V const v_clamp_max = std::min(s0.v1.value(), s1.v1.value());
 
@@ -207,8 +220,6 @@ namespace fuzzy { namespace math
 				return std::optional<element_t>{};
 			}
 			V const v = std::clamp(static_cast<V>(v_rounded), v_clamp_min, v_clamp_max);
-
-//			M const m_old = linear_interpolate(s0.v0, v, s0.v1); // FIXME: this old code is not used anymore!
 
 			M const t_v = [&]() -> M
 			{
@@ -224,9 +235,8 @@ namespace fuzzy { namespace math
 				}
 			}();
 
-			M const m = std::fma(t_v, s0_deltay, s0.v0.membership()); // FIXME: Should t_v be matched with s1 instead of s0?
+			M const m = fma(t_v, s0_deltay, s0.v0.membership());
 			assert(m == m);
-			//assert(fuzzy::math::abs(m - m_old) < 0.0001f);
 			return element_t{ v, m };
 		}
 
