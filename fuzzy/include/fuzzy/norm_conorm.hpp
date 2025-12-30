@@ -34,6 +34,7 @@
 #include <type_traits>
 
 #include <fuzzy/concepts.hpp>
+#include <fuzzy/math.hpp>
 #include <fuzzy/traits.hpp>
 
 namespace fuzzy 
@@ -72,7 +73,7 @@ namespace fuzzy
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
-			return std::fma(-x,y, x+y);
+			return fuzzy::math::fma(-x,y, x+y);
 		}
 	};
 
@@ -169,7 +170,7 @@ namespace fuzzy
 		{
 			validate_range<M>(x, y);
 
-			M const denom = static_cast<M>(2) - std::fma(-x, y, x+y);
+			M const denom = static_cast<M>(2) - fuzzy::math::fma(-x, y, x+y);
 			M const inv_denom = static_cast<M>(1) / denom;
 			return (x * y) * inv_denom;
 		}
@@ -191,7 +192,7 @@ namespace fuzzy
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
-			M const inv_denom = static_cast<M>(1) / std::fma(x, y, static_cast<M>(1));
+			M const inv_denom = static_cast<M>(1) / fuzzy::math::fma(x, y, static_cast<M>(1));
 			return (x + y) * inv_denom;
 		}
 	};
@@ -211,9 +212,12 @@ namespace fuzzy
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
-			M const arg = std::fma(-x, y, x+y);
+			M const arg = fuzzy::math::fma(-x, y, x+y);
+			if (arg == static_cast<M>(0))
+				return  static_cast<M>(0);
+
 			M const inv_denom = static_cast<M>(1) / arg;
-			return (arg == static_cast<M>(0)) ? static_cast<M>(0) : (x * y) * inv_denom;
+			return (x * y) * inv_denom;
 		}
 	};
 
@@ -232,9 +236,12 @@ namespace fuzzy
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
-			M const arg = std::fma(-x, y, static_cast<M>(1));
+			M const arg = fuzzy::math::fma(-x, y, static_cast<M>(1));
+			if (arg == static_cast<M>(0))
+				return static_cast<M>(1);
+
 			M const inv_denom = static_cast<M>(1) / arg;
-			return (arg == static_cast<M>(0)) ? static_cast<M>(1) : (std::fma(static_cast<M>(-2) * x, y, x + y) * inv_denom);
+			return (fuzzy::math::fma(static_cast<M>(-2) * x, y, x + y) * inv_denom);
 		}
 	};
 

@@ -90,9 +90,23 @@ namespace fuzzy { namespace math
 	constexpr M round(M number) noexcept
 	{
 		if constexpr (std::is_floating_point_v<V>)
+		{
 			return static_cast<M>(number);
+		}
 		else
-			return static_cast<M>(std::round(number));
+		{
+			if (std::is_constant_evaluated()) // FUTURE: Replace this with C++23 std::round
+			{
+				if (number >= static_cast<M>(0))
+					return static_cast<M>(static_cast<long long>(number + static_cast<M>(0.5l)));
+				else
+					return static_cast<M>(static_cast<long long>(number - static_cast<M>(0.5l)));
+			}
+			else
+			{
+				return std::round(number);
+			}
+		}
 	}
 
 	namespace detail

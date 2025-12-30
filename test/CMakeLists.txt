@@ -35,7 +35,7 @@ find_package(Catch2 CONFIG REQUIRED)
 option(ENABLE_DEPRECATED_TESTS "Enables tests for deprecated features" OFF)
 
 # Add source to this project's executable.
-add_executable (test "test.cpp" )
+add_executable (test "test.cpp" "static_test.cpp" )
 
 if(ENABLE_DEPRECATED_TESTS)
     target_compile_definitions(test PRIVATE ENABLE_DEPRECATED_TESTS=1)

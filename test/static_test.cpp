@@ -603,7 +603,7 @@ consteval void static_test_SET_complement()
 consteval void static_test_SET_intersection()
 {
     // Common case left-right
-    constexpr auto si_cc_lr = []() { return set_intersection(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12)); };
+    constexpr auto si_cc_lr = []() { return set_intersection<minimum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12)); };
     static_assert(si_cc_lr().membership(3) == 0.0f);
     static_assert(si_cc_lr().membership(4) == 0.0f);
     static_assert(si_cc_lr().membership(5) == 0.25f);
@@ -616,7 +616,7 @@ consteval void static_test_SET_intersection()
     static_assert(si_cc_lr().membership(12) == 0.0f);
 
     // Common case right-left
-    constexpr auto si_cc_rl = []() { return set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11)); };
+    constexpr auto si_cc_rl = []() { return set_intersection<minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11)); };
     static_assert(si_cc_rl().membership(3) == 0.0f);
     static_assert(si_cc_rl().membership(4) == 0.0f);
     static_assert(si_cc_rl().membership(5) == 0.25f);
@@ -629,7 +629,7 @@ consteval void static_test_SET_intersection()
     static_assert(si_cc_rl().membership(12) == 0.0f);
 
     // Boundary case left-right
-    constexpr auto si_bc_lr = []() { return set_intersection(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20)); };
+    constexpr auto si_bc_lr = []() { return set_intersection<minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20)); };
     static_assert(si_bc_lr().membership(3) == 0.0f);
     static_assert(si_bc_lr().membership(4) == 0.0f);
     static_assert(si_bc_lr().membership(5) == 0.0f);
@@ -640,7 +640,7 @@ consteval void static_test_SET_intersection()
     static_assert(si_bc_lr().membership(20) == 0.0f);
     static_assert(si_bc_lr().membership(21) == 0.0f);
 
-    constexpr auto si_bc_rl = []() { return set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12)); };
+    constexpr auto si_bc_rl = []() { return set_intersection<minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12)); };
     static_assert(si_bc_rl().membership(3) == 0.0f);
     static_assert(si_bc_rl().membership(4) == 0.0f);
     static_assert(si_bc_rl().membership(5) == 0.0f);
@@ -652,7 +652,7 @@ consteval void static_test_SET_intersection()
     static_assert(si_bc_rl().membership(21) == 0.0f);
 
     // Boundary past each-other case
-    constexpr auto si_bp_lr = []() { return set_intersection(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20)); };
+    constexpr auto si_bp_lr = []() { return set_intersection<minimum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20)); };
     static_assert(si_bp_lr().membership(-13) == 0.0f);
     static_assert(si_bp_lr().membership(-12) == 0.0f);
     static_assert(si_bp_lr().membership(-7) == 0.0f);
@@ -663,7 +663,7 @@ consteval void static_test_SET_intersection()
     static_assert(si_bp_lr().membership(20) == 0.0f);
     static_assert(si_bp_lr().membership(21) == 0.0f);
 
-    constexpr auto si_bp_rl = []() { return set_intersection(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4)); };
+    constexpr auto si_bp_rl = []() { return set_intersection<minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4)); };
     static_assert(si_bp_rl().membership(-13) == 0.0f);
     static_assert(si_bp_rl().membership(-12) == 0.0f);
     static_assert(si_bp_rl().membership(-7) == 0.0f);
@@ -678,7 +678,7 @@ consteval void static_test_SET_intersection()
 consteval void static_test_SET_union()
 {
     // Common case 
-    constexpr auto su_cc_lr = []() { return set_union(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12)); };
+    constexpr auto su_cc_lr = []() { return set_union<maximum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12)); };
     static_assert(su_cc_lr().membership(3) == 0.0f);
     static_assert(su_cc_lr().membership(4) == 0.25f);
     static_assert(su_cc_lr().membership(5) == 0.50f);
@@ -690,7 +690,7 @@ consteval void static_test_SET_union()
     static_assert(su_cc_lr().membership(11) == 0.25f);
     static_assert(su_cc_lr().membership(12) == 0.0f);
 
-    constexpr auto su_cc_rl = []() { return set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11)); };
+    constexpr auto su_cc_rl = []() { return set_union<maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11)); };
     static_assert(su_cc_rl().membership(3) == 0.0f);
     static_assert(su_cc_rl().membership(4) == 0.25f);
     static_assert(su_cc_rl().membership(5) == 0.50f);
@@ -703,7 +703,7 @@ consteval void static_test_SET_union()
     static_assert(su_cc_rl().membership(12) == 0.0f);
 
     // Boundary case
-    constexpr auto su_bc_lr = [](){ return set_union(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20)); };
+    constexpr auto su_bc_lr = [](){ return set_union<maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20)); };
     static_assert(su_bc_lr().membership(3) == 0.0f);
     static_assert(su_bc_lr().membership(4) == 0.0f);
     static_assert(su_bc_lr().membership(5) == 0.25f);
@@ -715,7 +715,7 @@ consteval void static_test_SET_union()
     static_assert(su_bc_lr().membership(21) == 0.0f);
 
     // Boundaries past each-other case
-    constexpr auto su_bp_lr = []() { return set_union(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20)); };
+    constexpr auto su_bp_lr = []() { return set_union<maximum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20)); };
     static_assert(su_bp_lr().membership(-13) == 0.0f);
     static_assert(su_bp_lr().membership(-12) == 0.0f);
     static_assert(su_bp_lr().membership(-5) == 0.25f);
@@ -727,7 +727,7 @@ consteval void static_test_SET_union()
     static_assert(su_bp_lr().membership(20) == 0.0f);
     static_assert(su_bp_lr().membership(21) == 0.0f);
 
-    constexpr auto su_bp_rl = []() { return set_union(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4)); };
+    constexpr auto su_bp_rl = []() { return set_union<maximum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4)); };
     static_assert(su_bp_rl().membership(-13) == 0.0f);
     static_assert(su_bp_rl().membership(-12) == 0.0f);
     static_assert(su_bp_rl().membership(-5) == 0.25f);
