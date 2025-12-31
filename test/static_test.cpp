@@ -27,737 +27,1468 @@
 #include "./test.hpp"
 
 using namespace fuzzy;
+using fuzzy::math::equivelant;
+using int_element = basic_element<int, float>;
+using element = basic_element<float, float>;
 
-void static_test_boundscheck()
+constexpr bool equivelant(int_element const& lhs, int_element const& rhs)
+{
+    return lhs.value() == rhs.value() && equivelant(lhs.membership(), rhs.membership());
+}
+
+constexpr bool equivelant(element const& lhs, element const& rhs)
+{
+    return equivelant(lhs.value(), rhs.value()) && equivelant(lhs.membership(), rhs.membership());
+}
+
+class file_line_exception
+{
+public:
+    constexpr file_line_exception(const char* file, int line) noexcept
+        : file_(file), line_(line)
+    {}
+
+    const char* what() const noexcept
+    {
+        return "Assertion failed";
+    }
+
+    const char* file() const noexcept { return file_; }
+    int line() const noexcept { return line_; }
+
+private:
+    const char* file_;
+    int line_;
+};
+
+#define REQUIRE( ... )           \
+    do {                                \
+        if (!( __VA_ARGS__ ))                    \
+            throw file_line_exception(__FILE__, __LINE__); \
+    } while (0)
+
+
+//////////// BEGIN TESTS ///////////
+
+constexpr bool membership_bounds_check()
 {
     [[maybe_unused]] constexpr auto v0 = algabraic_product<>::apply(1.0f, 1.0f);
     [[maybe_unused]] constexpr auto v1 = algabraic_product<>::apply(0.0f, 0.0f);
     // FAIL constexpr auto v2 = algabraic_product<>::apply(-0.01f, 1.0f);
     // FAIL constexpr auto v0 = algabraic_product<>::apply(1.01f, 1.0f);
-    
-    [[maybe_unused]] constexpr bool validate = []() constexpr
-    {
-        validate_range(0.0);
-        validate_range(0.5);
-        validate_range(1.0);
-        // FAIL validate_range(-0.00001);
-        // FAIL validate_range( 1.00001);
-        return true;
-    }();
+
+    validate_range(0.0);
+    validate_range(0.5);
+    validate_range(1.0);
+    // FAIL validate_range(-0.00001);
+    // FAIL validate_range( 1.00001);
+
+    return true;
 }
 
-void static_test_tnormtests() 
+constexpr bool t_norm_tests()
 {
-    static_assert(algabraic_product<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(algabraic_product<>::apply(0.00f, 0.50f) == 0.00f);
-    static_assert(algabraic_product<>::apply(0.00f, 1.00f) == 0.00f);
-    static_assert(algabraic_product<>::apply(0.50f, 1.00f) == 0.50f);
-    static_assert(algabraic_product<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(algabraic_product<>::apply(0.50f, 0.50f) == 0.25f);
+    REQUIRE(algabraic_product<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(algabraic_product<>::apply(0.00f, 0.50f) == 0.00f);
+    REQUIRE(algabraic_product<>::apply(0.00f, 1.00f) == 0.00f);
+    REQUIRE(algabraic_product<>::apply(0.50f, 1.00f) == 0.50f);
+    REQUIRE(algabraic_product<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(algabraic_product<>::apply(0.50f, 0.50f) == 0.25f);
 
-    static_assert(bounded_difference<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(bounded_difference<>::apply(0.00f, 0.50f) == 0.00f);
-    static_assert(bounded_difference<>::apply(0.00f, 1.00f) == 0.00f);
-    static_assert(bounded_difference<>::apply(0.50f, 1.00f) == 0.50f);
-    static_assert(bounded_difference<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(bounded_difference<>::apply(0.50f, 0.50f) == 0.00f);
-    static_assert(bounded_difference<>::apply(0.75f, 0.75f) == 0.50f);
+    REQUIRE(bounded_difference<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(bounded_difference<>::apply(0.00f, 0.50f) == 0.00f);
+    REQUIRE(bounded_difference<>::apply(0.00f, 1.00f) == 0.00f);
+    REQUIRE(bounded_difference<>::apply(0.50f, 1.00f) == 0.50f);
+    REQUIRE(bounded_difference<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(bounded_difference<>::apply(0.50f, 0.50f) == 0.00f);
+    REQUIRE(bounded_difference<>::apply(0.75f, 0.75f) == 0.50f);
 
-    static_assert(drastic_product<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(drastic_product<>::apply(0.00f, 0.50f) == 0.00f);
-    static_assert(drastic_product<>::apply(0.00f, 1.00f) == 0.00f);
-    static_assert(drastic_product<>::apply(0.50f, 1.00f) == 0.50f);
-    static_assert(drastic_product<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(drastic_product<>::apply(0.50f, 0.50f) == 0.00f);
+    REQUIRE(drastic_product<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(drastic_product<>::apply(0.00f, 0.50f) == 0.00f);
+    REQUIRE(drastic_product<>::apply(0.00f, 1.00f) == 0.00f);
+    REQUIRE(drastic_product<>::apply(0.50f, 1.00f) == 0.50f);
+    REQUIRE(drastic_product<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(drastic_product<>::apply(0.50f, 0.50f) == 0.00f);
 
-    static_assert(einstein_product<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(einstein_product<>::apply(0.00f, 0.50f) == 0.00f);
-    static_assert(einstein_product<>::apply(0.00f, 1.00f) == 0.00f);
-    static_assert(einstein_product<>::apply(0.50f, 1.00f) == 0.50f);
-    static_assert(einstein_product<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(einstein_product<>::apply(0.50f, 0.50f) == 0.20f);
+    REQUIRE(einstein_product<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(einstein_product<>::apply(0.00f, 0.50f) == 0.00f);
+    REQUIRE(einstein_product<>::apply(0.00f, 1.00f) == 0.00f);
+    REQUIRE(einstein_product<>::apply(0.50f, 1.00f) == 0.50f);
+    REQUIRE(einstein_product<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(einstein_product<>::apply(0.50f, 0.50f) == 0.20f);
 
-    static_assert(hamacher_product<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(hamacher_product<>::apply(0.00f, 0.50f) == 0.00f);
-    static_assert(hamacher_product<>::apply(0.00f, 1.00f) == 0.00f);
-    static_assert(hamacher_product<>::apply(0.50f, 1.00f) == 0.50f);
-    static_assert(hamacher_product<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(hamacher_product<>::apply(0.50f, 0.50f) == 0.33333333f);
+    REQUIRE(hamacher_product<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(hamacher_product<>::apply(0.00f, 0.50f) == 0.00f);
+    REQUIRE(hamacher_product<>::apply(0.00f, 1.00f) == 0.00f);
+    REQUIRE(hamacher_product<>::apply(0.50f, 1.00f) == 0.50f);
+    REQUIRE(hamacher_product<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(hamacher_product<>::apply(0.50f, 0.50f) == 0.33333333f);
 
-    static_assert(minimum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(minimum<>::apply(0.00f, 0.50f) == 0.00f);
-    static_assert(minimum<>::apply(0.00f, 1.00f) == 0.00f);
-    static_assert(minimum<>::apply(0.50f, 1.00f) == 0.50f);
-    static_assert(minimum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(minimum<>::apply(0.50f, 0.50f) == 0.50f);
+    REQUIRE(minimum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(minimum<>::apply(0.00f, 0.50f) == 0.00f);
+    REQUIRE(minimum<>::apply(0.00f, 1.00f) == 0.00f);
+    REQUIRE(minimum<>::apply(0.50f, 1.00f) == 0.50f);
+    REQUIRE(minimum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(minimum<>::apply(0.50f, 0.50f) == 0.50f);
+
+    return true;
 }
 
-void static_test_tconormtests()
+
+
+constexpr bool t_conorm_tests()
 {
-    static_assert(algabraic_sum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(algabraic_sum<>::apply(0.00f, 0.50f) == 0.50f);
-    static_assert(algabraic_sum<>::apply(0.00f, 1.00f) == 1.00f);
-    static_assert(algabraic_sum<>::apply(0.50f, 1.00f) == 1.00f);
-    static_assert(algabraic_sum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(algabraic_sum<>::apply(0.50f, 0.50f) == 0.75f);
+    REQUIRE(algabraic_sum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(algabraic_sum<>::apply(0.00f, 0.50f) == 0.50f);
+    REQUIRE(algabraic_sum<>::apply(0.00f, 1.00f) == 1.00f);
+    REQUIRE(algabraic_sum<>::apply(0.50f, 1.00f) == 1.00f);
+    REQUIRE(algabraic_sum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(algabraic_sum<>::apply(0.50f, 0.50f) == 0.75f);
 
-    static_assert(bounded_sum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(bounded_sum<>::apply(0.00f, 0.50f) == 0.50f);
-    static_assert(bounded_sum<>::apply(0.00f, 1.00f) == 1.00f);
-    static_assert(bounded_sum<>::apply(0.50f, 1.00f) == 1.00f);
-    static_assert(bounded_sum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(bounded_sum<>::apply(0.50f, 0.50f) == 1.00f);
-    static_assert(bounded_sum<>::apply(0.25f, 0.25f) == 0.50f);
+    REQUIRE(bounded_sum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(bounded_sum<>::apply(0.00f, 0.50f) == 0.50f);
+    REQUIRE(bounded_sum<>::apply(0.00f, 1.00f) == 1.00f);
+    REQUIRE(bounded_sum<>::apply(0.50f, 1.00f) == 1.00f);
+    REQUIRE(bounded_sum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(bounded_sum<>::apply(0.50f, 0.50f) == 1.00f);
+    REQUIRE(bounded_sum<>::apply(0.25f, 0.25f) == 0.50f);
 
-    static_assert(drastic_sum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(drastic_sum<>::apply(0.00f, 0.50f) == 0.50f);
-    static_assert(drastic_sum<>::apply(0.00f, 1.00f) == 1.00f);
-    static_assert(drastic_sum<>::apply(0.50f, 1.00f) == 1.00f);
-    static_assert(drastic_sum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(drastic_sum<>::apply(0.50f, 0.50f) == 1.00f);
+    REQUIRE(drastic_sum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(drastic_sum<>::apply(0.00f, 0.50f) == 0.50f);
+    REQUIRE(drastic_sum<>::apply(0.00f, 1.00f) == 1.00f);
+    REQUIRE(drastic_sum<>::apply(0.50f, 1.00f) == 1.00f);
+    REQUIRE(drastic_sum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(drastic_sum<>::apply(0.50f, 0.50f) == 1.00f);
 
-    static_assert(einstein_sum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(einstein_sum<>::apply(0.00f, 0.50f) == 0.50f);
-    static_assert(einstein_sum<>::apply(0.00f, 1.00f) == 1.00f);
-    static_assert(einstein_sum<>::apply(0.50f, 1.00f) == 1.00f);
-    static_assert(einstein_sum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(einstein_sum<>::apply(0.50f, 0.50f) == 0.80f);
+    REQUIRE(einstein_sum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(einstein_sum<>::apply(0.00f, 0.50f) == 0.50f);
+    REQUIRE(einstein_sum<>::apply(0.00f, 1.00f) == 1.00f);
+    REQUIRE(einstein_sum<>::apply(0.50f, 1.00f) == 1.00f);
+    REQUIRE(einstein_sum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(einstein_sum<>::apply(0.50f, 0.50f) == 0.80f);
 
-    static_assert(hamacher_sum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(hamacher_sum<>::apply(0.00f, 0.50f) == 0.50f);
-    static_assert(hamacher_sum<>::apply(0.00f, 1.00f) == 1.00f);
-    static_assert(hamacher_sum<>::apply(0.50f, 1.00f) == 1.00f);
-    static_assert(hamacher_sum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(hamacher_sum<>::apply(0.50f, 0.50f) == 0.66666666f);
+    REQUIRE(hamacher_sum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(hamacher_sum<>::apply(0.00f, 0.50f) == 0.50f);
+    REQUIRE(hamacher_sum<>::apply(0.00f, 1.00f) == 1.00f);
+    REQUIRE(hamacher_sum<>::apply(0.50f, 1.00f) == 1.00f);
+    REQUIRE(hamacher_sum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(hamacher_sum<>::apply(0.50f, 0.50f) == 0.66666666f);
 
-    static_assert(maximum<>::apply(0.00f, 0.00f) == 0.00f);
-    static_assert(maximum<>::apply(0.00f, 0.50f) == 0.50f);
-    static_assert(maximum<>::apply(0.00f, 1.00f) == 1.00f);
-    static_assert(maximum<>::apply(0.50f, 1.00f) == 1.00f);
-    static_assert(maximum<>::apply(1.00f, 1.00f) == 1.00f);
-    static_assert(maximum<>::apply(0.50f, 0.50f) == 0.50f);
+    REQUIRE(maximum<>::apply(0.00f, 0.00f) == 0.00f);
+    REQUIRE(maximum<>::apply(0.00f, 0.50f) == 0.50f);
+    REQUIRE(maximum<>::apply(0.00f, 1.00f) == 1.00f);
+    REQUIRE(maximum<>::apply(0.50f, 1.00f) == 1.00f);
+    REQUIRE(maximum<>::apply(1.00f, 1.00f) == 1.00f);
+    REQUIRE(maximum<>::apply(0.50f, 0.50f) == 0.50f);
+
+    return true;
 }
 
-void static_test_basic_elementtests()
+constexpr bool basic_element_tests()
 {
-    constexpr int_element e1{ 1, 1.0f };
-    static_assert(e1.membership() == 1.0f);
-    static_assert(e1.value() == 1);
+    int_element e1{ 1, 1.0f };
+    REQUIRE(e1.membership() == 1.0f);
+    REQUIRE(e1.value() == 1);
 
-    constexpr int_element e0{ 0, 0.0f };
-    static_assert(e0.membership() == 0.0f);
-    static_assert(e0.value() == 0);
-    static_assert(e0 < e1);
+    int_element e0{ 0, 0.0f };
+    REQUIRE(e0.membership() == 0.0f);
+    REQUIRE(e0.value() == 0);
+    REQUIRE(e0 < e1);
 
-    constexpr int_element eol{ 3, 0.4f };
-    constexpr int_element eor{ 5, 0.4f };
-    constexpr int_element ea = [](int_element const l, int_element const r) constexpr
+    int_element eol{ 3, 0.4f };
+    int_element eor{ 5, 0.4f };
+    int_element ea = [](int_element const l, int_element const r) constexpr
     {
         return int_element{ l.value() + r.value(), l.membership() + r.membership() };
     }(eol, eor);
+    REQUIRE(ea.value() == 8);
+    REQUIRE(ea.membership() == 0.8f);
 
-    static_assert(ea.value() == 8);
-    static_assert(ea.membership() == 0.8f);
+    REQUIRE(eol == int_element{ 3, 0.4f });
+    REQUIRE(eol != int_element{ 3, 0.3999f });
+    REQUIRE(eol != int_element{ -3, 0.4f });
 
-    constexpr int_element ec{ e1 };
-    static_assert(ec == e1);
-    static_assert(ec != e0);
+    int_element ec{ e1 };
+    REQUIRE(ec == e1);
+    REQUIRE(ec != e0);
+    ec = e0;
+    REQUIRE(ec != e1);
+    REQUIRE(ec == e0);
 
-    constexpr auto expr0 = [=]()
-    {
-        int_element e{ 1, 0.1f };
-        e = e0;
-        return e;
-    };
-    constexpr int_element eca = expr0();
-    static_assert(eca != e1);
-    static_assert(eca == e0);
+    int_element em{ std::move(ec) };
+    REQUIRE(em == int_element{ 0, 0.0f });
+    REQUIRE(em != int_element{ 1, 1.0f });
 
-    constexpr auto expr1 = []()
-    {
-        int_element e0{ 0, 0.0f };
-        int_element e{ std::move(e0) };
-        return e;
-    };
-    constexpr int_element emc = expr1();
-    static_assert(emc == int_element{ 0, 0.0f });
-    static_assert(emc != int_element{ 1, 1.0f });
+    em = int_element{ 2, 0.2f };
+    REQUIRE(em == int_element{ 2, 0.2f });
+    REQUIRE(em != int_element{ 2, 0.1f });
 
-    constexpr auto expr2 = []()
-    {
-        int_element e{ 0, 0.0f };
-        e = int_element{ 2, 0.2f };
-        return e;
-    };
-    static_assert(expr2().value() == 2.0 && expr2().membership() == 0.2f);
+    // FAIL int_element em1{ -1, -1.0f };
+    // FAIL int_element em1{ -1, -1.0001f };
+    // FAIL int_element einf{ 1, std::numeric_limits<float>::infinity() };
+    // FAIL int_element eninf{ -1, -std::numeric_limits<float>::infinity() };
 
-    constexpr auto ema = int_element{ 2, 0.2f };
-    static_assert(ema == int_element{ 2, 0.2f });
-    static_assert(ema != int_element{ 2, 0.1f });
-
-    // FAIL constexpr int_element em1{ -1, -1.0f };
-    // FAIL constexpr int_element em1{ -1, -1.0001f };
-    // FAIL constexpr int_element einf{ 1, std::numeric_limits<float>::infinity() };
-    // FAIL constexprelement eninf{ -1, -std::numeric_limits<float>::infinity() };
+    return true;
 }
 
-consteval void static_test_empty_set()
+constexpr bool empty_int_set()
 {
-    constexpr auto empty = []() { return int_set{}; };
-    static_assert(empty().empty());
-    static_assert(empty().size() == 0u);
-    static_assert(all_ranges_valid(empty()));
+    int_set empty;
+    REQUIRE(empty.empty());
+    REQUIRE(empty.size() == 0u);
+    REQUIRE(all_ranges_valid(empty));
+
+    return true;
 }
 
-
-consteval void static_test_one_element_set()
+constexpr bool one_int_element_int_set()
 {
-    constexpr auto item = []()
-    {
-        int_set s = { {3, 1.0f} };
-        return s;
-    };
-    static_assert(!item().empty());
-    static_assert(item().size() == 1u);
-    static_assert(all_ranges_valid(item()));
+    int_set s1 = { {3, 1.0f} };
+    REQUIRE(!s1.empty());
+    REQUIRE(s1.size() == 1u);
+    REQUIRE(all_ranges_valid(s1));
+
+    return true;
 }
 
-consteval void static_test_two_element_set()
+constexpr bool two_int_element_int_set()
 {
-    constexpr auto item = []()
-    {
-        int_set s2 = { {3, 1.0f}, {5, 1.0f} };
-        return s2;
-    };
-    
-    static_assert(!item().empty());
-    static_assert(item().size() == 2u);
-    static_assert(all_ranges_valid(item()));
+    int_set s2 = { {3, 1.0f}, {5, 1.0f} };
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+
+    return true;
 }
 
-consteval void static_test_set_equivalence()
+constexpr bool int_set_equivalence()
 {
-    constexpr auto s1 = []() { return int_set{ { {3, 1.0f}, {5, 1.0f} } }; };
-    constexpr auto s2 = []() { return int_set{ { {3, 1.0f}, {5, 1.0f} } }; };
-    static_assert(s1() == s2());
-    static_assert(s1() == int_set{{{3, 1.0f}, {5, 1.0f}}});
-    static_assert(s1() != int_set{{{3, 1.0f}}});
-    static_assert(s1() != int_set{{{5, 1.0f}}});
-    static_assert(s1() != int_set{{{3, 0.999f}, {5, 1.0f}}});
-    static_assert(s1() != int_set{{{3, 1.0f}, {5, 0.999f}}});
-    static_assert(s1() != int_set{{{4, 1.0f}, {5, 1.0f}}});
-    static_assert(s1() != int_set{{{3, 1.0f}, {4, 1.0f}}});
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2 = { {3, 1.0f}, {5, 1.0f} };
+    REQUIRE(s1 == s2);
+    REQUIRE(s1 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 1.0f} } });
+    REQUIRE(s1 != int_set{ { { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 0.999f}, { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 1.0f}, { 5, 0.999f } } });
+    REQUIRE(s1 != int_set{ { {4, 1.0f}, { 5, 1.0f } } });
+    REQUIRE(s1 != int_set{ { {3, 1.0f}, { 4, 1.0f } } });
+
+    return true;
 }
 
-consteval void static_test_set_copy_construct()
+constexpr bool int_set_copy_construct()
 {
-    constexpr auto s1 = []() { return int_set{ { {3, 1.0f}, {5, 1.0f} } }; };
-    constexpr auto s2 = []() 
-    { 
-        int_set s1{ {3, 1.0f}, {5, 1.0f} };
-        int_set s2{ s1 };  return s2; 
-    };
-    static_assert(!s2().empty());
-    static_assert(s2().size() == 2u);
-    static_assert(all_ranges_valid(s2()));
-    static_assert(s2() == s1());
-    static_assert(s2() != int_set{{{3, 0.0f}, {4, 1.0f}}});
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2{ s1 };
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+    REQUIRE(s2 == s1);
+
+    REQUIRE(s2 != int_set{ { {3, 0.0f}, { 4, 1.0f } } });
+
+    return true;
 }
 
-consteval void static_test_set_move_construct()
+constexpr bool int_set_move_construct()
 {
-    constexpr auto s1 = []() { return int_set{ { {3, 1.0f}, {5, 1.0f} } }; };
-    constexpr auto s2 = []()
-    {
-        int_set s1{ {3, 1.0f}, {5, 1.0f} };
-        int_set s2{ std::move(s1) };  return s2;
-    };
-    static_assert(!s2().empty());
-    static_assert(s2().size() == 2u);
-    static_assert(all_ranges_valid(s2()));
-    static_assert(s2() == s1());
-    static_assert(s2() != int_set{ {{3, 0.0f}, {4, 1.0f}} });
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2{ std::move(s1) };
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+    REQUIRE(s1.empty());
+    REQUIRE(s2 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
+
+    return true;
 }
 
-consteval void static_test_set_assignment()
+constexpr bool int_set_assignment()
 {
-    constexpr auto s2 = []() 
-    { 
-        int_set s1{ {3, 1.0f}, {5, 1.0f} };
-        int_set s2;
-        s2 = s1;
-        return s2;
-    };
-    static_assert(!s2().empty());
-    static_assert(s2().size() == 2u);
-    static_assert(all_ranges_valid(s2()));
-    static_assert(s2() == int_set{{{3, 1.0f}, {5, 1.0f}}});
+    int_set s1 = { {3, 1.0f}, {5, 1.0f} };
+    int_set s2;
+    s2 = s1;
+    REQUIRE(!s2.empty());
+    REQUIRE(s2.size() == 2u);
+    REQUIRE(all_ranges_valid(s2));
+    REQUIRE(s2 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
 
-    constexpr auto s3 = []()
-    {
-        int_set s1{ {3, 1.0f}, {5, 1.0f} };
-        int_set s3;
-        s3 = std::move(s1);
-        return s3;
-    };
-    static_assert(!s3().empty());
-    static_assert(s3().size() == 2u);
-    static_assert(all_ranges_valid(s3()));
-    static_assert(s3() == int_set{{{3, 1.0f}, {5, 1.0f}}});
+    int_set s3;
+    s3 = std::move(s1);
+    REQUIRE(!s3.empty());
+    REQUIRE(s3.size() == 2u);
+    REQUIRE(all_ranges_valid(s3));
+    REQUIRE(s3 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
 
-    constexpr auto s4 = []()
-    {
-        int_set s4;
-        s4 = { {3, 1.0f}, {5, 1.0f} };
-        return s4;
-    };
-    static_assert(!s4().empty());
-    static_assert(s4().size() == 2u);
-    static_assert(all_ranges_valid(s4()));
-    static_assert(s4() == int_set{{{3, 1.0f}, {5, 1.0f}}});
+    int_set s4;
+    s4 = { {3, 1.0f}, { 5, 1.0f } };
+    REQUIRE(!s4.empty());
+    REQUIRE(s4.size() == 2u);
+    REQUIRE(all_ranges_valid(s4));
+    REQUIRE(s4 == int_set{ { {3, 1.0f}, { 5, 1.0f } } });
+
+    return true;
 }
 
-consteval void static_test_set_lowerbound()
+constexpr bool int_set_lowerbound()
 {
-    constexpr auto item = []()
-    {
-        int_set s = { {3, 1.0f}, {5, 0.8f} };
-        return s;
-    };
+    int_set s = { {3, 1.0f}, {5, 0.8f} };
 
     // lb on keys
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(0) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(3) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(4) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(5) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return s.lower_bound(6) == s.end(); }());
+    REQUIRE(*s.lower_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(3) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(4) == int_element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(5) == int_element{ 5, 0.8f });
+    REQUIRE(s.lower_bound(6) == s.end());
 
     // lb on elements
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(int_element{ 3, 0.7f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return *s.lower_bound(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return s.lower_bound(int_element{ 6, 0.0f }) == s.end(); }());
+    REQUIRE(*s.lower_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(int_element{ 3, 0.7f }) == int_element{ 3, 1.0f });
+    REQUIRE(*s.lower_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(*s.lower_bound(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f });
+    REQUIRE(s.lower_bound(int_element{ 6, 0.0f }) == s.end());
+
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
 
     // lb on keys
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(0) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(3) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(4) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(5) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.lower_bound(6) == cs.end(); }());
+    REQUIRE(*cs.lower_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(3) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(4) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(5) == int_element{ 5, 0.8f });
+    REQUIRE(cs.lower_bound(6) == cs.end());
 
     // lb on elements
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(int_element{ 3, 0.7f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.lower_bound(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.lower_bound(int_element{ 6, 0.0f }) == cs.end(); }());
+    REQUIRE(*cs.lower_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(int_element{ 3, 0.7f }) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.lower_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.lower_bound(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f });
+    REQUIRE(cs.lower_bound(int_element{ 6, 0.0f }) == cs.end());
+
+    return true;
 }
-consteval void static_test_set_upperbound()
+
+constexpr bool int_set_upperbound()
 {
-    constexpr auto item = []()
-    {
-        int_set s = { {3, 1.0f}, {5, 0.8f} };
-        return s;
-    };
+    int_set s = { {3, 1.0f}, {5, 0.8f} };
 
-    // lb on keys
-    static_assert([&]() { int_set s = item(); return *s.upper_bound(0) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return *s.upper_bound(3) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return *s.upper_bound(4) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return s.upper_bound(5) == s.end(); }());
-    static_assert([&]() { int_set s = item(); return s.upper_bound(6) == s.end(); }());
+    // ub on keys
+    REQUIRE(*s.upper_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*s.upper_bound(3) == int_element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(4) == int_element{ 5, 0.8f });
+    REQUIRE(s.upper_bound(5) == s.end());
+    REQUIRE(s.upper_bound(6) == s.end());
 
-    // lb on elements
-    static_assert([&]() { int_set s = item(); return *s.upper_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return *s.upper_bound(int_element{ 3, 0.7f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return *s.upper_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return s.upper_bound(int_element{ 5, 0.8f }) == s.end(); }());
-    static_assert([&]() { int_set s = item(); return s.upper_bound(int_element{ 6, 0.0f }) == s.end(); }());
+    // ub on elements
+    REQUIRE(*s.upper_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*s.upper_bound(int_element{ 3, 0.7f }) == int_element{ 5, 0.8f });
+    REQUIRE(*s.upper_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(s.upper_bound(int_element{ 5, 0.8f }) == s.end());
+    REQUIRE(s.upper_bound(int_element{ 6, 0.0f }) == s.end());
 
-    // lb on keys
-    static_assert([&]() { int_set const cs = item(); return *cs.upper_bound(0) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.upper_bound(3) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.upper_bound(4) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.upper_bound(5) == cs.end(); }());
-    static_assert([&]() { int_set const cs = item(); return cs.upper_bound(6) == cs.end(); }());
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
 
-    // lb on elements
-    static_assert([&]() { int_set const cs = item(); return *cs.upper_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.upper_bound(int_element{ 3, 0.7f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return *cs.upper_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.upper_bound(int_element{ 5, 0.8f }) == cs.end(); }());
-    static_assert([&]() { int_set const cs = item(); return cs.upper_bound(int_element{ 6, 0.0f }) == cs.end(); }());
+    // ub on keys
+    REQUIRE(*cs.upper_bound(0) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.upper_bound(3) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(4) == int_element{ 5, 0.8f });
+    REQUIRE(cs.upper_bound(5) == cs.end());
+    REQUIRE(cs.upper_bound(6) == cs.end());
+
+    // ub on elements
+    REQUIRE(*cs.upper_bound(int_element{ 1, 0.0f }) == int_element{ 3, 1.0f });
+    REQUIRE(*cs.upper_bound(int_element{ 3, 0.7f }) == int_element{ 5, 0.8f });
+    REQUIRE(*cs.upper_bound(int_element{ 4, 1.0f }) == int_element{ 5, 0.8f });
+    REQUIRE(cs.upper_bound(int_element{ 5, 0.8f }) == cs.end());
+    REQUIRE(cs.upper_bound(int_element{ 6, 0.0f }) == cs.end());
+
+    return true;
 }
 
-consteval void static_test_set_find()
+
+constexpr bool int_set_find()
 {
     // find on keys
-    constexpr auto item = []() { return int_set{ {3, 1.0f}, {5, 0.8f} }; };
-    static_assert([&]() { int_set s = item(); return s.find(0) == s.end(); }());
-    static_assert([&]() { int_set s = item(); return *s.find(3) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return s.find(4) == s.end(); }());
-    static_assert([&]() { int_set s = item(); return *s.find(5) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return s.find(6) == s.end(); }());
+    int_set s = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(s.find(0) == s.end());
+    REQUIRE((*s.find(3) == int_element{ 3, 1.0f }));
+    REQUIRE(s.find(4) == s.end());
+    REQUIRE((*s.find(5) == int_element{ 5, 0.8f }));
+    REQUIRE(s.find(6) == s.end());
 
-    static_assert([&]() { int_set const cs = item(); return cs.find(0) == cs.end(); }());
-    static_assert([&]() { int_set const cs = item(); return *cs.find(3) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.find(4) == cs.end(); }());
-    static_assert([&]() { int_set const cs = item(); return *cs.find(5) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.find(6) == cs.end(); }());
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(cs.find(0) == cs.end());
+    REQUIRE((*cs.find(3) == int_element{ 3, 1.0f }));
+    REQUIRE(cs.find(4) == cs.end());
+    REQUIRE((*cs.find(5) == int_element{ 5, 0.8f }));
+    REQUIRE(cs.find(6) == cs.end());
 
     // find on elements
-    static_assert([&]() { int_set s = item(); return s.find(int_element{ 0, 0.0f }) == s.end(); }());
-    static_assert([&]() { int_set s = item(); return *s.find(int_element{ 3, 1.0f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set s = item(); return s.find(int_element{ 4, 0.0f }) == s.end(); }());
-    static_assert([&]() { int_set s = item(); return *s.find(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set s = item(); return s.find(int_element{ 6, 1.0f }) == s.end(); }());
+    REQUIRE(s.find(int_element{ 0, 0.0f }) == s.end());
+    REQUIRE((*s.find(int_element{ 3, 1.0f }) == int_element{ 3, 1.0f }));
+    REQUIRE(s.find(int_element{ 3, 0.0f }) == s.end());
+    REQUIRE(s.find(int_element{ 4, 0.0f }) == s.end());
+    REQUIRE((*s.find(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f }));
+    REQUIRE(s.find(int_element{ 6, 1.0f }) == s.end());
 
-    static_assert([&]() { int_set const cs = item(); return cs.find(int_element{ 0, 1.0f }) == cs.end(); }());
-    static_assert([&]() { int_set const cs = item(); return *cs.find(int_element{ 3, 1.0f }) == int_element{ 3, 1.0f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.find(int_element{ 4, 1.0f }) == cs.end(); }());
-    static_assert([&]() { int_set const cs = item(); return *cs.find(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f }; }());
-    static_assert([&]() { int_set const cs = item(); return cs.find(int_element{ 6, 0.0f }) == cs.end(); }());
+    REQUIRE(cs.find(int_element{ 0, 1.0f }) == cs.end());
+    REQUIRE((*cs.find(int_element{ 3, 1.0f }) == int_element{ 3, 1.0f }));
+    REQUIRE(cs.find(int_element{ 4, 1.0f }) == cs.end());
+    REQUIRE((*cs.find(int_element{ 5, 0.8f }) == int_element{ 5, 0.8f }));
+    REQUIRE(cs.find(int_element{ 5, 0.7f }) == cs.end());
+    REQUIRE(cs.find(int_element{ 6, 0.0f }) == cs.end());
+
+    return true;
 }
 
-consteval void static_test_set_contains()
+constexpr bool int_set_contains()
+{
+    // find on keys
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(!cs.contains(0));
+    REQUIRE(cs.contains(3));
+    REQUIRE(!cs.contains(4));
+    REQUIRE(cs.contains(5));
+    REQUIRE(!cs.contains(6));
+
+    // find on elements
+    REQUIRE(!cs.contains(int_element{ 0, 1.0f }));
+    REQUIRE(cs.contains(int_element{ 3, 1.0f }));
+    REQUIRE(!cs.contains(int_element{ 3, 0.7f }));
+    REQUIRE(!cs.contains(int_element{ 4, 1.0f }));
+    REQUIRE(cs.contains(int_element{ 5, 0.8f }));
+    REQUIRE(!cs.contains(int_element{ 5, 1.0f }));
+    REQUIRE(!cs.contains(int_element{ 6, 0.0f }));
+
+    return true;
+}
+
+constexpr bool int_set_count()
 {
     // count on keys
-    constexpr auto cs = []() { return int_set{ {3, 1.0f}, {5, 0.8f} }; };
-    static_assert(!cs().contains(0));
-    static_assert(cs().contains(3));
-    static_assert(!cs().contains(4));
-    static_assert(cs().contains(5));
-    static_assert(!cs().contains(6));
+    int_set const cs = { {3, 1.0f}, {5, 0.8f} };
+    REQUIRE(cs.count(0) == 0u);
+    REQUIRE(cs.count(3) == 1u);
+    REQUIRE(cs.count(4) == 0u);
+    REQUIRE(cs.count(5) == 1u);
+    REQUIRE(cs.count(6) == 0u);
 
     // count on elements
-    static_assert(!cs().contains(int_element{ 0, 1.0f }));
-    static_assert(cs().contains(int_element{ 3, 1.0f }));
-    static_assert(!cs().contains(int_element{ 3, 0.7f }));
-    static_assert(!cs().contains(int_element{ 4, 1.0f }));
-    static_assert(cs().contains(int_element{ 5, 0.8f }));
-    static_assert(!cs().contains(int_element{ 5, 1.0f }));
-    static_assert(!cs().contains(int_element{ 6, 0.0f }));
+    REQUIRE(cs.count(int_element{ 0, 1.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 3, 1.0f }) == 1u);
+    REQUIRE(cs.count(int_element{ 3, 0.7f }) == 0u);
+    REQUIRE(cs.count(int_element{ 4, 1.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 5, 0.8f }) == 1u);
+    REQUIRE(cs.count(int_element{ 5, 1.0f }) == 0u);
+    REQUIRE(cs.count(int_element{ 6, 0.0f }) == 0u);
+
+    return true;
 }
 
-consteval void static_test_set_count()
-{
-    // find on keys
-    constexpr auto cs = []() { return int_set{ {3, 1.0f}, {5, 0.8f} }; };
-    static_assert(cs().count(0) == 0u);
-    static_assert(cs().count(3) == 1u);
-    static_assert(cs().count(4) == 0u);
-    static_assert(cs().count(5) == 1u);
-    static_assert(cs().count(6) == 0u);
-
-    // find on elements
-    static_assert(cs().count(int_element{ 0, 1.0f }) == 0u);
-    static_assert(cs().count(int_element{ 3, 1.0f }) == 1u);
-    static_assert(cs().count(int_element{ 3, 0.7f }) == 0u);
-    static_assert(cs().count(int_element{ 4, 1.0f }) == 0u);
-    static_assert(cs().count(int_element{ 5, 0.8f }) == 1u);
-    static_assert(cs().count(int_element{ 5, 1.0f }) == 0u);
-    static_assert(cs().count(int_element{ 6, 0.0f }) == 0u);
-}
-
-consteval void static_set_insert()
+constexpr bool int_set_insert()
 {
     // insertion of elements.
-    constexpr auto cs0 = []() 
-    {
-        int_set cs;
-        cs.insert({ {3, 1.0f}, {5, 0.8f} });
-        return cs;
-    };
+    int_set cs;
+    cs.insert({ {3, 1.0f}, {5, 0.8f} });
+    REQUIRE(cs.count(0) == 0u);
+    REQUIRE(cs.count(3) == 1u);
+    REQUIRE(cs.count(4) == 0u);
+    REQUIRE(cs.count(5) == 1u);
+    REQUIRE(cs.count(6) == 0u);
 
-    static_assert(!cs0().contains(0));
-    static_assert(cs0().contains(3));
-    static_assert(!cs0().contains(4));
-    static_assert(cs0().contains(5));
-    static_assert(!cs0().contains(6));
+    cs.insert(int_element{ 4, 0.4f });
+    REQUIRE(cs.contains(4));
+    cs.insert(cs.cend(), int_element{ 0, 0.3f });
+    REQUIRE(cs.contains(0));
 
-    constexpr auto cs1 = [=]()
-    {
-        int_set cs = cs0();
-        cs.insert({ {3, 1.0f}, {5, 0.8f} });
-        return cs;
-    };
-    
-    static_assert(cs1().count(0) == 0u);
-    static_assert(cs1().count(3) == 1u);
-    static_assert(cs1().count(4) == 0u);
-    static_assert(cs1().count(5) == 1u);
-    static_assert(cs1().count(6) == 0u);
+    std::vector<int_element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
+    cs.insert(other.begin(), other.end());
+    REQUIRE(cs.contains(int_element{ 5, 0.8f }));
+    REQUIRE(cs.contains(int_element{ 6, 0.6f }));
+    REQUIRE(cs.contains(int_element{ 7, 1.0f }));
 
-    constexpr auto cs2 = [=]()
-    {
-        int_set cs = cs1();
-        cs.insert(int_element{ 4, 0.4f });
-        return cs;
-    };
-    static_assert(cs2().contains(4));
+    auto pair1 = cs.insert(cs.begin(), int_element{ 4, 1.0f });
+    REQUIRE(pair1.second == false);
+    REQUIRE(pair1.first != cs.end());
 
-    constexpr auto cs3 = [=]()
-    {
-        int_set cs = cs2();
-        cs.insert(cs.cend(), int_element{ 0, 0.3f });
-        return cs;
-    };
-    static_assert(cs3().contains(0) == 1u);
+    auto pair2 = cs.insert(cs.end(), int_element{ -1, 0.1f });
+    REQUIRE(pair2.second == true);
+    REQUIRE(pair2.first == cs.begin());
 
-    constexpr auto cs4 = [=]()
-    {
-        int_set cs = cs3();
-        std::vector<int_element> const other = { {7, 1.0f}, {5, 0.0f}, {6, 0.6f} };
-        cs.insert(cbegin(other), cend(other));
-        return cs;
-    };
-    static_assert(cs4().contains(int_element{5, 0.8f}) && cs4().contains(int_element{6, 0.6f}) && cs4().contains(int_element{7, 1.0f}));
-
-    constexpr auto cs5a = [=]()
-    {
-        int_set cs = cs4();
-        auto pair1 = cs.insert(cs.begin(), int_element{ 4, 1.0f });
-        return pair1.first != cs.end() && pair1.second == false;
-    };
-    static_assert(cs5a());
-    
-    constexpr auto cs5b = [=]()
-    {
-        int_set cs = cs4();
-        auto pair2 = cs.insert(cs.end(), int_element{ -1, 0.1f });
-        return pair2.first == cs.begin() && pair2.second == true;
-    };
-    static_assert(cs5b());
+    return true;
 }
- 
-consteval void static_test_TR0_test()
+
+
+constexpr bool TR0_int_set()
 {
-    constexpr auto item = []() { return make_triangle<float>(4, 8, 12); };
-    static_assert(item().size() == 3);
-    static_assert(all_ranges_valid(item()));
-    static_assert(item().membership(4) == 0.0f);
-    static_assert(item().membership(6) == 0.5f);
-    static_assert(item().membership(8) == 1.0f);
-    static_assert(item().membership(10) == 0.5f);
-    static_assert(item().membership(12) == 0.0f);
+    int_set item = make_triangle<float>(4, 8, 12);
+    REQUIRE(item.membership(2) == 0.0f);
+    REQUIRE(item.membership(4) == 0.0f);
+    REQUIRE(item.membership(6) == 0.5f);
+    REQUIRE(item.membership(8) == 1.0f);
+    REQUIRE(item.membership(10) == 0.5f);
+    REQUIRE(item.membership(12) == 0.0f);
+    REQUIRE(item.membership(14) == 0.0f);
 
-    static_assert(!item().empty());
-    static_assert(item().size() == 3u);
-    static_assert(all_ranges_valid(item()));
+    REQUIRE(!item.empty());
+    REQUIRE(item.size() == 3u);
+    REQUIRE(all_ranges_valid(item));
+    REQUIRE(item.find(int_element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(int_element{ 8, 1.0f }) != item.cend());
+    REQUIRE(!item.contains(0));
+    REQUIRE(item.contains(4));
+    REQUIRE(item.count(0) == 0);
+    REQUIRE(item.count(4) == 1);
+    REQUIRE(item.count(int_element{ 0, 0.3f }) == 0);
+    REQUIRE(item.count(int_element{ 12, 0.0f }) == 1);
+
+    return true;
 }
 
-consteval void static_test_TR1_set()
+
+constexpr bool TR1_int_set()
 {
-    constexpr auto item = []() { return make_trapezoid<float>(4, 8, 12, 16); };
-    static_assert(item().membership(2) == 0.0f);
-    static_assert(item().membership(4) == 0.0f);
-    static_assert(item().membership(6) == 0.5f);
-    static_assert(item().membership(8) == 1.0f);
-    static_assert(item().membership(10) == 1.0f);
-    static_assert(item().membership(12) == 1.0f);
-    static_assert(item().membership(14) == 0.5f);
-    static_assert(item().membership(16) == 0.0f);
-    static_assert(item().membership(18) == 0.0f);
+    int_set item = make_trapezoid<float>(4, 8, 12, 16);
+    REQUIRE(item.membership(2) == 0.0f);
+    REQUIRE(item.membership(4) == 0.0f);
+    REQUIRE(item.membership(6) == 0.5f);
+    REQUIRE(item.membership(8) == 1.0f);
+    REQUIRE(item.membership(10) == 1.0f);
+    REQUIRE(item.membership(12) == 1.0f);
+    REQUIRE(item.membership(14) == 0.5f);
+    REQUIRE(item.membership(16) == 0.0f);
+    REQUIRE(item.membership(18) == 0.0f);
 
-    static_assert(!item().empty());
-    static_assert(item().size() == 4u);
-    static_assert(all_ranges_valid(item()));
+    REQUIRE(!item.empty());
+    REQUIRE(item.size() == 4u);
+    REQUIRE(all_ranges_valid(item));
+    REQUIRE(item.find(int_element{ 0, 0.3f }) == item.cend());
+    REQUIRE(item.find(int_element{ 8, 1.0f }) != item.cend());
+    REQUIRE((*item.find(int_element{ 8, 1.0f }) == int_element{ 8, 1.0f }));
+    REQUIRE(!item.contains(0));
+    REQUIRE(item.contains(4));
+    REQUIRE(item.count(0) == 0);
+    REQUIRE(item.count(4) == 1);
+    REQUIRE(item.count(int_element{ 8, 1.0f }) == 1);
+    REQUIRE(item.count(int_element{ std::numeric_limits<int>::max(), 0.3f }) == 0);
+    REQUIRE(item.count(int_element{ std::numeric_limits<int>::max(), 0.0f }) == 0);
+
+    return true;
 }
 
-consteval void static_test_SET_complement()
+constexpr bool SET_complement()
 {
     // Default case.
-    constexpr auto empty_c = []() { return ~int_set{}; };
-    static_assert(empty_c().size() == 2u);
-    static_assert(empty_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
-    static_assert(empty_c().membership(0) == 1.0f);
-    static_assert(empty_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+    int_set const empty;
+    int_set const empty_c = ~empty;
+    REQUIRE(empty_c.size() == 2u);
+    REQUIRE(empty_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(empty_c.membership(0) == 1.0f);
+    REQUIRE(empty_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 
     // Common case.
-    constexpr auto tri_c = []() { return ~make_triangle<float>(4, 8, 12); };
-    static_assert(tri_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
-    static_assert(tri_c().membership(4) == 1.0f);
-    static_assert(tri_c().membership(6) == 0.5f);
-    static_assert(tri_c().membership(8) == 0.0f);
-    static_assert(tri_c().membership(10) == 0.5f);
-    static_assert(tri_c().membership(12) == 1.0f);
-    static_assert(tri_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+    int_set const tri = make_triangle<float>(4, 8, 12);
+    int_set const tri_c = ~tri;
+    REQUIRE(tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(tri_c.membership(4) == 1.0f);
+    REQUIRE(tri_c.membership(6) == 0.5f);
+    REQUIRE(tri_c.membership(8) == 0.0f);
+    REQUIRE(tri_c.membership(10) == 0.5f);
+    REQUIRE(tri_c.membership(12) == 1.0f);
+    REQUIRE(tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 
-    //// Extreme boundary case
-    constexpr auto eb_tri_c = []() { return ~make_triangle<float>(std::numeric_limits<int>::lowest(), 0, std::numeric_limits<int>::max()); };
-    static_assert(eb_tri_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
-    static_assert(eb_tri_c().membership(0) == 0.0f);
-    static_assert(eb_tri_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+    // Extreme boundary case
+    int_set const eb_tri = make_triangle<float>(std::numeric_limits<int>::lowest(), 0, std::numeric_limits<int>::max());
+    int_set const eb_tri_c = ~eb_tri;
+    REQUIRE(eb_tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(eb_tri_c.membership(0) == 0.0f);
+    REQUIRE(eb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 
-    //// Near extreme boundary case
-    //int_set const neb_tri = make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1);
-    constexpr auto neb_tri_c = []() { return ~make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1); };
-    static_assert(neb_tri_c().membership(std::numeric_limits<int>::lowest()) == 1.0f);
-    static_assert(neb_tri_c().membership(std::numeric_limits<int>::lowest() + 1) == 1.0f);
-    static_assert(neb_tri_c().membership(0) == 0.0f);
-    static_assert(neb_tri_c().membership(std::numeric_limits<int>::max() - 1) == 1.0f);
-    static_assert(neb_tri_c().membership(std::numeric_limits<int>::max()) == 1.0f);
+    // Near extreme boundary case
+    int_set const neb_tri = make_triangle<float>(std::numeric_limits<int>::lowest() + 1, 0, std::numeric_limits<int>::max() - 1);
+    int_set const neb_tri_c = ~neb_tri;
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::lowest()) == 1.0f);
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::lowest() + 1) == 1.0f);
+    REQUIRE(neb_tri_c.membership(0) == 0.0f);
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max() - 1) == 1.0f);
+    REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
+
+    return true;
 }
 
-consteval void static_test_SET_intersection()
+constexpr bool SET_intersection()
 {
-    // Common case left-right
-    constexpr auto si_cc_lr = []() { return set_intersection<minimum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12)); };
-    static_assert(si_cc_lr().membership(3) == 0.0f);
-    static_assert(si_cc_lr().membership(4) == 0.0f);
-    static_assert(si_cc_lr().membership(5) == 0.25f);
-    static_assert(si_cc_lr().membership(6) == 0.50f);
-    static_assert(si_cc_lr().membership(7) == 0.75f);
-    static_assert(si_cc_lr().membership(8) == 0.75f);
-    static_assert(si_cc_lr().membership(9) == 0.50f);
-    static_assert(si_cc_lr().membership(10) == 0.25f);
-    static_assert(si_cc_lr().membership(11) == 0.0f);
-    static_assert(si_cc_lr().membership(12) == 0.0f);
+    using int_element = basic_element<int, float>;
+    using element = basic_element<float, float>;
 
-    // Common case right-left
-    constexpr auto si_cc_rl = []() { return set_intersection<minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11)); };
-    static_assert(si_cc_rl().membership(3) == 0.0f);
-    static_assert(si_cc_rl().membership(4) == 0.0f);
-    static_assert(si_cc_rl().membership(5) == 0.25f);
-    static_assert(si_cc_rl().membership(6) == 0.50f);
-    static_assert(si_cc_rl().membership(7) == 0.75f);
-    static_assert(si_cc_rl().membership(8) == 0.75f);
-    static_assert(si_cc_rl().membership(9) == 0.50f);
-    static_assert(si_cc_rl().membership(10) == 0.25f);
-    static_assert(si_cc_rl().membership(11) == 0.0f);
-    static_assert(si_cc_rl().membership(12) == 0.0f);
-
-    // Boundary case left-right
-    constexpr auto si_bc_lr = []() { return set_intersection<minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20)); };
-    static_assert(si_bc_lr().membership(3) == 0.0f);
-    static_assert(si_bc_lr().membership(4) == 0.0f);
-    static_assert(si_bc_lr().membership(5) == 0.0f);
-    static_assert(si_bc_lr().membership(11) == 0.0f);
-    static_assert(si_bc_lr().membership(12) == 0.0f);
-    static_assert(si_bc_lr().membership(13) == 0.0f);
-    static_assert(si_bc_lr().membership(19) == 0.0f);
-    static_assert(si_bc_lr().membership(20) == 0.0f);
-    static_assert(si_bc_lr().membership(21) == 0.0f);
-
-    constexpr auto si_bc_rl = []() { return set_intersection<minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12)); };
-    static_assert(si_bc_rl().membership(3) == 0.0f);
-    static_assert(si_bc_rl().membership(4) == 0.0f);
-    static_assert(si_bc_rl().membership(5) == 0.0f);
-    static_assert(si_bc_rl().membership(11) == 0.0f);
-    static_assert(si_bc_rl().membership(12) == 0.0f);
-    static_assert(si_bc_rl().membership(13) == 0.0f);
-    static_assert(si_bc_rl().membership(19) == 0.0f);
-    static_assert(si_bc_rl().membership(20) == 0.0f);
-    static_assert(si_bc_rl().membership(21) == 0.0f);
-
-    // Boundary past each-other case
-    constexpr auto si_bp_lr = []() { return set_intersection<minimum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20)); };
-    static_assert(si_bp_lr().membership(-13) == 0.0f);
-    static_assert(si_bp_lr().membership(-12) == 0.0f);
-    static_assert(si_bp_lr().membership(-7) == 0.0f);
-    static_assert(si_bp_lr().membership(-3) == 0.0f);
-    static_assert(si_bp_lr().membership(11) == 0.0f);
-    static_assert(si_bp_lr().membership(12) == 0.0f);
-    static_assert(si_bp_lr().membership(17) == 0.0f);
-    static_assert(si_bp_lr().membership(20) == 0.0f);
-    static_assert(si_bp_lr().membership(21) == 0.0f);
-
-    constexpr auto si_bp_rl = []() { return set_intersection<minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4)); };
-    static_assert(si_bp_rl().membership(-13) == 0.0f);
-    static_assert(si_bp_rl().membership(-12) == 0.0f);
-    static_assert(si_bp_rl().membership(-7) == 0.0f);
-    static_assert(si_bp_rl().membership(-3) == 0.0f);
-    static_assert(si_bp_rl().membership(11) == 0.0f);
-    static_assert(si_bp_rl().membership(12) == 0.0f);
-    static_assert(si_bp_rl().membership(17) == 0.0f);
-    static_assert(si_bp_rl().membership(20) == 0.0f);
-    static_assert(si_bp_rl().membership(21) == 0.0f);
-}
-
-consteval void static_test_SET_union()
-{
-    // Common case 
-    constexpr auto su_cc_lr = []() { return set_union<maximum>(make_triangle<float>(3, 7, 11), make_triangle<float>(4, 8, 12)); };
-    static_assert(su_cc_lr().membership(3) == 0.0f);
-    static_assert(su_cc_lr().membership(4) == 0.25f);
-    static_assert(su_cc_lr().membership(5) == 0.50f);
-    static_assert(su_cc_lr().membership(6) == 0.75f);
-    static_assert(su_cc_lr().membership(7) == 1.0f);
-    static_assert(su_cc_lr().membership(8) == 1.0f);
-    static_assert(su_cc_lr().membership(9) == 0.75f);
-    static_assert(su_cc_lr().membership(10) == 0.50f);
-    static_assert(su_cc_lr().membership(11) == 0.25f);
-    static_assert(su_cc_lr().membership(12) == 0.0f);
-
-    constexpr auto su_cc_rl = []() { return set_union<maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(3, 7, 11)); };
-    static_assert(su_cc_rl().membership(3) == 0.0f);
-    static_assert(su_cc_rl().membership(4) == 0.25f);
-    static_assert(su_cc_rl().membership(5) == 0.50f);
-    static_assert(su_cc_rl().membership(6) == 0.75f);
-    static_assert(su_cc_rl().membership(7) == 1.0f);
-    static_assert(su_cc_rl().membership(8) == 1.0f);
-    static_assert(su_cc_rl().membership(9) == 0.75f);
-    static_assert(su_cc_rl().membership(10) == 0.50f);
-    static_assert(su_cc_rl().membership(11) == 0.25f);
-    static_assert(su_cc_rl().membership(12) == 0.0f);
-
-    // Boundary case
-    constexpr auto su_bc_lr = [](){ return set_union<maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20)); };
-    static_assert(su_bc_lr().membership(3) == 0.0f);
-    static_assert(su_bc_lr().membership(4) == 0.0f);
-    static_assert(su_bc_lr().membership(5) == 0.25f);
-    static_assert(su_bc_lr().membership(11) == 0.25f);
-    static_assert(su_bc_lr().membership(12) == 0.0f);
-    static_assert(su_bc_lr().membership(13) == 0.25f);
-    static_assert(su_bc_lr().membership(16) == 1.0f);
-    static_assert(su_bc_lr().membership(20) == 0.0f);
-    static_assert(su_bc_lr().membership(21) == 0.0f);
-
-    // Boundaries past each-other case
-    constexpr auto su_bp_lr = []() { return set_union<maximum>(make_triangle<float>(-12, -8, -4), make_triangle<float>(12, 16, 20)); };
-    static_assert(su_bp_lr().membership(-13) == 0.0f);
-    static_assert(su_bp_lr().membership(-12) == 0.0f);
-    static_assert(su_bp_lr().membership(-5) == 0.25f);
-    static_assert(su_bp_lr().membership(-3) == 0.0f);
-    static_assert(su_bp_lr().membership(11) == 0.0f);
-    static_assert(su_bp_lr().membership(12) == 0.0f);
-    static_assert(su_bp_lr().membership(16) == 1.0f);
-    static_assert(su_bp_lr().membership(17) == 0.75f);
-    static_assert(su_bp_lr().membership(20) == 0.0f);
-    static_assert(su_bp_lr().membership(21) == 0.0f);
-
-    constexpr auto su_bp_rl = []() { return set_union<maximum>(make_triangle<float>(12, 16, 20), make_triangle<float>(-12, -8, -4)); };
-    static_assert(su_bp_rl().membership(-13) == 0.0f);
-    static_assert(su_bp_rl().membership(-12) == 0.0f);
-    static_assert(su_bp_rl().membership(-5) == 0.25f);
-    static_assert(su_bp_rl().membership(-3) == 0.0f);
-    static_assert(su_bp_rl().membership(11) == 0.0f);
-    static_assert(su_bp_rl().membership(12) == 0.0f);
-    static_assert(su_bp_rl().membership(16) == 1.0f);
-    static_assert(su_bp_rl().membership(17) == 0.75f);
-    static_assert(su_bp_rl().membership(20) == 0.0f);
-    static_assert(su_bp_rl().membership(21) == 0.0f);
-}
-
-consteval void static_test_Relation()
-{
-    constexpr auto rel = [](int d, int r)
+    // Triangle No overlap case L-R,
     {
-        int_set large = make_triangle<float>(1200, 1600, 2000);
-        int_set strong = make_triangle<float>(1600, 2000, 2400);
-        relation rel{ large, strong, minimum{} };
-        return rel.membership(d, r);
-    };
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(16, 20, 24));
+        REQUIRE(s.size() == 0u);
+    }
 
-    static_assert(rel(1200, 1600) == 0.0f);
-    static_assert(rel(1200, 2000) == 0.0f);
-    static_assert(rel(1400, 1800) == 0.5f);
-    static_assert(rel(1600, 2000) == 1.0f);
-    static_assert(rel(1700, 1900) == 0.75f);
-    static_assert(rel(1900, 2200) == 0.25f);
-    static_assert(rel(1100, 1900) == 0.0f);
+    // Triangle No overlap case R-L,
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(16, 20, 24), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Triangle Touching case R-L
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Triangle Touching case L-R
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Perfectly overlapped
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Half overlap case (idiomatic) L-R
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(8, 12, 16));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 8, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Half overlap case (idiomatic) R-L
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(8, 12, 16), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 8, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Cap over cap case L-R
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4, 8, 12), make_triangle<float>(6, 8, 10));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 6, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.0f }));
+    }
+
+    // Cap over cap case R-L
+    {
+        int_set s = set_intersection<fuzzy::minimum>(make_triangle<float>(6, 8, 10), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 6, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.0f }));
+    }
+
+    // Triangle overlaps segment-0 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 6.0f, 8.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-0 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(4.0f, 6.0f, 8.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(8.0f, 10.0f, 12.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(8.0f, 10.0f, 12.0f));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+
+    // Triangle intersects segment-0 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(5.0f, 6.0f, 7.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 5.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-0 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(5.0f, 6.0f, 7.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 5.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(9.0f, 10.0f, 11.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 9.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 11.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(9.0f, 10.0f, 11.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 9.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 11.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(6.0f, 8.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 8.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(make_triangle<float>(6.0f, 7.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 7.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 0.0f }));
+    }
+
+    // Single segment intersection overlapped L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {4.0f, 1.0f}, {8.0f, 0.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection overlapped R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 1.0f}, {8.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+    }
+
+
+    // Single segment intersection offset L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {3.0f, 0.0f}, {7.0f, 1.0f} }, set{ {4.0f, 1.0f}, {8.0f, 0.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.5f, 0.625f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection offset R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 1.0f}, {8.0f, 0.0f} }, set{ {3.0f, 0.0f}, {7.0f, 1.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.5f, 0.625f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection disjoint L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {-1.0f, 1.0f}, {3.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Single segment intersection disjoint R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {-1.0f, 1.0f}, {3.0f, 0.0f} });
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Signle segment touching L-R
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {0.0f, 1.0f}, {4.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 0u);
+    }
+
+    // Signle segment touching R-L
+    {
+        set s = set_intersection<fuzzy::minimum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {0.0f, 1.0f}, {4.0f, 0.0f} });
+        REQUIRE(s.size() == 0u);
+    }
+
+    return true;
 }
+
+constexpr bool SET_union()
+{
+    using int_element = basic_element<int, float>;
+    using element = basic_element<float, float>;
+
+    // Triangle No overlap case L-R,
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(16, 20, 24));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 24, 0.0f }));
+    }
+
+    // Triangle No overlap case R-L,
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(16, 20, 24), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 24, 0.0f }));
+    }
+
+    // Triangle Touching case R-L
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(12, 16, 20));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 0.0f }));
+    }
+
+    // Triangle Touching case L-R
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(12, 16, 20), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 20, 0.0f }));
+    }
+
+    // Perfectly overlapped
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Half overlap case (idiomatic) L-R
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(8, 12, 16));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+    }
+
+    // Half overlap case (idiomatic) R-L
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(8, 12, 16), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 10, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 16, 0.0f }));
+    }
+
+    // Cap over cap case L-R
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(4, 8, 12), make_triangle<float>(6, 8, 10));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Cap over cap case R-L
+    {
+        int_set s = set_union<fuzzy::maximum>(make_triangle<float>(6, 8, 10), make_triangle<float>(4, 8, 12));
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, int_element{ 4, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 8, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, int_element{ 12, 0.0f }));
+    }
+
+    // Triangle overlaps segment-0 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 6.0f, 8.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-0 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(4.0f, 6.0f, 8.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(8.0f, 10.0f, 12.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle overlaps segment-1 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(8.0f, 10.0f, 12.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.666667f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+
+    // Triangle intersects segment-0 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(5.0f, 6.0f, 7.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-0 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(5.0f, 6.0f, 7.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.4f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(4.0f, 8.0f, 12.0f), make_triangle<float>(9.0f, 10.0f, 11.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersects segment-1 R-L
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(9.0f, 10.0f, 11.0f), make_triangle<float>(4.0f, 8.0f, 12.0f));
+        REQUIRE(s.size() == 6u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.6f, 0.6f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 10.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(6.0f, 8.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 8.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.666667f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 9.333333f, 0.333333f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset L-R
+    {
+        set s = set_union<fuzzy::maximum>(make_triangle<float>(6.0f, 7.0f, 10.0f), set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Triangle intersections segments-0-1 offset R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 0.5f}, {12.0f, 0.0f} }, make_triangle<float>(6.0f, 7.0f, 10.0f));
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.285714f, 0.285714f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.8f, 0.4f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 12.0f, 0.0f }));
+    }
+
+    // Single segment intersection overlapped L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {4.0f, 1.0f}, {8.0f, 0.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection overlapped R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 1.0f}, {8.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 6.0f, 0.5f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+        ++itr;
+    }
+
+
+    // Single segment intersection offset L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {3.0f, 0.0f}, {7.0f, 1.0f} }, set{ {4.0f, 1.0f}, {8.0f, 0.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.5f, 0.625f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+    }
+
+    // Single segment intersection offset R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 1.0f}, {8.0f, 0.0f} }, set{ {3.0f, 0.0f}, {7.0f, 1.0f} });
+        REQUIRE(s.size() == 5u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 5.5f, 0.625f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 7.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 0.0f }));
+        ++itr;
+
+    }
+
+    // Single segment intersection disjoint L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {-1.0f, 1.0f}, {3.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ -1.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    // Single segment intersection disjoint R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {-1.0f, 1.0f}, {3.0f, 0.0f} });
+        REQUIRE(s.size() == 4u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ -1.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 3.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    // Signle segment touching L-R
+    {
+        set s = set_union<fuzzy::maximum>(set{ {0.0f, 1.0f}, {4.0f, 0.0f} }, set{ {4.0f, 0.0f}, {8.0f, 1.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 0.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    // Signle segment touching R-L
+    {
+        set s = set_union<fuzzy::maximum>(set{ {4.0f, 0.0f}, {8.0f, 1.0f} }, set{ {0.0f, 1.0f}, {4.0f, 0.0f} });
+        REQUIRE(s.size() == 3u);
+
+        auto itr = s.cbegin();
+        REQUIRE(equivelant(*itr, element{ 0.0f, 1.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 4.0f, 0.0f }));
+        ++itr;
+        REQUIRE(equivelant(*itr, element{ 8.0f, 1.0f }));
+    }
+
+    return true;
+}
+
+consteval void evaluate_static_tests()
+{
+    static_assert(membership_bounds_check());
+    static_assert(t_norm_tests());
+    static_assert(t_conorm_tests());
+    static_assert(basic_element_tests());
+    static_assert(empty_int_set());
+    static_assert(one_int_element_int_set());
+    static_assert(two_int_element_int_set());
+    static_assert(int_set_equivalence());
+    static_assert(int_set_copy_construct());
+    static_assert(int_set_move_construct());
+    static_assert(int_set_assignment());
+    static_assert(int_set_lowerbound());
+    static_assert(int_set_upperbound());
+    static_assert(int_set_find());
+    static_assert(int_set_find());
+    static_assert(int_set_contains());
+    static_assert(int_set_count());
+    static_assert(int_set_insert());
+    static_assert(TR0_int_set());
+    static_assert(TR1_int_set());
+    static_assert(SET_complement());
+    static_assert(SET_intersection());
+    static_assert(SET_union());
+};
 
 
 

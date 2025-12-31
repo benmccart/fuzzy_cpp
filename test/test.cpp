@@ -555,37 +555,6 @@ TEST_CASE("SET-complement", "[SET_complement]")
     REQUIRE(neb_tri_c.membership(std::numeric_limits<int>::max()) == 1.0f);
 }
 
-TEST_CASE("SET-operation-sequence", "[SET_operation_sequence]")
-{
-    int_set a_even = make_triangle<float>(16, 24, 32);
-    int_set b_even = make_triangle<float>(24, 32, 40);
-    int_set c1_even = set_intersection<fuzzy::minimum>(a_even, b_even);
-    REQUIRE(c1_even.size() == 3);
-    REQUIRE(c1_even.membership(24) == 0.0f);
-    REQUIRE(c1_even.membership(28) == 0.5f);
-    REQUIRE(c1_even.membership(32) == 0.0f);
-
-    int_set c2_even = set_intersection<fuzzy::minimum>(b_even, a_even);
-    REQUIRE(c2_even.size() == 3);
-    REQUIRE(c2_even.membership(24) == 0.0f);
-    REQUIRE(c2_even.membership(28) == 0.5f);
-    REQUIRE(c2_even.membership(32) == 0.0f);
-
-    int_set a_minor = make_triangle<float>(16, 24, 32);
-    int_set b_minor = make_triangle<float>(28, 36, 44);
-    int_set c1_minor = set_intersection<fuzzy::minimum>(a_minor, b_minor);
-    REQUIRE(c1_minor.size() == 3);
-    REQUIRE(c1_minor.membership(28) == 0.0f);
-    REQUIRE(c1_minor.membership(30) == 0.25f);
-    REQUIRE(c1_minor.membership(32) == 0.0f);
-
-    int_set c2_minor = set_intersection<fuzzy::minimum>(b_minor, a_minor);
-    REQUIRE(c2_minor.size() == 3);
-    REQUIRE(c2_minor.membership(28) == 0.0f);
-    REQUIRE(c2_minor.membership(30) == 0.25f);
-    REQUIRE(c2_minor.membership(32) == 0.0f);
-}
-
 TEST_CASE("SET-intersection", "[SET_intersection]")
 {
     using int_element = basic_element<int, float>;
