@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -51,6 +51,12 @@ namespace fuzzy
 	namespace detail
 	{
 
+		/**
+		 * @brief Manages complex state of iterating two sets.
+		 * @tparam V The set element value type.
+		 * @tparam M The set element membership type.
+		 * @tparam Allocator The allocator type.
+		*/
 		template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 		class set_operation_value_sequence
 		{
@@ -59,6 +65,10 @@ namespace fuzzy
 			using element_t = typename set_t::element_type;
 			using value_t = std::pair<element_t,element_t>;
 
+			/**
+			 * @brief Iterator type that handles all the gory details of iterating over the two sets so that vertices for each are iterated in order
+			 *        with the membership of each set supplied for each value.  Includes all intersections between the two sets in order.
+			*/
 			class const_iterator
 			{
 			public:
@@ -134,18 +144,13 @@ namespace fuzzy
 				constexpr reference operator*()
 				{
 					return dref_impl();
-					//last_v_ = ref.first.value();
-					//return ref;
 				}
 
-				//constexpr reference operator*() const
-				//{
-				//	??	
-				//}
-
-	
 			private:
 
+				/**
+				 * @brief The next advance operation.
+				*/
 				enum class advance
 				{
 					to_a,
@@ -158,6 +163,9 @@ namespace fuzzy
 					a_and_b_to_next
 				};
 
+				/**
+				 * @brief Identification tag for iterator.
+				*/
 				enum class iterator_tag
 				{
 					a_next = 1,
@@ -487,33 +495,10 @@ namespace fuzzy
 		template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 		constexpr typename set_operation_value_sequence<V, M, Container>::iterator end(set_operation_value_sequence<V, M, Container, Allocator> const& set)   { return set.end();   }
 
-		struct trim
-		{
-			template <class V, class M, template <typename T, typename Alloc> class Container>
-			constexpr static void apply(fuzzy::basic_set<V, M, Container>& v)
-			{
-				constexpr M zero_m = static_cast<M>(0);
-				if (v.size() < 3ull)
-					return;
-
-				auto ritr = cend(v) - 1ull;
-				auto ritr_next = ritr - 1ull;
-				for (; ritr->membership() == zero_m && ritr_next != cbegin(v) && ritr_next->membership() == zero_m; ritr = v.erase(ritr) - 1ull, ritr_next = ritr - 1ull) {}
-
-				auto itr = cbegin(v);
-				auto itr_next = itr + 1ull;
-				for (; itr->membership() == zero_m && (cend(v) - itr_next) > 1ull && itr_next->membership() == zero_m; itr = v.erase(itr), itr_next = itr + 1ull) {}
-			}
-
-
-		};
-
-
-
 		/**
 		 * @brief A utility class for simplifying a fuzzy set.
-		 * @tparam M Floating-point type used for membership.
-		 * @tparam V Integral type used for value.
+		 * @tparam M The set element membership type.
+		 * @tparam V The set element value type.
 		 * @tparam Container The container type used for the set.
 		*/
 		template <class V, class M, template <typename T, typename Alloc> class Container>
@@ -711,9 +696,22 @@ namespace fuzzy
 			}
 		};
 
+		/**
+		 * @brief Implements a binary operation applied to each member of a pair of sets.
+		 * @tparam Operation The binary operation type to perform on the elements of the sets.
+		*/
 		template <template <typename> class Operation>
 		struct operation
 		{
+			/**
+			 * @brief Applies the binary operation to the elements of the two sets.
+			 * @tparam V The set element value type.
+			 * @tparam M The set element membership type.
+			 * @tparam Allocator The element allocator type used by the sets.
+			 * @param a The first operand set.
+			 * @param b The second operand set.
+			 * @return A new set that is the result of the operation.
+			*/
 			template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 			requires (fuzzy::tnorm_type<Operation<M>> || fuzzy::tconorm_type<Operation<M>>) && std::floating_point<M>
 			[[nodiscard]] constexpr static fuzzy::basic_set<V, M, Container, Allocator> apply(fuzzy::basic_set<V, M, Container, Allocator> const& a, fuzzy::basic_set<V, M, Container, Allocator> const& b)
@@ -742,88 +740,16 @@ namespace fuzzy
 			}
 		};
 
-		template <class V, class VF>
-		requires ValueFunction<VF, V>
-		V values(V a, V b, VF vf)
-		{
-			return vf(a, b);
-		}
-
-		/* Triangular conorm function object.**/
-		template <typename M = float>
-		requires std::floating_point<M>
-		class tconorm_binder
-		{
-		public:
-			using tconorm = tconorm_tag;
-			using value_type = M;
-			using func_ptr = M(*)(M x, M y);
-
-			tconorm_binder() { func_ = [](M, M) { return std::numeric_limits<M>::quiet_NaN(); }; }
-			tconorm_binder(tconorm_binder<M> const&) = delete;
-			tconorm_binder(tconorm_binder<M>&&) = delete;
-			tconorm_binder<M>& operator=(tconorm_binder<M> const&) = delete;
-			tconorm_binder<M>& operator=(tconorm_binder<M>&&) = delete;
-
-			/** binds to a specific tconorm type */
-			template <typename T>
-			requires tconorm_type<T>
-			constexpr void bind(T) noexcept
-			{
-				func_ = [](M x, M y) -> M { return T::apply(x, y); };
-			}
-
-			[[nodiscard]] constexpr M apply(M x, M y) noexcept
-			{
-				validate_range<M>(x, y);
-				return func_(x, y);
-			}
-
-		private:
-			func_ptr func_ = nullptr;
-		};
-
-		/* Triangular conorm function object.**/
-		template <class M = float>
-		requires std::floating_point<M>
-		class tnorm_binder
-		{
-		public:
-			using tnorm = tnorm_tag;
-			using func_ptr = M(*)(M x, M y);
-
-			tnorm_binder() { func_ = [](M, M) { return std::numeric_limits<M>::quiet_NaN(); }; }
-			tnorm_binder(tnorm_binder<M> const&) = delete;
-			tnorm_binder(tnorm_binder<M>&&) = delete;
-			tnorm_binder<M>& operator=(tnorm_binder<M> const&) = delete;
-			tnorm_binder<M>& operator=(tnorm_binder<M>&&) = delete;
-
-			/** binds to a specific tconorm type */
-			template <class T>
-			requires tnorm_type<T>
-			constexpr void bind(T) noexcept
-			{
-				func_ = [](M x, M y) -> M { return T::apply(x, y); };
-			}
-
-			[[nodiscard]] constexpr M apply(M x, M y) noexcept
-			{
-				validate_range<M>(x, y);
-				return func_(x, y);
-			}
-
-		private:
-			func_ptr func_;
-		};
-
-		template <class V, class M>
-		requires fuzzy::numeric<V> && std::floating_point<M>
-		struct edge
-		{
-			basic_element<V, M> v0;
-			basic_element<V, M> v1;
-		};
-
+		
+		/**
+		 * @brief A helper function for the linguistic_term_impl.
+		 * @tparam V The set element value type.
+		 * @tparam M The set element memberhsip type.
+		 * @param le left-element.
+		 * @param re right-element.
+		 * @param steps A span of the steps to apply over.
+		 * @return A modified span of steps to apply over.
+		*/
 		template <class V, class M>
 		requires fuzzy::numeric<V> && std::floating_point<M>
 		constexpr std::span<fuzzy::basic_element<V, M>> calculate_linear_steps(fuzzy::basic_element<V,M> le, fuzzy::basic_element<V, M> re, std::span<fuzzy::basic_element<V, M>> steps)
@@ -847,7 +773,18 @@ namespace fuzzy
 			return steps;
 		};
 
-		template <class Func, class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc> class Container, class Allocator>
+		/**
+		 * @brief Applies a linguistic term to set.
+		 * @tparam Func The linguistic term function.
+	 	 * @tparam V The set element value type.
+		 * @tparam M The set element memberhsip type.
+		 * @tparam Allocator The allocator type.
+		 * @param aset The set to apply the linguistic term to.
+		 * @param func The linguistic term function.
+		 * @param step_count The number of steps to inject on shoulder areas of the 'aset'.
+		 * @return A copy of 'aset' with the linguistic term applied.
+		*/
+		template <class Func, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 		requires fuzzy::numeric<V> && std::floating_point<M>
 		[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container, Allocator> linguistic_term_impl(fuzzy::basic_set<V, M, Container, Allocator> const& aset, Func const& func, std::size_t step_count = linguistic_term_default_steps)
 		{
@@ -916,8 +853,8 @@ namespace fuzzy
 
 	/**
 	 * @brief A version of std::set_intersection compatible with fuzzy set theory.
-	 * @tparam V The element value type.
-	 * @tparam M The element membership type.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
 	 * @tparam Allocator The allocator type.
 	 * @param lhs The left-hand set for the intersection.
 	 * @param rhs The right-hand set for the intersection.
@@ -932,8 +869,8 @@ namespace fuzzy
 
 	/**
 	 * @brief A version of std::set_union compatible with fuzzy set theory.
-	 * @tparam V The element value type.
-	 * @tparam M The element membership type.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
 	 * @tparam Allocator The allocator type.
 	 * @param lhs The left-hand set for the union.
 	 * @param rhs The right-hand set for the union.
@@ -946,7 +883,10 @@ namespace fuzzy
 		return fuzzy::detail::operation<Operation>::apply(lhs, rhs);
 	}
 
-	// Complement function object.
+	/**
+	 * @brief Complement function object.
+	 * @tparam M 
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct complement
@@ -964,11 +904,13 @@ namespace fuzzy
 	};
 
 	/**
-	* Complement of fuzzy set.
-	* @param aset The set to complement.
-	* @return The complement of the set.
+	 * @brief Complement of fuzzy set.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
+	 * @param aset The set to form the complement of.
+	 * @return The complement of 'aset'.
 	*/
-	template <class V, class M, class Operation = fuzzy::maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	[[nodiscard]] constexpr fuzzy::basic_set<V, M, Container> set_complement(fuzzy::basic_set<V, M, Container> const& aset)
 	{

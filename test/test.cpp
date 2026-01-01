@@ -2066,16 +2066,6 @@ TEST_CASE("Final", "[Final]")
         set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
         set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
         set const warm{ {50.0f, 0.0f}, {55.0f, 1.0f}, {130.0f, 1.0f } };
-        set const less_than_warm = [&]()
-        {
-            using namespace fuzzy::operators::tconorm::bounded_sum;
-            return cold | chilly | cool;
-        }();
-        set const more_than_chilly = [&]()
-        {
-            using namespace fuzzy::operators::tconorm::bounded_sum;
-            return cool | warm;
-        }();
 
         set const off{ {0.0f, 1.0f}, {0.5f, 0.0f} };
         set const slow = make_triangle<float>(4.5f, 5.0f, 8.5f);
@@ -2091,8 +2081,8 @@ TEST_CASE("Final", "[Final]")
         is(it, cold) >> fan_voltage.shall_be(off);
         (is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
         (is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
-        (is(it, warm) & is(ot, less_than_warm)) >> fan_voltage.shall_be(fast);
-        (is(it, chilly) & is(ot, more_than_chilly)) >> fan_voltage.shall_be(off);
+        (is(it, warm) & is(ot, (cold | chilly | cool))) >> fan_voltage.shall_be(fast);
+        (is(it, chilly) & is(ot, cool | warm)) >> fan_voltage.shall_be(off);
 
         return center_of_area(fan_voltage.result());
     };

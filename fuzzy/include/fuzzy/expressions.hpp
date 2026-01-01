@@ -61,15 +61,17 @@ namespace fuzzy
 	}
 
 	/**
-	* Complement of fuzzy set.
-	* @param aset The set to complement.
-	* @return The complement of the set.
+	 * @brief Generates the complement of a fuzzy set.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element memberhsip type.
+	 * @param aset The set to generate the complement of.
+	 * @return The complement of 'aset'.
 	*/
-	template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires numeric<V>&& std::floating_point<M>
 	[[nodiscard]] constexpr basic_set<V, M, Container> operator~(basic_set<V, M, Container> const& aset)
 	{
-		return set_complement<V, M, Operation, Container>(aset);
+		return set_complement<V, M, Container>(aset);
 	}
 
 	/**

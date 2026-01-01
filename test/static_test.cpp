@@ -1463,6 +1463,575 @@ constexpr bool SET_union()
     return true;
 }
 
+constexpr bool SET_very()
+{
+    // Common case 
+    int_set cc = very(make_triangle<float>(4, 12, 20));
+    REQUIRE(equivelant(cc.membership(4), 0.0f));
+    REQUIRE(equivelant(cc.membership(6), 0.0625f));
+    REQUIRE(equivelant(cc.membership(8), 0.25f));
+    REQUIRE(equivelant(cc.membership(10), 0.5625f));
+    REQUIRE(equivelant(cc.membership(12), 1.0f));
+    REQUIRE(equivelant(cc.membership(14), 0.5625f));
+    REQUIRE(equivelant(cc.membership(16), 0.25f));
+    REQUIRE(equivelant(cc.membership(18), 0.0625f));
+    REQUIRE(equivelant(cc.membership(20), 0.0f));
+
+    // Compact case
+    int_set cpc = very(make_triangle<float>(4, 8, 12));
+    REQUIRE(equivelant(cpc.membership(4), 0.0f));
+    REQUIRE(equivelant(cpc.membership(5), 0.0625f));
+    REQUIRE(equivelant(cpc.membership(6), 0.25f));
+    REQUIRE(equivelant(cpc.membership(7), 0.5625f));
+    REQUIRE(equivelant(cpc.membership(8), 1.0f));
+    REQUIRE(equivelant(cpc.membership(9), 0.5625f));
+    REQUIRE(equivelant(cpc.membership(10), 0.25f));
+    REQUIRE(equivelant(cpc.membership(11), 0.0625f));
+    REQUIRE(equivelant(cpc.membership(12), 0.0f));
+
+    // Constrained case
+    int_set csc = very(make_triangle<float>(4, 6, 8));
+    REQUIRE(equivelant(csc.membership(4), 0.0f));
+    REQUIRE(equivelant(csc.membership(5), 0.25f));
+    REQUIRE(equivelant(csc.membership(6), 1.0f));
+    REQUIRE(equivelant(csc.membership(7), 0.25f));
+    REQUIRE(equivelant(csc.membership(8), 0.0f));
+
+    // Extreme case
+    int_set ec = very(make_triangle<float>(4, 5, 6));
+    REQUIRE(equivelant(ec.membership(4), 0.0f));
+    REQUIRE(equivelant(ec.membership(5), 1.0f));
+    REQUIRE(equivelant(ec.membership(6), 0.0f));
+
+    // Non-uniform case.
+    int_set nu = very(int_set{ int_element{ 0, 0.0f },int_element{ 4, 0.25f },int_element{ 8, 0.5f },int_element{ 12, 0.75f },int_element{ 16, 0.4f },int_element{ 18, 0.0f } });
+    REQUIRE(equivelant(nu.membership(0), 0.0f));
+    REQUIRE(equivelant(nu.membership(4), 0.0625f));
+    REQUIRE(equivelant(nu.membership(8), 0.25f));
+    REQUIRE(equivelant(nu.membership(12), 0.5625f));
+    REQUIRE(equivelant(nu.membership(16), 0.16f));
+    REQUIRE(equivelant(nu.membership(18), 0.0f));
+
+    return true;
+}
+
+constexpr bool Consequent_1()
+{
+    int_maximum_aggregator cons1;
+    int_set horse_strength1 = int_set{ int_element{ 1600, 0.0f },int_element{ 1900, 0.6f },int_element{ 2000, 0.6f },int_element{ 2400, 0.0f } };
+    int_set horse_strength2 = int_set{ int_element{ 1200, 0.0f },int_element{ 1600, 0.6f },int_element{ 1700, 0.6f },int_element{ 2000, 0.0f } };
+    cons1.aggregate(horse_strength1);
+    cons1.aggregate(horse_strength2);
+
+    int_set const& horse_strength3 = cons1.result();
+    REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
+    REQUIRE(equivelant(horse_strength3.membership(1600), 0.6f));
+    REQUIRE(equivelant(horse_strength3.membership(1700), 0.6f));
+    REQUIRE(equivelant(horse_strength3.membership(1800), 0.4f));
+    REQUIRE(equivelant(horse_strength3.membership(1900), 0.6f));
+    REQUIRE(equivelant(horse_strength3.membership(2000), 0.6f));
+    REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
+
+    return true;
+}
+
+constexpr bool Consequent_2()
+{
+    int_maximum_aggregator cons2;
+    int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
+    int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
+    cons2.aggregate(fan_speed1);
+    cons2.aggregate(fan_speed2);
+
+    int_set const& fan_speed3 = cons2.result();
+    REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
+    REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
+    REQUIRE(equivelant(fan_speed3.membership(780), 0.399093f));
+    REQUIRE(equivelant(fan_speed3.membership(793), 0.4639455f));
+    REQUIRE(equivelant(fan_speed3.membership(847), 0.7333333f));
+    REQUIRE(equivelant(fan_speed3.membership(900), 0.7333333f));
+    REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
+
+    return true;
+}
+
+constexpr bool Consequent_3()
+{
+    int_additive_aggregator cons1;
+    int_set horse_strength1 = int_set{ int_element{ 1600, 0.0f },int_element{ 1700, 0.25f },int_element{ 1800, 0.5f },int_element{ 2100, 0.25f },int_element{ 2400, 0.0f } };
+    int_set horse_strength2 = int_set{ int_element{ 1200, 0.0f },int_element{ 1500, 0.25f },int_element{ 1800, 0.5f },int_element{ 1900, 0.25f },int_element{ 2000, 0.0f } };
+    cons1.aggregate(horse_strength1);
+    cons1.aggregate(horse_strength2);
+
+    int_set const& horse_strength3 = cons1.result();
+    REQUIRE(equivelant(horse_strength3.membership(1200), 0.0f));
+    REQUIRE(equivelant(horse_strength3.membership(1600), 0.33333333f));
+    REQUIRE(equivelant(horse_strength3.membership(1700), 0.66666666f));
+    REQUIRE(equivelant(horse_strength3.membership(1800), 1.0f));
+    REQUIRE(equivelant(horse_strength3.membership(1900), 0.66666666f));
+    REQUIRE(equivelant(horse_strength3.membership(2000), 0.33333333f));
+    REQUIRE(equivelant(horse_strength3.membership(2400), 0.0f));
+
+    return true;
+}
+
+constexpr bool Consequent_4()
+{
+    int_additive_aggregator cons2;
+    int_set fan_speed1 = int_set{ int_element{ 700, 0.0f },int_element{ 847, 0.7333333f },int_element{ 900, 0.7333333f },int_element{ 1100, 0.0f } };
+    int_set fan_speed2 = int_set{ int_element{ 500, 0.0f },int_element{ 700, 0.4f },int_element{ 793, 0.4f },int_element{ 900, 0.0f } };
+    cons2.aggregate(fan_speed1);
+    cons2.aggregate(fan_speed2);
+
+    int_set const& fan_speed3 = cons2.result();
+    REQUIRE(equivelant(fan_speed3.membership(500), 0.0f));
+    REQUIRE(equivelant(fan_speed3.membership(700), 0.4f));
+    REQUIRE(equivelant(fan_speed3.membership(780), 0.7990930f));
+    REQUIRE(equivelant(fan_speed3.membership(793), 0.86394556f));
+    REQUIRE(equivelant(fan_speed3.membership(847), 0.931464f));
+    REQUIRE(equivelant(fan_speed3.membership(1100), 0.0f));
+
+    return true;
+}
+
+
+constexpr bool Scaled_Antecedent()
+{
+    using namespace fuzzy::functions::minimum;
+
+    int_set fan_speed1 = int_set{ int_element{ 650, 0.0f },int_element{ 700, 1.0f },int_element{ 750, 0.0f } };
+    int_set fan_speed2 = int_set{ int_element{ 750, 0.0f },int_element{ 800, 1.0f },int_element{ 850, 0.0f } };
+    int_set fast = int_set{ int_element{ 700, 0.0f },int_element{ 900, 1.0f },int_element{ 1100, 0.0f } };
+
+    auto sa1 = is(fan_speed1, fast);
+    REQUIRE(sa1.set().size() == 3u);
+    REQUIRE(equivelant(sa1.set().membership(0.0f), 0.0f));
+    REQUIRE(equivelant(sa1.set().membership(0.1f), 0.2f));
+    REQUIRE(equivelant(sa1.set().membership(1.0f), 0.0f));
+
+    auto sa2 = is(fan_speed2, fast);
+    REQUIRE(sa2.set().size() == 5u);
+    REQUIRE(equivelant(sa2.set().membership(0.0f), 0.0f));
+    REQUIRE(equivelant(sa2.set().membership(0.1675f), 0.34f));
+    REQUIRE(equivelant(sa2.set().membership(0.25f), 0.5f));
+    REQUIRE(equivelant(sa2.set().membership(0.3f), 0.6f));
+    REQUIRE(equivelant(sa2.set().membership(1.f), 0.0f));
+
+    return true;
+}
+
+constexpr bool Result_Aggregator()
+{
+    int_additive_aggregator fan_speed;
+
+    int_set fast = int_set{ int_element{ 700, 0.0f },int_element{ 900, 1.0f },int_element{ 1100, 0.0f } };
+    auto consequent = fan_speed.shall_be(fast);
+
+    REQUIRE(&consequent.target() == &fast);
+    REQUIRE(&consequent.aggregator() == &fan_speed);
+    REQUIRE(consequent.aggregator().result().empty());
+
+    return true;
+}
+
+constexpr bool Scaled_Mapping()
+{
+    using namespace fuzzy::functions::minimum;
+
+    additive_aggregator fan_speed;
+    set tempurature = set{ element{ 72.0f, 0.0f },element{ 78.0f, 1.0f },element{ 84.0f, 0.0f } };
+    set warm = set{ element{ 70.0f, 0.0f },element{ 85.0f, 1.0f },element{ 100.0f, 0.0f } };
+    auto sa1 = is(tempurature, warm);
+    REQUIRE(sa1.set().size() == 3u);
+    REQUIRE(equivelant(sa1.set().membership(0.0f), 0.0f));
+    REQUIRE(equivelant(sa1.set().membership(0.3333333f), 0.6666667f));
+    REQUIRE(equivelant(sa1.set().membership(1.0f), 0.0f));
+
+    set fast = set{ element{ 700.0f, 0.0f }, element{ 900.0f, 1.0f }, element{ 1100.0f, 0.0f } };
+    auto consequent = fan_speed.shall_be(fast);
+    fuzzy::scaled_mapping<fuzzy::minimum>(sa1, consequent);
+    REQUIRE(&consequent.target() == &fast);
+    REQUIRE(&consequent.aggregator() == &fan_speed);
+    REQUIRE(consequent.aggregator().result().size() == 3);
+    REQUIRE(equivelant(consequent.aggregator().result().membership(700.0f), 0.0f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(833.333374f), 0.666666f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(900.00f), 0.500000f));
+    REQUIRE(equivelant(consequent.aggregator().result().membership(1100.0f), 0.0f));
+
+    return true;
+}
+
+constexpr bool Opperators_And_Functions_Tnorm_A()
+{
+    using namespace fuzzy;
+
+    set const medium = make_triangle<float>(800.0f, 1000.0f, 1200.0f);
+    set const mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
+    set const warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
+    set const t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
+
+    // t-norm
+    {
+        using namespace operators::algabraic;
+        using namespace functions::algabraic_product;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.166667f));
+
+        auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 11u);
+        REQUIRE(equivelant(a0.set().membership(0.545699f), 0.0917287f));
+
+        additive_aggregator fan_speed;
+        is(t0, warm) >> fan_speed.shall_be(medium);
+        REQUIRE(fan_speed.result().size() == 5);
+        REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.333333f));
+    }
+    {
+        using namespace operators::bounded;
+        using namespace functions::bounded_difference;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 0u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.0f));
+
+        auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 0u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
+
+        additive_aggregator fan_speed;
+        is(t0, warm) >> fan_speed.shall_be(medium);
+        REQUIRE(fan_speed.result().size() == 5);
+        REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.25f));
+    }
+    {
+        using namespace operators::drastic;
+        using namespace functions::drastic_product;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 0u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.0f));
+
+        auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 0u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.0f));
+
+        additive_aggregator fan_speed;
+        is(t0, warm) >> fan_speed.shall_be(medium);
+        REQUIRE(fan_speed.result().size() == 3);
+        REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.363636f));
+    }
+
+    return true;
+}
+
+constexpr bool Opperators_And_Functions_Tnorm_B()
+{
+    using namespace fuzzy;
+
+    set const medium = make_triangle<float>(800.0f, 1000.0f, 1200.0f);
+    set const mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
+    set const warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
+    set const t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
+
+    // t-norm
+    {
+        using namespace operators::einstein;
+        using namespace functions::einstein_product;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.133333f));
+
+        auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 11u);
+        REQUIRE(equivelant(a0.set().membership(0.553163f), 0.0468059f));
+
+        additive_aggregator fan_speed;
+        is(t0, warm) >> fan_speed.shall_be(medium);
+        REQUIRE(fan_speed.result().size() == 6);
+        REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.3f));
+    }
+    {
+        using namespace operators::hamacher;
+        using namespace functions::hamacher_product;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.222222f));
+
+        auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 9u);
+        REQUIRE(equivelant(a0.set().membership(0.53601f), 0.210648f));
+
+        additive_aggregator fan_speed;
+        is(t0, warm) >> fan_speed.shall_be(medium);
+        REQUIRE(fan_speed.result().size() == 6);
+        REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.375f));
+    }
+    {
+        using namespace operators::minmax;
+        using namespace functions::minimum;
+
+        auto s0 = mild & warm;
+        REQUIRE(s0.size() == 3u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.333333f));
+
+        auto a0 = is(t0, mild) & is(t0, warm);
+        REQUIRE(a0.set().size() == 3u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.472727f));
+
+        additive_aggregator fan_speed;
+        is(t0, warm) >> fan_speed.shall_be(medium);
+        REQUIRE(fan_speed.result().size() == 3);
+        REQUIRE(equivelant(fan_speed.result().membership(1000.0f), 0.5f));
+    }
+    return true;
+}
+
+constexpr bool Opperators_And_Functions_Tconorm()
+{
+    using namespace fuzzy;
+
+    set const medium = make_triangle<float>(800.0f, 1000.0f, 1200.0f);
+    set const mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
+    set const warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
+    set const t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
+
+    // t-conorm
+    {
+        using namespace operators::tconorm::algabraic_sum;
+        using namespace functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.833333f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.721983f));
+    }
+    {
+        using namespace operators::tconorm::bounded_sum;
+        using namespace functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 4u);
+        REQUIRE(equivelant(s0.membership(75.0f), 1.0f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 4u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.945454f));
+    }
+    {
+        using namespace operators::tconorm::drastic_sum;
+        using namespace functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 4u);
+        REQUIRE(equivelant(s0.membership(75.0f), 1.0f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 4u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 1.0f));
+    }
+    {
+        using namespace operators::tconorm::einstein_sum;
+        using namespace functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.866666f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.772764f));
+    }
+    {
+        using namespace operators::tconorm::hamacher_sum;
+        using namespace fuzzy::functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.777777f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.641975f));
+    }
+    {
+        using namespace operators::tconorm::maximum;
+        using namespace fuzzy::functions::minimum;
+
+        auto s0 = mild | warm;
+        REQUIRE(s0.size() == 5u);
+        REQUIRE(equivelant(s0.membership(75.0f), 0.666667f));
+
+        auto a0 = is(t0, mild) | is(t0, warm);
+        REQUIRE(a0.set().size() == 5u);
+        REQUIRE(equivelant(a0.set().membership(0.5272727f), 0.472727f));
+    }
+
+    return true;
+}
+
+
+constexpr bool Deffuzification()
+{
+    {
+        set const aset{};
+        REQUIRE(equivelant(mean_of_maximum(aset), std::numeric_limits<float>::max()));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), std::numeric_limits<float>::max()));
+        REQUIRE(equivelant(center_of_area(aset), std::numeric_limits<float>::max()));
+    }
+    {
+        set const aset{ { 42.0f, 0.96f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 42.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 42.0f));
+        REQUIRE(equivelant(center_of_area(aset), 42.0f));
+    }
+    {
+        set const aset = make_triangle<float>(55.0f, 70.0f, 85.0f);
+        REQUIRE(equivelant(mean_of_maximum(aset), 70.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 70.0f));
+        REQUIRE(equivelant(center_of_area(aset), 70.0f));
+    }
+    {
+        set const aset{ {50.0f, 0.0f}, {60.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 65.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 65.0f));
+        REQUIRE(equivelant(center_of_area(aset), 65.0f));
+    }
+    {
+        set const aset{ {50.0f, 0.0f}, {60.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f }, { 90.0f, 0.0f }, { 100.0f, 1.0f }, { 110.0f, 1.0f }, { 120.0f, 0.0f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 85.0f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 100.0f));
+        REQUIRE(equivelant(center_of_area(aset), 85.0f));
+    }
+    {
+        set const aset{ {40.0f, 0.0f}, {50.0f, 1.0f}, { 70.0f, 1.0f }, { 80.0f, 0.0f }, { 90.0f, 0.0f }, { 100.0f, 1.0f }, { 110.0f, 1.0f }, { 120.0f, 0.0f } };
+        REQUIRE(equivelant(mean_of_maximum(aset), 75.46875f));
+        REQUIRE(equivelant(mean_of_maximum_nearest_maxima(aset), 70.0f));
+        REQUIRE(equivelant(center_of_area(aset), 78.0f));
+    }
+
+    return true;
+}
+
+constexpr bool Expressions()
+{
+    using namespace fuzzy;
+
+    set const mild = make_triangle<float>(55.0f, 70.0f, 85.0f);
+    set const warm = make_triangle<float>(70.0f, 85.0f, 100.0f);
+    set const t0 = make_triangle<float>(72.0f, 78.0f, 84.0f);
+
+    set const humid{ {50.0f, 0.0f}, {80.0f, 1.0f}, { 100.0f, 1.0f } };
+    set const h0 = make_triangle<float>(62.0f, 68.0f, 74.0f);
+
+    set const slow = make_triangle<float>(600.0f, 900.0f, 1200.0f);
+    set const medium = make_triangle<float>(900.0f, 1200.0f, 1500.0f);
+    set const fast = make_triangle<float>(1200.0f, 1500.0f, 1800.0f);
+    set const very_fast = very(fast);
+    set const not_slow = ~slow;
+    set const somewhat_humid
+    { 
+        {50.0f, 0.0f},
+        {57.5f, 0.5f},
+        {65.0f, 0.707106769f},
+        {72.5f, 0.866025388f},
+        {80.0f, 1.0f}
+    };
+    {
+        using namespace fuzzy::models::mamdani;
+        aggregator speed;
+
+        (is(t0, mild) | is(h0, somewhat_humid)) >> speed.shall_be(slow);
+        (is(t0, warm) & is(h0, humid)) >> speed.shall_be(very_fast);
+        (is(t0, warm) | is(h0, somewhat_humid)) >> speed.shall_be(medium);
+
+        REQUIRE(speed.result().size() == 11u);
+        auto itr = speed.result().begin();
+        REQUIRE(equivelant(itr->value(), 600.0f));
+        REQUIRE(equivelant(itr->membership(), 0.0f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 928.472778f));
+        REQUIRE(equivelant(itr->membership(), 0.737272f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 966.675903f));
+        REQUIRE(equivelant(itr->membership(), 0.777747f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1050.0f));
+        REQUIRE(equivelant(itr->membership(), 0.5f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1100.0f));
+        REQUIRE(equivelant(itr->membership(), 0.666667f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1155.67517f));
+        REQUIRE(equivelant(itr->membership(), 0.573874f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1228.47278f));
+        REQUIRE(equivelant(itr->membership(), 0.737272f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1266.6759f));
+        REQUIRE(equivelant(itr->membership(), 0.777747f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1383.22144f));
+        REQUIRE(equivelant(itr->membership(), 0.389262f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1426.15381f));
+        REQUIRE(equivelant(itr->membership(), 0.56923f));
+        ++itr;
+        REQUIRE(equivelant(itr->value(), 1725.0f));
+        REQUIRE(equivelant(itr->membership(), 0.0f));
+    }
+
+    return true;
+}
+
+constexpr bool Final()
+{
+    using namespace fuzzy;
+
+    // Complex use.
+    constexpr auto control_loop_mamdani = [](float indoor_tempurature, float outdoor_tempurature)
+    {
+        set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
+        set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
+        set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
+        set const warm{ {50.0f, 0.0f}, {55.0f, 1.0f}, {130.0f, 1.0f } };
+
+        set const off{ {0.0f, 1.0f}, {0.5f, 0.0f} };
+        set const slow = make_triangle<float>(4.5f, 5.0f, 8.5f);
+        set const medium = make_triangle<float>(5.0f, 8.5f, 12.0f);
+        set const fast{ {8.5f, 0.0f}, {12.0f, 1.0f}, {12.5f, 1.0f} };
+
+        set const it = make_value<float>(indoor_tempurature);
+        set const ot = make_value<float>(outdoor_tempurature);
+
+        using namespace fuzzy::models::mamdani;
+        aggregator fan_voltage;
+
+        is(it, cold) >> fan_voltage.shall_be(off);
+        (is(it, cool) & is(ot, cold)) >> fan_voltage.shall_be(slow);
+        (is(it, cool) & is(ot, chilly)) >> fan_voltage.shall_be(medium);
+        (is(it, warm) & is(ot, (cold | chilly | cool))) >> fan_voltage.shall_be(fast);
+        (is(it, chilly) & is(ot, cool | warm)) >> fan_voltage.shall_be(off);
+
+        return center_of_area(fan_voltage.result());
+    };
+
+    float v0 = control_loop_mamdani(49.0f, 44.0f);
+    REQUIRE(equivelant(v0, 8.27334f));
+
+    return true;
+}
+
+
+
+
+
 consteval void evaluate_static_tests()
 {
     static_assert(membership_bounds_check());
@@ -1488,9 +2057,18 @@ consteval void evaluate_static_tests()
     static_assert(SET_complement());
     static_assert(SET_intersection());
     static_assert(SET_union());
+    static_assert(SET_very());
+    static_assert(Consequent_1());
+    static_assert(Consequent_2());
+    static_assert(Consequent_3());
+    static_assert(Consequent_4());
+    static_assert(Scaled_Antecedent());
+    static_assert(Result_Aggregator());
+    static_assert(Scaled_Mapping());
+    static_assert(Opperators_And_Functions_Tnorm_A());
+    static_assert(Opperators_And_Functions_Tnorm_B());
+    static_assert(Opperators_And_Functions_Tconorm());
+    static_assert(Deffuzification());
+    static_assert(Expressions());
+    static_assert(Final());
 };
-
-
-
-
-
