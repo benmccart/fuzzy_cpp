@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -38,6 +38,11 @@ namespace fuzzy
 {
 	namespace detail
 	{
+		/**
+		 * @brief result type for mean-of-max function.
+		 * @tparam V The set element value type.
+		 * @tparam M The set element membership type.
+		*/
 		template <class V, class M>
 		requires fuzzy::numeric<V>&& std::floating_point<M>
 		struct mean_of_max_result_t
@@ -46,6 +51,14 @@ namespace fuzzy
 			M max;
 		};
 
+		/**
+		 * @brief Calculates the mean-of-maximum to get a crisp value from a fuzzy set.
+		 * @tparam V The set element value type.
+		 * @tparam M The set element membership type.
+		 * @tparam Allocator The set allocator type.
+		 * @param aset The set to calcualte the mean-of-maximum for.
+		 * @return A crisp value found using mean-of-maximum.
+		*/
 		template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 		requires fuzzy::numeric<V> && std::floating_point<M>
 		[[nodiscard]] constexpr mean_of_max_result_t<V,M> mean_of_maximum(fuzzy::basic_set<V, M, Container, Allocator> const& aset)
@@ -121,9 +134,9 @@ namespace fuzzy
 
 	/**
 	 * @brief Calculate the mean-of-maximum of the fuzzy set but constrains the value to the nearest maxima.
-	 * @tparam V The value type.
-	 * @tparam M The memberhsip type.
-	 * @tparam Allocator The allocator type.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element memberhsip type.
+	 * @tparam Allocator The set allocator type.
 	 * @param aset The set to calculate the mean-of-maximum for.
 	 * @return The crisp value.
 	*/
@@ -169,9 +182,9 @@ namespace fuzzy
 
 	/**
 	 * @brief Calculate the center of area of the fuzzy set.
-	 * @tparam V The value type.
-	 * @tparam M The memberhsip type.
-	 * @tparam Allocator The allocator type.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element memberhsip type.
+	 * @tparam Allocator The set allocator type.
 	 * @param aset The set to calculate the mean-of-maximum for.
 	 * @return The crisp value.
 	*/

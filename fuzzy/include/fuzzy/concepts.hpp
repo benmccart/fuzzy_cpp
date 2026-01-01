@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -30,9 +30,19 @@
 
 namespace fuzzy
 {
+	/**
+	 * @brief Tag to identify fuzzy triangular norm function objects.
+	*/
 	struct tnorm_tag {};
+
+	/**
+	 * @brief Tag to identify fuzzy triangular co-norm function objects.
+	*/
 	struct tconorm_tag {};
 
+	/**
+	 * @brief t-norm concept.
+	*/
 	template <class T>
 	concept tnorm_typenames = requires (T)
 	{
@@ -40,12 +50,18 @@ namespace fuzzy
 		typename T::value_type;
 	};
 
+	/**
+	 * @brief t-norm concept.
+	*/
 	template <class T>
 	concept tnorm_type = tnorm_typenames<T> && std::is_same_v<typename T::tnorm, tnorm_tag>&& std::is_floating_point_v<typename T::value_type>&& requires (T)
 	{
 		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
 	};
 
+	/**
+	 * @brief t-co-norm concept.
+	*/
 	template <class T>
 	concept tconorm_typenames = requires (T)
 	{
@@ -53,27 +69,42 @@ namespace fuzzy
 		typename T::value_type;
 	};
 
+	/**
+	 * @brief t-co-norm concept.
+	*/
 	template <class T>
 	concept tconorm_type = tconorm_typenames<T> && std::is_same_v<typename T::tconorm, tconorm_tag>&& std::is_floating_point_v<typename T::value_type>&& requires (T)
 	{
 		T::apply(static_cast<typename T::value_type>(0), static_cast<typename T::value_type>(0));
 	};
 
+	/**
+	 * @brief numeric concept.
+	*/
 	template <typename T>
 	concept numeric = std::integral<T> || std::floating_point<T>;
 
+	/**
+	 * @brief  value function concept.
+	*/
 	template <class VF, class V>
 	concept ValueFunction = fuzzy::numeric<V> && requires (V va, V vb, VF vf)
 	{
 		{ vf(va, vb) } -> std::same_as<V>;
 	};
 
+	/**
+	 * @brief  membership function concept.
+	*/
 	template <class MF, class M>
 	concept MembershipFunction = std::floating_point<M> && requires (M m, MF mf)
 	{
 		{ mf(m) } -> std::same_as<M>;
 	};
 
+	/**
+	 * @brief  reservable concept
+	*/
 	template <class C>
 	concept Reservable = requires(C c, std::size_t n)
 	{

@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -28,13 +28,16 @@
 
 #include <cassert>
 
-//#include <fuzzy/concepts.hpp>
-//#include <fuzzy/operator.hpp>
 #include <fuzzy/traits.hpp>
 
 namespace fuzzy
 {
-	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
+
+	/**
+	 * @brief Used to assert (inant evaluation, or debug context) that membership is within a valid range.
+	 * @tparam M The membership type.
+	 * @param m The membership to validate.
+	*/
 	template <typename M>
 	requires std::floating_point<M>
 	constexpr void validate_range(M m) noexcept
@@ -50,7 +53,13 @@ namespace fuzzy
 		}
 	}
 
-	// Used to assert (inant evaluation, or debug context) that membership is within a valid range.
+	
+	/**
+	 * @brief Used to assert (inant evaluation, or debug context) that membership is within a valid range.
+	 * @tparam M The membership type.
+	 * @param x First membership to validate.
+	 * @param y Second membership to validate.
+	*/
 	template <typename M>
 	requires std::floating_point<M>
 	constexpr void validate_range(M x, M y) noexcept
@@ -59,7 +68,13 @@ namespace fuzzy
 		validate_range<M>(y);
 	}
 
-	/**  A basic_element is the fundemental building block(as in element of a set) for fuzzy variablesand fuzzy sets. */
+	
+
+	/**
+	 * @brief A basic_element is the fundemental building block(as in element of a set) for fuzzy variables and fuzzy sets.
+	 * @tparam V The element value type.
+	 * @tparam M The element membership type.
+	*/
 	template <class V, class M>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	class basic_element
