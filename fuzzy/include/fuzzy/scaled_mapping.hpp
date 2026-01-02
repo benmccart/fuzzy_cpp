@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -40,6 +40,14 @@
 namespace fuzzy
 {
 
+	/**
+	 * @brief Performs a scaled mapping from the antecedent to the consequent.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
+	 * @tparam Allocator The set allocator type.
+	 * @param antecedent The antecedent to map from.
+	 * @param consequent The consequent to map to.
+	*/
 	template <template <typename> class Tnorm, class V, class M, template <typename> class AggregatorFunc, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 	constexpr void scaled_mapping(scaled_antecedent<V, M, Container, Allocator> const& antecedent, consequent<V, M, AggregatorFunc, Container, Allocator> const& consequent) // ??
 	{
@@ -94,9 +102,5 @@ namespace fuzzy
 		consequent.aggregator().aggregate(result);
 	}
 }
-
-
-
-
 
 #endif // FUZZY_SCALED_MAPPING_HPP

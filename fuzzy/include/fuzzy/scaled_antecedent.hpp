@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -36,24 +36,6 @@
 
 namespace fuzzy
 {
-	/**
-	* Used for determining the value type.
-	*/
-	template <class V>
-	requires fuzzy::numeric<V>
-	constexpr auto scaled_value_type(V v)
-	{
-		if constexpr (std::is_floating_point_v<V>)
-			return v;
-		else if constexpr (sizeof(int) > sizeof(V))
-			return static_cast<int>(v);
-		else if constexpr (sizeof(long) > sizeof(V))
-			return static_cast<long>(v);
-		else if constexpr (sizeof(long long) > sizeof(V))
-			return static_cast<long long>(v);
-		else
-			return v;
-	}
 
 	/**
 	 * @brief Represents a scaled application of a fuzzy value to a fuzzy variable.

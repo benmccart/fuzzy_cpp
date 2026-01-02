@@ -1,4 +1,4 @@
-﻿#  Copyright (c) 2025, Ben McCart
+﻿#  Copyright (c) 2026, Ben McCart
 #  Boost Software License - Version 1.0 - August 17th, 2003
 #
 #  Permission is hereby granted, free of charge, to any person or organization
@@ -23,9 +23,6 @@
 #  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-# CMakeList.txt : CMake project for fuzzy_cpp, include source and define
-# project specific logic here.
-#
 cmake_minimum_required (VERSION 3.12)
 
 project ("test")

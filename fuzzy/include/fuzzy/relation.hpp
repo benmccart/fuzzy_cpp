@@ -39,7 +39,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Operation = fuzzy::minimum>
 	requires tnorm_type<Operation<M>> && fuzzy::numeric<V> && std::floating_point<M>
-	class relation
+	class [[deprecated("relation is only needed by mapping_rule which is deprecated")]] relation
 	{
 	public:
 		using set_type = basic_set<V, M, Container>;

@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -37,12 +37,15 @@
 
 namespace fuzzy
 {
-	/** 
-	* basic_set is an associative container that contains an ordered set of unique basic_elements.  It is
-	* largely an analog to std::set with the addition of a membership(key_type) function that determines the membership for
-	* a specific key, using linear interpolation if the key is between elements.  By default it is implemented using a
-	* std::vector as a default storage contianer as sets are expected to remain relatively small for the overwelming majory of
-	* use cases. Alternate storage container types (with custom allocators) may be used for constrained environments.
+	/**
+	 * @brief basic_set is an associative container that contains an ordered set of unique basic_elements.  It is
+	 *        largely an analog to std::set with the addition of a membership(key_type) function that determines the membership for
+	 *        a specific key, using linear interpolation if the key is between elements.  By default it is implemented using a
+	 *        std::vector as a default storage contianer as sets are expected to remain relatively small for the overwelming majory of
+	 *        use cases. Alternate storage container types (with custom allocators) may be used for constrained environments.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
+	 * @tparam Allocator The set allocator type.
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
@@ -74,14 +77,17 @@ namespace fuzzy
 		template <class InputIt>
 		constexpr basic_set(InputIt, InputIt, Allocator const& = Allocator());
 
-		/** Copy constructor.  Constructs the container with the copy of the contents of other.  Allocator is obtained
-		*   by calling std::allocator_traits<allocator_type>::select_on_container_copy_construction(other.get_allocator())
-		* @param other The other basic_set to copy.*/
+		/**
+		 * @brief Copy constructor.  Constructs the container with the copy of the contents of other.  Allocator is obtained
+		 *        by calling std::allocator_traits<allocator_type>::select_on_container_copy_construction(other.get_allocator()) 
+		 */
 		constexpr basic_set(self_type const&) = default;
 		constexpr basic_set(self_type const&, Allocator const&);
 
-		/** Move constructor.Constructs the container with the contents of other using move semantics. Allocator is
-		*   obtained by move - construction from the allocator belonging to other.*/
+		/** 
+		 * @brief Move constructor.Constructs the container with the contents of other using move semantics. Allocator is
+		 *        obtained by move - construction from the allocator belonging to other.
+		 */
 		constexpr basic_set(self_type&&) noexcept = default;
 		constexpr basic_set(self_type&&, Allocator const&);
 		constexpr basic_set(std::initializer_list<element_type>, Allocator const& = Allocator());
@@ -95,100 +101,140 @@ namespace fuzzy
 
 		[[nodiscard]] constexpr Allocator get_allocator() const noexcept(std::is_nothrow_copy_constructible<Allocator>::value);
 
-		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
-		*   will be equal to end().
-		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
+		/** 
+		 * @brief Returns an iterator to the first element of the container. If the container is empty, the returned iterator
+		 *        will be equal to end().
+		 * @return Iterator to beginning of set if non-empty, iterator to end otherwise.
+		 */
 		[[nodiscard]] constexpr iterator begin() noexcept                      { return container_.begin();            }
 
-		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
-		*   will be equal to end().
-		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
+		/** 
+		 * @brief Returns an iterator to the first element of the container. If the container is empty, the returned iterator
+		 *        will be equal to end().
+		 * @return Iterator to beginning of set if non-empty, iterator to end otherwise.
+		 */
 		[[nodiscard]] constexpr const_iterator begin() const noexcept          { return container_.begin();            }
 
-		/** Returns an iterator to the first element of the container. If the container is empty, the returned iterator
-		*   will be equal to end().
-		* @return Iterator to beginning of set if non-empty, iterator to end otherwise. */
+		/** 
+		 * @brief Returns an iterator to the first element of the container. If the container is empty, the returned iterator
+		 *        will be equal to end().
+		 * @return Iterator to beginning of set if non-empty, iterator to end otherwise.
+		 */
 		[[nodiscard]] constexpr const_iterator cbegin() const noexcept         { return container_.cbegin();           }
 
-		/** Returns an iterator to the element following the last element of the container.  This element acts as a
-		*   placeholder; attempting to access it results in undefined behavior.
-		* @return Iterator to one past the last element of the set. */
+		/**
+		 * @brief Returns an iterator to the element following the last element of the container.  This element acts as a
+		 *        placeholder; attempting to access it results in undefined behavior.
+		 * @return Iterator to one past the last element of the set.
+		 */
 		[[nodiscard]] constexpr iterator end() noexcept                        { return container_.end();              }
 
-		/** Returns an iterator to the element following the last element of the container.  This element acts as a
-		*   placeholder; attempting to access it results in undefined behavior.
-		* @return Iterator to one past the last element of the set. */
+		/** 
+		 * @brief Returns an iterator to the element following the last element of the container.  This element acts as a
+		 *        placeholder; attempting to access it results in undefined behavior.
+		 * @return Iterator to one past the last element of the set.
+		 */
 		[[nodiscard]] constexpr const_iterator end() const noexcept            { return container_.end();              }
 
-		/** Returns an iterator to the element following the last element of the container.  This element acts as a
-		*   placeholder; attempting to access it results in undefined behavior.
-		* @return Iterator to one past the last element of the set. */
+		/** 
+		 * @brief Returns an iterator to the element following the last element of the container.  This element acts as a
+		 *        placeholder; attempting to access it results in undefined behavior.
+		 * @return Iterator to one past the last element of the set.
+		 */
 		[[nodiscard]] constexpr const_iterator cend() const noexcept           { return container_.cend();             }
 
-		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
-		*   non-reversed container.
-		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
+		/** 
+		 * @brief Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
+		 *        non-reversed container.
+		 * @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise.
+		 */
 		[[nodiscard]] constexpr reverse_iterator rbegin() noexcept             { return container_.rbegin();           }
 
-		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
-		*   non-reversed container.
-		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
+		/**
+		 * @brief Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
+		 *        non-reversed container.
+		 * @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise.
+		 */
 		[[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept { return container_.rbegin();           }
 
-		/** Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
-		*   non-reversed container.
-		* @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise. */
+		/** 
+		 * @brief Returns a reverse iterator to the first element of the reversed container. It corresponds to the last element of the
+		 *        non-reversed container.
+		 * @return A reverse iterator to the last element of the set if non-empty, an iterator to rend() otherwise.
+		 */
 		[[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept { return container_.crbegin();          }
 
-		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
-		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
-		*   to access it results in undefined behavior.
-		* @return A reverse iterator to one past the last element of the reversed set. */
+		/**
+		 * @brief Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
+		 *        element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
+		 *        to access it results in undefined behavior.
+		 * @return A reverse iterator to one past the last element of the reversed set.
+		 */
 		[[nodiscard]] constexpr reverse_iterator rend() noexcept               { return container_.rend();             }
 
-		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
-		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
-		*   to access it results in undefined behavior.
-		* @return A reverse iterator to one past the last element of the reversed set. */
+		/**
+		 * @brief Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
+		 *        element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
+		 *        to access it results in undefined behavior.
+		 * @return A reverse iterator to one past the last element of the reversed set.
+		 */
 		[[nodiscard]] constexpr const_reverse_iterator rend() const noexcept   { return container_.rend();             }
 
-		/** Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
-		*   element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
-		*   to access it results in undefined behavior.
-		* @return A reverse iterator to one past the last element of the reversed set. */
+		/**
+		 * @brief Returns a reverse iterator to the element following the last element of the reversed container.It corresponds to the
+		 *        element preceding the first element of the non - reversed container.This element acts as a placeholder, attempting
+		 *        to access it results in undefined behavior.
+		 * @return A reverse iterator to one past the last element of the reversed set.
+		 */
 		[[nodiscard]] constexpr const_reverse_iterator crend() const noexcept  { return container_.crend();            }
 
-		/** Returns the first element in the set, if it exists.
-		* @return The first element in the set, an exception otherwise. */
+		/** 
+		 * @brief Returns the first element in the set, if it exists.
+		 * @return The first element in the set, an exception otherwise.
+		 */
 		[[nodiscard]] constexpr element_type const& front() const              { return container_.front();            }
 
-		/** Returns the first element in the set, if it exists.
-		* @return The last element in the set, an exception otherwise. */
+		/**
+		 * @brief Returns the first element in the set, if it exists.
+		 * @return The last element in the set, an exception otherwise.
+		 */
 		[[nodiscard]] constexpr element_type& front()                          { return container_.front();            }
 
-		/** Returns the last element in the set, if it exists.
-		* @return The first element in the set, an exception otherwise. */
+		/**
+		 * @brief Returns the last element in the set, if it exists.
+		 * @return The first element in the set, an exception otherwise.
+		 */
 		[[nodiscard]] constexpr element_type const& back() const               { return container_.back();             }
 
-		/** Returns the last element in the set, if it exists.
-		* @return The last element in the set, an exception otherwise. */
+		/**
+ 		 * @brief Returns the last element in the set, if it exists.
+		 * @return The last element in the set, an exception otherwise.
+		 */
 		[[nodiscard]] constexpr element_type& back()                           { return container_.back();             }
 
-		/** Checks if the container has no elements. 
-		* @return True if the container is empty, false otherwise. */
+		/**
+		 * @brief Checks if the container has no elements. 
+		 * @return True if the container is empty, false otherwise.
+		 */
 		[[nodiscard]] constexpr bool empty() const noexcept                    { return container_.empty();            }
 
-		/** Returns the number of elements in the container.
-		* @return The number of elements in the container. */
+		/**
+		 * @brief Returns the number of elements in the container.
+		 * @return The number of elements in the container.
+		 */
 		[[nodiscard]] constexpr size_type size() const noexcept                { return container_.size();             }
 
-		/** Returns the maximum number of elements the container is able to hold due to system or library implementation
-		*   limitations.
-		* @return Maximum number of elements. */
+		/**
+		 * @brief Returns the maximum number of elements the container is able to hold due to system or library implementation
+		 *        limitations.
+		 * @return Maximum number of elements.
+		 */
 		[[nodiscard]] constexpr size_type max_size() const noexcept            { return container_.max_size();         }
 
-		/** Removes all elements from the container.  Invalidates any references, pointers, or iterators referring to contained
-		*   elements. */
+		/**
+		 * @brief Removes all elements from the container.  Invalidates any references, pointers, or iterators referring to contained
+		 *        elements.
+		 */
 		constexpr void clear() noexcept                                        { container_.clear();                   }
 
 		constexpr std::pair<iterator, bool> insert(element_type);
@@ -204,32 +250,42 @@ namespace fuzzy
 		template <class... Args>
 		constexpr std::pair<iterator, bool> emplace_hint(const_iterator, Args&& ...args);
 		
-		/** Removes the element at pos.
-		* @param pos Iterator to the element to remove
-		* @return Iterator following the last removed element. */
+		/**
+		 * @brief Removes the element at pos.
+		 * @param pos Iterator to the element to remove
+		 * @return Iterator following the last removed element.
+		 */
 		constexpr iterator erase(const_iterator pos)                           { return container_.erase(pos);         }
 
-		/** Removes the elements in the range [first, last).
-		* @param first Iterator to the first element in the range to remove.
-		* @param last Iterator to one past the last element in the range to remove.
-		* @return Iterator following the last removed element. */
+		/** 
+		 * @brief Removes the elements in the range [first, last).
+		 * @param first Iterator to the first element in the range to remove.
+		 * @param last Iterator to one past the last element in the range to remove.
+		 * @return Iterator following the last removed element.
+		 */
 		constexpr void erase(const_iterator first, const_iterator last)        { container_.erase(first, last);        }
 		constexpr bool erase(element_type);
 		constexpr bool erase(key_type);
 
-		/** Exchanges the contents of the container with those of other. Does not invoke any move, copy, or swap operations
-		*   on individual elements. All iterators and references remain valid. The past-the-end iterator is invalidated.
-		* @param other container to exchange the contents with. */
+		/**
+		 * @brief Exchanges the contents of the container with those of other. Does not invoke any move, copy, or swap operations
+		 *        on individual elements. All iterators and references remain valid. The past-the-end iterator is invalidated.
+		 * @param other container to exchange the contents with.
+		 */
 		constexpr void swap(basic_set &other) noexcept                         { container_.swap(other.container_);    }
 
-		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
-		*   or 0 since this container does not allow duplicates.
-		* @param key - key of the element to count */
+		/**
+		 * @brief Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
+		 *        or 0 since this container does not allow duplicates.
+		 * @param key - key of the element to count
+		 */
 		[[nodiscard]] constexpr size_type count(key_type key) const            { return contains(key) ? 1u : 0u;       }
 
-		/** Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
-		*   or 0 since this container does not allow duplicates.
-		* @param elem - element to count */
+		/** 
+		 * @brief Returns the number of elements with key that compares equivalent to the specified argument, which is either 1
+		 *        or 0 since this container does not allow duplicates.
+		 * @param elem - element to count
+		 */
 		[[nodiscard]] constexpr size_type count(element_type elem) const       { return contains(elem) ? 1u : 0u;       }
 
 		[[nodiscard]] constexpr membership_type membership(key_type) const;
@@ -280,12 +336,12 @@ namespace fuzzy
 	};
 
 	/** 
-	* Compares the contents of lhs and rhs lexicographically. The comparison is performed as if by calling
-	* std::lexicographical_compare_three_way on two sets with a function object performing synthesized three-way
-	* comparison
-	* @param lhs - 	sets whose contents to compare
-	* @param rhs - 	sets whose contents to compare
-	*/
+	 * @brief Compares the contents of lhs and rhs lexicographically. The comparison is performed as if by calling
+	 *        std::lexicographical_compare_three_way on two sets with a function object performing synthesized three-way
+	 *        comparison
+	 * @param lhs - 	sets whose contents to compare
+	 * @param rhs - 	sets whose contents to compare
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	constexpr V operator<=>(basic_set<V, M, Container, Allocator> const& lhs, basic_set<V, M, Container, Allocator> const& rhs)
 	{
@@ -293,11 +349,11 @@ namespace fuzzy
 	}
 
 	/**
-	* Erases all elements that satisfy the predicate pred from the set.
-	* @param set - set from which to erase
-	* @param pred - predicate that returns true if the element should be erased
-	* @return The number of erased elements.
-	*/
+	 * @brief Erases all elements that satisfy the predicate pred from the set.
+	 * @param set - set from which to erase
+	 * @param pred - predicate that returns true if the element should be erased
+	 * @return The number of erased elements.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator, class Predicate>
 	constexpr typename basic_set<V,M,Container,Allocator>::size_type erase_if(basic_set<V, M, Container, Allocator> &set, Predicate pred)
 	{
@@ -310,7 +366,8 @@ namespace fuzzy
 		return count;
 	}
 
-	/** Constructs an empty basic_set using the supplied allocator.
+	/**
+	 * @brief Constructs an empty basic_set using the supplied allocator.
 	 * @param alloc - allocator to use for all memory allocations of this container
 	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -318,12 +375,13 @@ namespace fuzzy
 	constexpr basic_set<V, M, Container, Allocator>::basic_set(Allocator const &alloc)
 		: container_(alloc) {}
 
-	/** Range constructor. Constructs the container with the contents of the range [first, last). If multiple
-	* elements in the range have keys that compare equivalent, it is unspecified which element is inserted.
-	* @param first - first element in the range to copy from.
-	* @param last - first element past the range to copy from.
-	* @param alloc - allocator to use for all memory allocations of this container
-	*/
+	/**
+	 * @brief Range constructor. Constructs the container with the contents of the range [first, last). If multiple
+	 *        elements in the range have keys that compare equivalent, it is unspecified which element is inserted.
+	 * @param first - first element in the range to copy from.
+	 * @param last - first element past the range to copy from.
+	 * @param alloc - allocator to use for all memory allocations of this container
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	template <class InputIt>
@@ -333,28 +391,31 @@ namespace fuzzy
 		std::sort(begin(container_), end(container_), element_less{});
 	}
 
-	/** Copy constructor.  Constructs the container with the copy of the contents of other.  The supplied allocator
-	*   is used.
-	* @param other - another container to be used as source to initialize the elements of the container with
-	* @param alloc - allocator to use for all memory allocations of this container
-	*/
+	/**
+	 * @brief Copy constructor.  Constructs the container with the copy of the contents of other.  The supplied allocator
+	 *        is used.
+	 * @param other - another container to be used as source to initialize the elements of the container with
+	 * @param alloc - allocator to use for all memory allocations of this container
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator>::basic_set(self_type const &other, Allocator const &alloc)
 		: container_(other.container_, alloc) {}
 
-	/** Move constructor.Constructs the container with the contents of other using move semantics.  The supplied
-	*   allocator is used.
-	*/
+	/**
+	 * @brief Move constructor.Constructs the container with the contents of other using move semantics.  The supplied
+	 *        allocator is used.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator>::basic_set(self_type &&other, Allocator const &alloc)
 		: container_(std::move(other.container_), alloc) {}
 
-	/**  Initializer-list constructor. Constructs the container with the contents of the initializer list init. if
-	*    multiple elements in the range have keys that compare equivalent, it is unspecified which element is inserted.
-	* @param ilist - initializer list to use as data source
-	*/
+	/**
+	 * @brief Initializer-list constructor. Constructs the container with the contents of the initializer list init. if
+	 *        multiple elements in the range have keys that compare equivalent, it is unspecified which element is inserted.
+	 * @param ilist - initializer list to use as data source
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator>::basic_set(std::initializer_list<element_type> ilist, Allocator const &alloc)
@@ -364,9 +425,9 @@ namespace fuzzy
 	}
 
 	/** 
-	* Replaces the contents with those identified by initializer list ilist.
-	* @param init - initializer list to use as data source
-	*/
+	 * @brief Replaces the contents with those identified by initializer list ilist.
+	 * @param init - initializer list to use as data source
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator>& basic_set<V, M, Container, Allocator>::operator=(std::initializer_list<element_type> ilist)
@@ -380,9 +441,9 @@ namespace fuzzy
 	}
 
 	/**
-	* Returns the allocator associated with the container.
-	* @return The associated allocator.
-	*/
+	 * @brief Returns the allocator associated with the container.
+	 * @return The associated allocator.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr Allocator basic_set<V, M, Container, Allocator>::get_allocator() const noexcept(std::is_nothrow_copy_constructible<Allocator>::value)
@@ -391,11 +452,11 @@ namespace fuzzy
 	}
 
 	/**
-	* Inserts the element.  If the element exists in the set it will not be inserted.
-	* @param elem - the element to be inserted.
-	* @return A pair containing an interator to the position where the element either was inserted, or would have been inserted if
-	*         the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
-	*/
+	 * @brief Inserts the element.  If the element exists in the set it will not be inserted.
+	 * @param elem - the element to be inserted.
+	 * @return A pair containing an interator to the position where the element either was inserted, or would have been inserted if
+	 *         the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container, Allocator>::iterator, bool> basic_set<V, M, Container, Allocator>::insert(element_type elem)
@@ -411,12 +472,12 @@ namespace fuzzy
 	}
 
 	/**
-	* Inserts the element.  If the element exists in the set it will not be inserted.
-	* @param hint - the hint is unused
-	* @param elem - the element to be inserted.
-	* @return A pair containing an interator to the position where the element either was inserted, or would have been inserted
-	*          if the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
-	*/
+	 * @brief Inserts the element.  If the element exists in the set it will not be inserted.
+	 * @param hint - the hint is unused
+	 * @param elem - the element to be inserted.
+	 * @return A pair containing an interator to the position where the element either was inserted, or would have been inserted
+	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully inserted.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container, Allocator>::iterator, bool> basic_set<V, M, Container, Allocator>::insert([[maybe_unused]] const_iterator hint, element_type elem)
@@ -425,10 +486,11 @@ namespace fuzzy
 	}
 
 
-	/** Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
-	* @param first The first element in the range to insert.
-	* @param last One past the last element in the range to insert.
-	*/
+	/**
+	 * @brief Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
+	 * @param first The first element in the range to insert.
+	 * @param last One past the last element in the range to insert.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	template< class InputIt >
@@ -440,9 +502,10 @@ namespace fuzzy
 		}
 	}
 
-	/** Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
-	* @param initializer List containing elements to insert.
-	*/
+	/**
+	 * @brief Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
+	 * @param initializer List containing elements to insert.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr void basic_set<V, M, Container, Allocator>::insert(std::initializer_list<element_type> ilist)
@@ -453,8 +516,9 @@ namespace fuzzy
 		}
 	}
 
-	/** Emplaces a new element into the container constructed in-place with the given args if there is no element with the
-	 *  key in the container. 
+	/**
+	 * @brief Emplaces a new element into the container constructed in-place with the given args if there is no element with the
+	 *        key in the container. 
 	 * @param args - arguments to forward to the constructor of the element
 	 * @return A pair containing an interator to the position where the element either was emplaced, or would have been emplaced
 	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully emplaced.
@@ -475,11 +539,12 @@ namespace fuzzy
 		return std::make_pair(result, true);
 	}
 
-	/** Inserts a new element into the container constructed in-place with the given args if there is no element with the
-	*  key in the container.
-	* @param hint - not used
-	* @param args - arguments to forward to the constructor of the element
-	* @return A pair containing an interator to the position where the element either was emplaced, or would have been emplaced
+	/** 
+	 * @brief Inserts a new element into the container constructed in-place with the given args if there is no element with the
+	 *        key in the container.
+	 * @param hint - not used
+	 * @param args - arguments to forward to the constructor of the element
+	 * @return A pair containing an interator to the position where the element either was emplaced, or would have been emplaced
 	 *         if the same element didn't already exist in the set, and a bool indicating whether the element was successfully emplaced.
 	*/
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
@@ -490,7 +555,8 @@ namespace fuzzy
 		return emplace(std::forward<Args>(args)...);
 	}
 
-	/** Removes the element (if one exists).
+	/**
+	 * @brief Removes the element (if one exists).
 	 * @param elem - element to remove. 
 	 * @return Number of elements removed.
 	 */
@@ -508,7 +574,8 @@ namespace fuzzy
 		return false;
 	}
 
-	/** Removes the element (if one exists) with a key equivalent to supplied key.
+	/**
+	 * @brief Removes the element (if one exists) with a key equivalent to supplied key.
 	 * @param key -  key of the element to remove.
 	 * @return Number of elements removed.
 	 */
@@ -526,28 +593,35 @@ namespace fuzzy
 		return false;
 	}
 
+	/**
+	 * @brief Retrieves the memberhsip at the specified value.  If a key already exists, the membership is retieved, otherwise the memberhsip is
+	 *        calculated linearly.
+	 * @param value -  The value (location) at which to get the membership.
+	 * @return The memberhsip
+	*/
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
-	constexpr typename basic_set<V, M, Container, Allocator>::membership_type basic_set<V, M, Container, Allocator>::membership(key_type key) const
+	constexpr typename basic_set<V, M, Container, Allocator>::membership_type basic_set<V, M, Container, Allocator>::membership(key_type value) const
 	{
-		const_iterator lb = lower_bound(key);
+		const_iterator lb = lower_bound(value);
 		if (lb == end())
 			return static_cast<M>(0);
 
-		if (lb->value() == key)
+		if (lb->value() == value)
 			return lb->membership();
 
 		if (lb == begin())
 			return static_cast<M>(0);
 
 		const_iterator prev{ lb };
-		return math::linear_interpolate(*(--prev), key, *lb);
+		return math::linear_interpolate(*(--prev), value, *lb);
 	}
 
-	/** Finds an element with key that compares equivalent to the supplied key.
-	* @param key - key to compare elements against for equivalence.
-	* @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
-	*/
+	/**
+	 * @brief Finds an element with key that compares equivalent to the supplied key.
+	 * @param key - key to compare elements against for equivalence.
+	 * @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator basic_set<V, M, Container, Allocator>::find(key_type key)
@@ -560,10 +634,11 @@ namespace fuzzy
 		return itr;
 	}
 
-	/** Finds an element with key that compares equivalent to the supplied key.
-	* @param key - key to compare elements against for equivalence.
-	* @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
-	*/
+	/**
+	 * @brief Finds an element with key that compares equivalent to the supplied key.
+	 * @param key - key to compare elements against for equivalence.
+	 * @return Const iterator to an element with the supplied key. If no such element is found, past-the-end iterator is returned.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator basic_set<V, M, Container, Allocator>::find(key_type key) const
@@ -575,10 +650,11 @@ namespace fuzzy
 		return itr;
 	}
 
-	/** Finds an element with key that compares equivalent to the key of the supplied element.
-	* @param elem - element to compare elements against for equivalence.
-	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
-	*/
+	/**
+	 * @brief Finds an element with key that compares equivalent to the key of the supplied element.
+	 * @param elem - element to compare elements against for equivalence.
+	 * @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator basic_set<V, M, Container, Allocator>::find(element_type elem)
@@ -590,10 +666,11 @@ namespace fuzzy
 		return itr;
 	}
 
-	/** Finds an element with key that compares equivalent to the key of the supplied element.
-	* @param elem - element to compare elements against for equivalence.
-	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
-	*/
+	/**
+	 * @brief Finds an element with key that compares equivalent to the key of the supplied element.
+	 * @param elem - element to compare elements against for equivalence.
+	 * @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator basic_set<V, M, Container, Allocator>::find(element_type elem) const
@@ -605,10 +682,11 @@ namespace fuzzy
 		return itr;
 	}
 
-	/** Determines whether the set contains an element that compares equal with the supplied key.
-	* @param key - key to compare against
-	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
-	*/
+	/**
+	 * @brief Determines whether the set contains an element that compares equal with the supplied key.
+	 * @param key - key to compare against
+	 * @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr bool basic_set<V, M, Container, Allocator>::contains(key_type key) const
@@ -616,10 +694,11 @@ namespace fuzzy
 		return find(key) != end();
 	}
 
-	/** Determines whether the set contains an element with a key that compares equal with the key of the supplied element.
-	* @param elem - element with key to search for.
-	* @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
-	*/
+	/**
+	 * @brief Determines whether the set contains an element with a key that compares equal with the key of the supplied element.
+	 * @param elem - element with key to search for.
+	 * @return Iterator to an element equivalent to supplied element. If no such element is found, past-the-end iterator is returned.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr bool basic_set<V, M, Container, Allocator>::contains(element_type elem) const
@@ -629,12 +708,12 @@ namespace fuzzy
 
 
 	/**
-	* Returns a range containing all elements with the given key in the container. The range is defined by two iterators, 
-	* one pointing to the first element that is not less than key and another pointing to the first element greater than
-	* the key.  In all cases the range will never exceed a single element, which if present is equivelant to calling find(key);
-	* @param key - key to compare elements to
-	* @return std::pair containing a pair of iterators defining the wanted range.
-	*/
+	 * @brief Returns a range containing all elements with the given key in the container. The range is defined by two iterators, 
+	 *        one pointing to the first element that is not less than key and another pointing to the first element greater than
+	 *        the key.  In all cases the range will never exceed a single element, which if present is equivelant to calling find(key);
+	 * @param key - key to compare elements to
+	 * @return std::pair containing a pair of iterators defining the wanted range.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container, Allocator>::iterator, typename basic_set<V, M, Container, Allocator>::iterator>
@@ -644,12 +723,12 @@ namespace fuzzy
 	}
 
 	/**
-	* Returns a range containing all elements with the given key in the container. The range is defined by two iterators,
-	* one pointing to the first element that is not less than key and another pointing to the first element greater than
-	* the key.  In all cases the range will never exceed a single element, which if present is equivelant to calling find(key);
-	* @param key - key to compare elements to
-	* @return std::pair containing a pair of iterators defining the wanted range.
-	*/
+	 * @brief Returns a range containing all elements with the given key in the container. The range is defined by two iterators,
+	 *        one pointing to the first element that is not less than key and another pointing to the first element greater than
+	 *        the key.  In all cases the range will never exceed a single element, which if present is equivelant to calling find(key);
+	 * @param key - key to compare elements to
+	 * @return std::pair containing a pair of iterators defining the wanted range.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container, Allocator>::const_iterator, typename basic_set<V, M, Container, Allocator>::const_iterator>
@@ -659,13 +738,13 @@ namespace fuzzy
 	}
 
 	/**
-	* Returns a range containing all elements with the given key in the container. The range is defined by two iterators,
-	* one pointing to the first element that is not less than key and another pointing to the first element with a key
-	* greater than the key of the supplied elment.  In all cases the range will never exceed a single element, which if
-	* present is equivelant to calling find(element);
-	* @param element - element with key to compare against
-	* @return std::pair containing a pair of iterators defining the wanted range.
-	*/
+	 * @brief Returns a range containing all elements with the given key in the container. The range is defined by two iterators,
+	 *        one pointing to the first element that is not less than key and another pointing to the first element with a key
+	 * greater than the key of the supplied elment.  In all cases the range will never exceed a single element, which if
+	 * present is equivelant to calling find(element);
+	 * @param element - element with key to compare against
+	 * @return std::pair containing a pair of iterators defining the wanted range.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container, Allocator>::iterator, typename basic_set<V, M, Container, Allocator>::iterator>
@@ -675,13 +754,13 @@ namespace fuzzy
 	}
 
 	/**
-	* Returns a range containing all elements with the given key in the container. The range is defined by two iterators,
-	* one pointing to the first element that is not less than key and another pointing to the first element with a key
-	* greater than the key of the supplied elment.  In all cases the range will never exceed a single element, which if
-	* present is equivelant to calling find(element);
-	* @param element - element with key to compare against
-	* @return std::pair containing a pair of iterators defining the wanted range.
-	*/
+	 * @brief Returns a range containing all elements with the given key in the container. The range is defined by two iterators,
+	 *        one pointing to the first element that is not less than key and another pointing to the first element with a key
+	 *        greater than the key of the supplied elment.  In all cases the range will never exceed a single element, which if
+	 *        present is equivelant to calling find(element);
+	 * @param element - element with key to compare against
+	 * @return std::pair containing a pair of iterators defining the wanted range.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr std::pair<typename basic_set<V, M, Container, Allocator>::const_iterator, typename basic_set<V, M, Container, Allocator>::const_iterator>
@@ -690,10 +769,11 @@ namespace fuzzy
 		return std::make_pair(lower_bound(elem), upper_bound(elem));
 	}
 
-	/** Returns an iterator pointing to the first element that compares not less to supplied element.
-	* @param elem - element to compare against.
-	* @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element that compares not less to supplied element.
+	 * @param elem - element to compare against.
+	 * @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator basic_set<V, M, Container, Allocator>::lower_bound(element_type elem)
@@ -701,10 +781,11 @@ namespace fuzzy
 		return std::lower_bound(begin(), end(), elem, element_less{});
 	}
 
-	/** Returns an iterator pointing to the first element that compares not less to supplied element.
-	* @param elem - element to compare against.
-	* @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element that compares not less to supplied element.
+	 * @param elem - element to compare against.
+	 * @return Iterator pointing to the first element that is not less than the supplied element, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator basic_set<V, M, Container, Allocator>::lower_bound(element_type elem) const
@@ -712,10 +793,11 @@ namespace fuzzy
 		return std::lower_bound(cbegin(), cend(), elem, element_less{});
 	}
 
-	/** Returns an iterator pointing to the first element that compares not less to the key.
-	* @param  - key to compare the element to.
-	* @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element that compares not less to the key.
+	 * @param  - key to compare the element to.
+	 * @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator basic_set<V, M, Container, Allocator>::lower_bound(key_type key)
@@ -723,10 +805,11 @@ namespace fuzzy
 		return lower_bound(element_type{ key, static_cast<M>(0) });
 	}
 
-	/** Returns an iterator pointing to the first element that compares not less to the key.
-	* @param  - key to compare the element to.
-	* @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element that compares not less to the key.
+	 * @param  - key to compare the element to.
+	 * @return Iterator pointing to the first element that is not less than key, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator basic_set<V, M, Container, Allocator>::lower_bound(key_type key) const
@@ -734,11 +817,12 @@ namespace fuzzy
 		return lower_bound(element_type{ key, static_cast<M>(0) });
 	}
 
-	/** Returns an iterator pointing to the first element in the range [first, last) that is greater than supplied,
-	*   element or last if no such element is found.
-	* @param elem - element to compare to.
-	* @return iterator pointing to the first element that is greater than key, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element in the range [first, last) that is greater than supplied,
+	 *        element or last if no such element is found.
+	 * @param elem - element to compare to.
+	 * @return iterator pointing to the first element that is greater than key, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator basic_set<V, M, Container, Allocator>::upper_bound(element_type elem)
@@ -746,11 +830,12 @@ namespace fuzzy
 		return std::upper_bound(begin(), end(), elem, element_less{});
 	}
 
-	/** Returns an iterator pointing to the first element in the range [first, last) that is greater than supplied,
-	*   element or last if no such element is found.
-	* @param elem - element to compare to.
-	* @return iterator pointing to the first element that is greater than the supplied key, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element in the range [first, last) that is greater than supplied,
+	 *        element or last if no such element is found.
+	 * @param elem - element to compare to.
+	 * @return iterator pointing to the first element that is greater than the supplied key, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator basic_set<V, M, Container, Allocator>::upper_bound(element_type elem) const
@@ -758,11 +843,12 @@ namespace fuzzy
 		return std::upper_bound(cbegin(), cend(), elem, element_less{});
 	}
 
-	/** Returns an iterator pointing to the first element in the range [first, last) that has a key that is greater than,
-	*   the supplied key or last if no such element is found.
-	* @param key - key to compare the elements to.
-	* @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element in the range [first, last) that has a key that is greater than,
+	 *        the supplied key or last if no such element is found.
+	 * @param key - key to compare the elements to.
+	 * @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator basic_set<V, M, Container, Allocator>::upper_bound(key_type key)
@@ -770,11 +856,12 @@ namespace fuzzy
 		return upper_bound(element_type{ key, static_cast<M>(0) });
 	}
 
-	/** Returns an iterator pointing to the first element in the range [first, last) that has a key that is greater than,
-	*   the supplied key or last if no such element is found.
-	* @param key - key to compare the elements to.
-	* @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
-	*/
+	/**
+	 * @brief Returns an iterator pointing to the first element in the range [first, last) that has a key that is greater than,
+	 *        the supplied key or last if no such element is found.
+	 * @param key - key to compare the elements to.
+	 * @return iterator pointing to the first element that has a key greater than value, or last if no such element is found.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator basic_set<V, M, Container, Allocator>::upper_bound(key_type key) const
@@ -782,10 +869,11 @@ namespace fuzzy
 		return upper_bound(element_type{ key, static_cast<M>(0) });
 	}
 
-	/** Convenience function to get the begining iterator for the set's range of values.
-	* @param set - the set to get the beginning of.
-	* @param An iterator pointing to the beginning of the set.
-	*/
+	/**
+	 * @brief Convenience function to get the begining iterator for the set's range of values.
+	 * @param set - the set to get the beginning of.
+	 * @param An iterator pointing to the beginning of the set.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator begin(basic_set<V, M, Container, Allocator> &set)
@@ -793,10 +881,11 @@ namespace fuzzy
 		return set.begin();
 	}
 
-	/** Convenience function to get the begining iterator for the set's range of values.
-	* @param set - the set to get the beginning of.
-	* @param An cons_iterator pointing to the beginning of the set.
-	*/
+	/** 
+	 * @brief Convenience function to get the begining iterator for the set's range of values.
+	 * @param set - the set to get the beginning of.
+	 * @param An cons_iterator pointing to the beginning of the set.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator begin(basic_set<V, M, Container, Allocator> const &set)
@@ -804,10 +893,11 @@ namespace fuzzy
 		return set.begin();
 	}
 
-	/** Convenience function to get the begining iterator for the set's range of values.
-	* @param set - the set to get the beginning of.
-	* @param An const_iterator pointing to the beginning of the set.
-	*/
+	/**
+	 * @brief Convenience function to get the begining iterator for the set's range of values.
+	 * @param set - the set to get the beginning of.
+	 * @param An const_iterator pointing to the beginning of the set.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator cbegin(basic_set<V, M, Container, Allocator> const& set)
@@ -815,10 +905,11 @@ namespace fuzzy
 		return set.cbegin();
 	}
 
-	/** Convenience function to get the end iterator for the set's range of values.
-	* @param set - the set to get the end of.
-	* @param An iterator pointing to the end of the set.
-	*/
+	/**
+	 * @brief Convenience function to get the end iterator for the set's range of values.
+	 * @param set - the set to get the end of.
+	 * @param An iterator pointing to the end of the set.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::iterator end(basic_set<V, M, Container, Allocator>& set)
@@ -826,10 +917,11 @@ namespace fuzzy
 		return set.end();
 	}
 
-	/** Convenience function to get the end iterator for the set's range of values.
-	* @param set - the set to get the end of.
-	* @param An const_iterator pointing to the end of the set.
-	*/
+	/**
+	 * @brief Convenience function to get the end iterator for the set's range of values.
+	 * @param set - the set to get the end of.
+	 * @param An const_iterator pointing to the end of the set.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator end(basic_set<V, M, Container, Allocator> const& set)
@@ -837,10 +929,11 @@ namespace fuzzy
 		return set.end();
 	}
 
-	/** Convenience function to get the end iterator for the set's range of values.
-	* @param set - the set to get the end of.
-	* @param An const_iterator pointing to the end of the set.
-	*/
+	/**
+	 * @brief Convenience function to get the end iterator for the set's range of values.
+	 * @param set - the set to get the end of.
+	 * @param An const_iterator pointing to the end of the set.
+	 */
 	template <class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr typename basic_set<V, M, Container, Allocator>::const_iterator cend(basic_set<V, M, Container, Allocator> const& set)
@@ -848,13 +941,14 @@ namespace fuzzy
 		return set.cend();
 	}
 
-	/** Convenience function for making a basic set in the form of a triangle.
-	* Precondition: v1 < v2 < v3.
-	* @param v1 - the lowest value.
-	* @param v2 - the peak value.
-	* @param v3 - the highest value.
-	* @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
-	*/
+	/**
+	 * @brief Convenience function for making a basic set in the form of a triangle.
+	 *        Precondition: v1 < v2 < v3.
+	 * @param v1 - the lowest value.
+	 * @param v2 - the peak value.
+	 * @param v3 - the highest value.
+	 * @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
+	 */
 	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator> make_triangle(V v1, V v2, V v3, Allocator allocator = Allocator())
@@ -872,13 +966,14 @@ namespace fuzzy
 		return basic_set<V, M, Container, Allocator>{{ {v1, static_cast<M>(0)}, { v2, static_cast<M>(1) }, { v3, static_cast<M>(0) } }, allocator};
 	}
 
-	/** Convenience function for making a basic set in the form of a trapezoid.
-	* Precondition: v1 < v2 < v3 < v4.
-	* @param v1 - the lowest value.
-	* @param v2 - the peak value.
-	* @param v3 - the highest value.
-	* @return A set with trapezoid shape of {v1, 0}, {v2, 1}, {v3, 1}, {v4, 0}.
-	*/
+	/**
+	 * @brief Convenience function for making a basic set in the form of a trapezoid.
+	 *        Precondition: v1 < v2 < v3 < v4.
+	 * @param v1 - the lowest value.
+	 * @param v2 - the peak value.
+	 * @param v3 - the highest value.
+	 * @return A set with trapezoid shape of {v1, 0}, {v2, 1}, {v3, 1}, {v4, 0}.
+	 */
 	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V,M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator> make_trapezoid(V v1, V v2, V v3, V v4, Allocator allocator = Allocator())
@@ -896,13 +991,14 @@ namespace fuzzy
 		return basic_set<V, M, Container, Allocator>{{ {v1, static_cast<M>(0)}, { v2, static_cast<M>(1) }, { v3, static_cast<M>(1) }, { v4, static_cast<M>(0) } }, allocator};
 	}
 
-	/** Convenience function for making a basic set in the form of a triangle.
-	* Precondition: v1 < v2 < v3.
-	* @param v1 - the lowest value.
-	* @param v2 - the peak value.
-	* @param v3 - the highest value.
-	* @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
-	*/
+	/**
+	 * @brief Convenience function for making a basic set in the form of a triangle.
+	 *        Precondition: v1 < v2 < v3.
+	 * @param v1 - the lowest value.
+	 * @param v2 - the peak value.
+	 * @param v3 - the highest value.
+	 * @return A set with triangle shape of {v1, 0}, {v2, 1}, {v3, 0}
+	 */
 	template <class M, class V, template <typename T, typename Alloc = std::allocator<T>> class Container = std::vector, class Allocator = std::allocator<fuzzy::basic_element<V, M>>>
 	requires fuzzy::numeric<V> && std::floating_point<M>
 	constexpr basic_set<V, M, Container, Allocator> make_value(V v, V offset = static_cast<V>(1), Allocator allocator = Allocator())
