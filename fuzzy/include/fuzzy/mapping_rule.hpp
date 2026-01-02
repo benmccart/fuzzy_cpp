@@ -40,6 +40,7 @@
 namespace fuzzy
 {
 	/**
+	* DEPRECATED
 	* A mapping rule uses a relation to map a supplied fuzzy input to a mapped fuzzy output.  Abstractly it is a functional
 	* mapping from the domain to the range of the related fuzzy relation.  Essentially it is the implementation mechanism for
 	* Mamdani fuzzy modelling.
@@ -64,12 +65,13 @@ namespace fuzzy
 		relation_type rel_;
 	};
 
-	/** Deduction guide to help construct the mapping_rule without having to explicitly specify the Tnorm or container parameters explicity. */
+	/** DEPRECATED - Deduction guide to help construct the mapping_rule without having to explicitly specify the Tnorm or container parameters explicity. */
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template <typename> class Tnorm = fuzzy::minimum, template <typename> class Tconorm = fuzzy::maximum>
 	mapping_rule(relation<V, M, Container, Tnorm> rel, Tconorm<M> tconorm) -> mapping_rule<V, M, Container, Tnorm, Tconorm>;
 
 
 	/**
+	* DEPRECATED
 	* Constructs a mapping rule using the provided relation.
 	* @param rel The relation to use in generating the mapping rule.
 	*/
@@ -81,6 +83,7 @@ namespace fuzzy
 	}
 
 	/**
+	* DEPRECATED
 	* Constructs a mapping rule using the provided relation.
 	* @param rel The relation to use in generating the mapping rule.
 	*/
@@ -92,6 +95,7 @@ namespace fuzzy
 	}
 
 	/**
+	* DEPRECATED
 	* Maps the fuzzy input to a fuzzy output using the relation this mapping rule was constructed with.
 	* @param variable The fuzzy input to map.
 	* @return The mapped output.
@@ -161,11 +165,6 @@ namespace fuzzy
 
 		return result;
 	}
-
 }
-
-
-
-
 
 #endif // FUZZY_MAPPING_HPP

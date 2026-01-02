@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -40,6 +40,14 @@ namespace fuzzy { namespace math
 	* Used for unsigned integer promotion where differences (max value - min value) in set values can result in
 	* exceeding the total range/ of the underlying type.
 	*/
+
+	/**
+	 * @brief  Used for unsigned integer promotion where differences (max value - min value) in set values can result in
+	 *         exceeding the total range/ of the underlying type.
+	 * @tparam V  The element value type.
+	 * @param v The value type to promote to a larger integer type (if an integer) other return as is if a floating point.
+	 * @return 
+	*/
 	template <class V>
 	requires fuzzy::numeric<V>
 	constexpr auto promote(V v)
@@ -56,6 +64,14 @@ namespace fuzzy { namespace math
 			return v;
 	}
 
+	/**
+	 * @brief Implements an fused-multiply-add (if is not constant evaluated).
+	 * @tparam M 
+	 * @param x First argument to multiply.
+	 * @param y Second argument to multiply.
+	 * @param z Third argument to add.
+	 * @return 
+	*/
 	template <class M>
 	requires std::floating_point<M>
 	constexpr M fma(M x, M y, M z) noexcept

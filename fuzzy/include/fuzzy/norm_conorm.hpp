@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -39,7 +39,10 @@
 
 namespace fuzzy 
 {
-	// Triangular norm function object.
+	/**
+	 * @brief Triangular norm function object.
+	 * @tparam M Membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct algabraic_product
@@ -47,10 +50,12 @@ namespace fuzzy
 		using tnorm = tnorm_tag;
 		using value_type = M;
 
-		// Triangular norm of the form t(x,y) = x * y
-		// @param x The left hand side operand  in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result a value inn the range [0,1].
+		/**
+		 * @brief Triangular norm of the form t(x,y) = x * y
+		 * @param x The left hand side operand  in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value inn the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -58,7 +63,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm function object.
+	/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct algabraic_sum
@@ -66,10 +74,12 @@ namespace fuzzy
 		using tconorm = tconorm_tag;
 		using value_type = M;
 
-		// Triangular conorm of the form t(x,y) = x + y - x * y
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range  [0,1].
-		// @result a value in the range [0,1]
+		/**
+		 * @brief Triangular conorm of the form t(x,y) = x + y - x * y
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range  [0,1].
+		 * @return A value in the range [0,1]
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -77,7 +87,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm function object.
+	/**
+	 * @brief Triangular norm function object.
+	 * @tparam M The memberhsip type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct bounded_difference
@@ -85,10 +98,12 @@ namespace fuzzy
 		using tnorm = tnorm_tag;
 		using value_type = M;
 
-		// Triangular norm of the form t(x,y) = max(0, x + y - 1)
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result a value in the range [0,1]
+		/**
+		 * @brief Triangular norm of the form t(x,y) = max(0, x + y - 1)
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1]
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -96,7 +111,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm function object.
+	/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M 
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct bounded_sum
@@ -104,10 +122,12 @@ namespace fuzzy
 		using tconorm = tconorm_tag;
 		using value_type = M;
 
-		/// Triangular conorm of the form t(x,y) = min(1, x + y)
-		/// @param x The left hand side operand in the range [0,1].
-		/// @param y The right hand side operand in the range [0,1].
-		/// @result A value in the range [0,1].
+		/**
+		 * @brief Triangular conorm of the form t(x,y) = min(1, x + y)
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -115,7 +135,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm function object.
+	/**
+	 * @brief Triangular norm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct drastic_product
@@ -123,10 +146,12 @@ namespace fuzzy
 		using tnorm = tnorm_tag;
 		using value_type = M;
 
-		// Triangular norm of the form t(x,y) = min(x,y) if (max(x,y) == 1), 0 if x < 1 && y < 1
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result A value in the range [0,1].
+		/**
+		 * @brief Triangular norm of the form t(x,y) = min(x,y) if (max(x,y) == 1), 0 if x < 1 && y < 1
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -134,7 +159,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm function object.
+	/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct drastic_sum
@@ -142,10 +170,12 @@ namespace fuzzy
 		using tconorm = tconorm_tag;
 		using value_type = M;
 
-		// Triangular conorm of the form t(x,y) = max(x,y) if (min(x,y) = 0), 1 if x | y > 0
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result A value in the range [0,1].
+		/**
+		 * @brief Triangular conorm of the form t(x,y) = max(x,y) if (min(x,y) = 0), 1 if x | y > 0
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -153,8 +183,10 @@ namespace fuzzy
 		}
 	};
 
-	
-	// Triangular norm function object.
+	/**
+	 * @brief Triangular norm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct einstein_product
@@ -162,10 +194,12 @@ namespace fuzzy
 		using tnorm = tnorm_tag;
 		using value_type = M;
 
-		// Triangular norm of the form t(x,y) = x * y / (2 - [x + y - (x * y)])
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result A value in the range [0,1].
+		/**
+		 * @brief Triangular norm of the form t(x,y) = x * y / (2 - [x + y - (x * y)])
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -177,7 +211,10 @@ namespace fuzzy
 	};
 
 
-	// Triangular conorm function object.
+	/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct einstein_sum
@@ -185,10 +222,12 @@ namespace fuzzy
 		using tconorm = tconorm_tag;
 		using value_type = M;
 
-		// Triangular conorm of the form t(x,y) = x + y / [1 + x * y]
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result A value in the range [0,1].
+		/**
+		 * @brief Triangular conorm of the form t(x,y) = x + y / [1 + x * y]
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return 
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -197,7 +236,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm function object.
+	/**
+	 * @brief Triangular norm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct hamacher_product
@@ -205,10 +247,12 @@ namespace fuzzy
 		using tnorm = tnorm_tag;
 		using value_type = M;
 
-		// Triangular norm of the form t(x,y) = (x * y) / [x + y - (x * y)]
-		// @param lhs The left hand side operand in the range [0,1].
-		// @param rhs The right hand side operand in the range [0,1].
-		// @result A value in the range [0,1].
+		/**
+		 * @brief Triangular norm of the form t(x,y) = (x * y) / [x + y - (x * y)]
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -221,7 +265,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm function object.
+	/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct hamacher_sum
@@ -245,7 +292,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular norm function object.
+	/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct minimum
@@ -253,10 +303,12 @@ namespace fuzzy
 		using tnorm = tnorm_tag;
 		using value_type = M;
 
-		// Triangular norm of the form t(x,y) = min(x,y)
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result a value in the range [0,1].
+		/**
+		 * @brief Triangular norm of the form t(x,y) = min(x,y)
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);
@@ -264,7 +316,10 @@ namespace fuzzy
 		}
 	};
 
-	// Triangular conorm function object.
+		/**
+	 * @brief Triangular conorm function object.
+	 * @tparam M The membership type.
+	*/
 	template <typename M = float>
 	requires std::floating_point<M>
 	struct maximum
@@ -272,10 +327,12 @@ namespace fuzzy
 		using tconorm = tconorm_tag;
 		using value_type = M;
 
-		// Triangular conorm of the form t(x,y) = max(x,y)
-		// @param x The left hand side operand in the range [0,1].
-		// @param y The right hand side operand in the range [0,1].
-		// @result a value in the range [0,1].
+		/**
+		 * @brief Triangular conorm of the form t(x,y) = max(x,y)
+		 * @param x The left hand side operand in the range [0,1].
+		 * @param y The right hand side operand in the range [0,1].
+		 * @return A value in the range [0,1].
+		*/
 		[[nodiscard]] constexpr static M apply(M x, M y) noexcept
 		{
 			validate_range<M>(x, y);

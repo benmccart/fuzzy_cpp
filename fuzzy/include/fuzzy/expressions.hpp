@@ -1,4 +1,4 @@
-//  Copyright (c) 2025, Ben McCart
+//  Copyright (c) 2026, Ben McCart
 //  Boost Software License - Version 1.0 - August 17th, 2003
 //
 //  Permission is hereby granted, free of charge, to any person or organization
@@ -33,13 +33,15 @@
 
 namespace fuzzy
 {
-
 	/**
-	* Fuzzy term 'somewhat' relaxes requirement for the fuzzy set.
-	* @param aset The set to relax.
-	* @return The relaxed set.
+	 * @brief Fuzzy term 'somewhat' relaxes requirement for the fuzzy set.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
+	 * @param aset The set to relax.
+	 * @param steps The number of steps to apply.
+	 * @return The loosened set.
 	*/
-	template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires numeric<V>&& std::floating_point<M>
 	[[nodiscard]] constexpr basic_set<V, M, Container> somewhat(basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
@@ -48,11 +50,14 @@ namespace fuzzy
 	}
 
 	/**
-	* Fuzzy term 'verry' tightens requirement for the fuzzy set.
-	* @param aset The set to tighten.
-	* @return The tightened set.
+	 * @brief Fuzzy term 'verry' tightens requirement for the fuzzy set.
+	 * @tparam V The set element value type.
+	 * @tparam M The set element membership type.
+	 * @param aset The set to tighten.
+	 * @param steps The number of steps to apply.
+	 * @return The tightened set.
 	*/
-	template <class V, class M, class Operation = maximum<M>, template <typename T, typename Alloc = std::allocator<T>> class Container>
+	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container>
 	requires numeric<V>&& std::floating_point<M>
 	[[nodiscard]] constexpr basic_set<V, M, Container> very(basic_set<V, M, Container> const& aset, std::size_t steps = linguistic_term_default_steps)
 	{
@@ -166,7 +171,7 @@ namespace fuzzy
 	 * @return An antecedant which is the intersection of the two operands.
 	*/
 	template <template<typename> class Operation, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-	requires numeric<V>&& std::floating_point<M>&& tnorm_type<Operation<M>>
+	requires numeric<V>&& std::floating_point<M> && tnorm_type<Operation<M>>
 	[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> antecedent_intersection( scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 	{
 		return scaled_antecedent<V, M, Container, Allocator>{  set_intersection<Operation>(lhs.set(), rhs.set()) };
@@ -182,7 +187,7 @@ namespace fuzzy
 	 * @return A set which is the union of the two operands.
 	*/
 	template <template <typename> class Operation, class V, class M, template <typename T, typename Alloc> class Container, class Allocator>
-	requires numeric<V>&& std::floating_point<M>&& tconorm_type<Operation<M>>
+	requires numeric<V>&& std::floating_point<M> && tconorm_type<Operation<M>>
 	[[nodiscard]] constexpr scaled_antecedent<V, M, Container, Allocator> antecedent_union(scaled_antecedent<V, M, Container, Allocator> const& lhs, scaled_antecedent<V, M, Container, Allocator> const& rhs)
 	{
 		return scaled_antecedent<V, M, Container, Allocator>{ set_union<Operation>(lhs.set(), rhs.set()) };
@@ -515,6 +520,9 @@ namespace fuzzy
 		using namespace fuzzy::operators::mapping::minimum;
 	}}
 
+	/**
+	 * @brief Operators, functions, and aggregator types for use with Mamdani style fuzzy mapping rules.
+	*/
 	namespace models { namespace mamdani
 	{
 		using namespace fuzzy::functions::minimum;
@@ -525,6 +533,11 @@ namespace fuzzy
 		using int_aggregator = int_maximum_aggregator;
 	}}
 
+	/**
+	 * @brief Operators, functions, and aggregator types for use with Takagi-Sugeno-Kang style fuzzy mapping rules.  For these rules
+	 *        to properly emulate TSK, all sets should be arranged for both the domain and range so that summed membership of all sets
+	 *        is equal to 1.0.
+	*/
 	namespace models { namespace tsk
 	{
 		using namespace fuzzy::functions::minimum;
