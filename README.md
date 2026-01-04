@@ -1,4 +1,4 @@
-# fuzzy_cpp
+# **fuzzy_cpp**
 A header only C++ library for use in a number of problem domains. Applications include control systems, simulations, or any other problem domain where a solution can be modeled with linguistic rules by a domain expert. The library is modeled after fundamental concepts presented in _FUZZY LOGIC : Intelligence, Control, and Information_ by John Yen and Reza Langari.
 ## Dependencies
 1. A C++ compiler that conforms to the ISO C++20 standard specification.
@@ -101,7 +101,7 @@ The following example is premised on controlling the fan speed for a root celler
 ![Mamdani constant outdoor tempurature](fuzzy_constant_outdoor_tempurature.png)
 ![Mamdani constant indoor tempurature](fuzzy_constant_indoor_tempurature.png)
 ## Constexpr Friendly
-fuzzy_cpp is constexpr friendly! Almost all of the classes and utilities can be used in a constexpr context.  The remainder is a single function that depends on std::sqrt() which is not constexpr in C++20.  The following sample is one way of achieving this:
+fuzzy_cpp is constexpr friendly! The following sample is one way of achieving a constexpr output from a fuzzy operation:
 ```C++
 #include <fuzzy.hpp>
 // ...
@@ -138,8 +138,11 @@ fuzzy_cpp is constexpr friendly! Almost all of the classes and utilities can be 
     static_assert(equivelant(v0, 8.27334f));
 ```
 ## Future Work
-1. Integrate a solution that does not allocate from the heap by using a custom stack based std::pmr::memory_resource with std::pmr::polymorphic_allocator for the set container. Using a stack based allocator is expected to increase performance as well as provide certain memory availability garuntees.  fuzzy_cpp has been designed to support this with its current template parameters but nothing has been tested at this point.
-1. Customized non-throwing container/allocator for embedded environments.
+1. Test use of std::pmr::memory_resource with std::pmr::polymorphic_allocator for stack based allocator for the set container.   fuzzy_cpp has been designed to support this with its current template parameters but this has not been tested and type names have not been added.
+1. Add a customized non-throwing container/allocator and type names for use in embedded environments.
+
+> [!NOTE]
+> Pull requests in these areas are welcome!
 
 
 
