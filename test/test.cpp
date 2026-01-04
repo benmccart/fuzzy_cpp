@@ -2090,7 +2090,7 @@ TEST_CASE("Final", "[Final]")
     constexpr float v0 = ce_control_loop_mamdani(49.0f, 44.0f);
     static_assert(equivelant(v0, 8.27334f));
 
-    // Example of runt time use.
+    // Example of run time use.
     set const cold{ {-60.0f, 1.0f}, {40.0f, 1.0f}, {45.0f, 0.0f } };
     set const chilly = make_triangle<float>(40.0f, 45.0f, 50.0f);
     set const cool = make_triangle<float>(45.0f, 50.0f, 55.0f);
@@ -2128,7 +2128,7 @@ TEST_CASE("Final", "[Final]")
         return center_of_area(fan_voltage.result());
     };
 
-    std::cout << "-------------------- Mamdani Const Outdoor Temp --------------------\n";
+    std::cout << "-------------------- Mamdani Const Indoor Temp --------------------\n";
     std::cout << "outdoor tempurature F, indoor tempurature F, fan VDC\n";
     for (float it = 35.0f; it <= 60.0f; it += 0.05f)
     {
