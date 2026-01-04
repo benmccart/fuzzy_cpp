@@ -2128,7 +2128,7 @@ TEST_CASE("Final", "[Final]")
         return center_of_area(fan_voltage.result());
     };
 
-    std::cout << "-------------------- Mamdani Const Indoor Temp --------------------\n";
+    std::cout << "-------------------- Mamdani Const Outdoor Temp --------------------\n";
     std::cout << "outdoor tempurature F, indoor tempurature F, fan VDC\n";
     for (float it = 35.0f; it <= 60.0f; it += 0.05f)
     {

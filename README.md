@@ -4,10 +4,17 @@ A header only C++ library for use in a number of problem domains. Applications i
 1. A C++ compiler that conforms to the ISO C++20 standard specification.
 1. An implementation of the C++ standard library that conforms to the ISO C++20 standard specification.
 ## Usage
-Using the fuzzy_cpp library is straightforward and (moslty) idiomatic.  The premise of the library is to make linguistic rules that map an input (antecedent) to an output (consequent). The result of multiple mapping rules must be aggregated (combined) into a single output.  The (fuzzy) output can then be defuzified into a single (crisp) value.
-For example we might model a bathroom fan with two linguistic rules that if humidity is high (antecedent) then fan speed is fast (consequent).  Each of those linguistic terms (humidity, high, fan-speed, fast) would be measured with a fuzzy set.  A fuzzy set is like a classical set, but it's elements have a memberhsip to represent the degree to which those elements belong in the set. Often in real world scenarios we would want to combine multiple conditions together into a single antecedent.  We would do this using a t-norm (triangular-norm) or t-conorm (triangular-conorm) operation which are intersection and union respecitively for fuzzy sets.  The use of t-norm and t-conorm may also be used to form new linguistic terms for use in making antecedents.
+Using the fuzzy_cpp library is straightforward and (mostly) idiomatic.  The premise of the library is to make linguistic rules that map an input (antecedent) to an output (consequent). The result of multiple mapping rules must be aggregated (combined) into a single output.  The (fuzzy) output can then be defuzzified into a single (crisp) value.
+
+For example we might model an automatic bathroom fan controller with a single linguistic rule:
+1. If humidity is high (antecedent) then fan speed is fast (consequent).
+
+Each of those linguistic terms (humidity, high, fan-speed, fast) would be measured with a fuzzy set.  A fuzzy set is like a classical set, but it's elements have a memberhsip to represent the degree to which those elements belong in the set.
+
+Often in real world scenarios we would want to combine multiple conditions (antecedents) together into a single condition (antecedent).  We would do this using a t-norm (triangular-norm) or t-conorm (triangular-conorm) operation which are set-intersection and set-union respecitively.  T-norm and t-conorm operations may also be applied to existing linguistic terms to form new linguistic terms.
 ### t-norm
 A common t-norm operator in fuzzy logic is minimum.  In this library the C++ bitwise operator& has been overloaded as the t-norm operator.  The particular t-norm operator is selected by which namespace is included in the scope of operation.
+
 Here is what the minimum t-norm operation would look like with the following two sets:
 ```C++
 set a = make_triangle<float>(4, 8, 12);
@@ -24,15 +31,15 @@ set c = a | b;
 ```
 ![t-conorm result](fuzzy_t-conorm.png)
 ### antecedent
-Antecedents are formed by using the "is" function on two fuzzy sets.  For example a narrow set could represent 'humidity', another narrow set would represent 'high', we could then query whether the humidity is high in C++ by the expression "is(humidity,high)" which creates an antecedent.
+Antecedents are formed by using the "is" function on two fuzzy sets.  For example a narrow set could represent 'humidity', another set would represent 'high', we could then query whether the humidity is high in C++ by the expression "is(humidity,high)" which creates an antecedent.
 ### aggregator
 Aggregators handle combining the mapping of multiple fuzzy outputs together into a single output.  This is done automatically by the mapping operation, but to do this you must declare an aggregator (C++ variable) for each output range.
 ### consequent
-Consequents are formed for each output variable (aggregator) that is mapped to a particular linguistic output term (fuzzy set).  This is done through the aggregator class' "shall_be" memberhsip operator. For example we could say fan_speed shall be fast with the C++ expression "fan_speed.shall_be(fast)" which creates a consequent.
+Consequents are formed for each output variable (aggregator) that is mapped to a particular linguistic output term (fuzzy set).  This is done through the aggregator class' "shall_be" membership function. For example we could say fan_speed shall be fast with the C++ expression "fan_speed.shall_be(fast)" which creates a consequent.
 ### mapping operation
 Mapping operations are where the antecedents are mapped to the consequents.  This can be expressed in C++ using the right shift operator>> with an antecedent for the left hand argument and a consequent for the right hand argument.
 ## Example
-The following example is premised on controlling the fan speed for a root celler depending on the indoor and outdoor tempurature.  Because there are two variables in this example (indoor tempurature and outdoor tempurature) there are two separate runs show with the output.  The first run displays Mamdani output for a constant outdoor tempurature.  The second run displays a Mamdani output for a constant indoor tempurature.
+The following example is premised on controlling the fan speed for a root celler depending on the indoor and outdoor tempuratures.  Because there are two variables in this example (indoor tempurature and outdoor tempurature) there are two separate runs to show the output.  The first run displays a Mamdani output for a constant outdoor tempurature.  The second run displays a Mamdani output for a constant indoor tempurature.
 ```C++
 #include <fuzzy.hpp>
 // ...
@@ -94,7 +101,7 @@ The following example is premised on controlling the fan speed for a root celler
 ![Mamdani constant outdoor tempurature](fuzzy_constant_outdoor_tempurature.png)
 ![Mamdani constant indoor tempurature](fuzzy_constant_indoor_tempurature.png)
 ## Constexpr Friendly
-fuzzy_cpp is constexpr friendly! Almost all of the classes and utilities can be used in a constexpr context.  The remainder is a single function that depends on std::sqrt() which is not constexpr in C++20.  However, with the default container (std::vector) which may not escape a constant context some care must be used.  The following sample is one way of achieving this:
+fuzzy_cpp is constexpr friendly! Almost all of the classes and utilities can be used in a constexpr context.  The remainder is a single function that depends on std::sqrt() which is not constexpr in C++20.  The following sample is one way of achieving this:
 ```C++
 #include <fuzzy.hpp>
 // ...
