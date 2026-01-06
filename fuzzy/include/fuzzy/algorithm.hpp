@@ -821,7 +821,7 @@ namespace fuzzy
 			auto calc_steps = [&](element_type lhs, element_type rhs) -> std::size_t
 			{
 				assert(rhs.value() > lhs.value());
-				std::size_t const steps = std::min(static_cast<std::size_t>(rhs.value() - lhs.value()) - 1ull, step_count);
+				std::size_t const steps = std::min(static_cast<std::size_t>(rhs.value() - lhs.value()) - static_cast<std::size_t>(1), step_count);
 				return std::min(steps, buffer.size());
 			};
 

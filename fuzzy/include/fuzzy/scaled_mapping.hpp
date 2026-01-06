@@ -72,7 +72,7 @@ namespace fuzzy
 		{
 			// Calcualte the index and get the matching itr in consequent/destination.
 			key_type const offset = ele.value() / median_segment_ratio;
-			std::size_t const index = static_cast<std::size_t>(offset);
+			std::ptrdiff_t const index = static_cast<std::ptrdiff_t>(offset);
 			auto itr = dst.cbegin() + index;
 			key_type const remainder = offset - static_cast<key_type>(index);
 			assert(static_cast<key_type>(0) <= remainder && remainder <= static_cast<key_type>(1));

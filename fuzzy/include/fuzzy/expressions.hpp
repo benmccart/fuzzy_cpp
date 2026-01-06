@@ -122,7 +122,7 @@ namespace fuzzy
 			return itr;
 		};
 
-		std::size_t const segment_count = static_cast<std::size_t>(variable.size() - 1u);
+		key_type const segment_count = static_cast<key_type>(variable.size() - static_cast<std::size_t>(1));
 		key_type const segment_ratio = static_cast<key_type>(1) / segment_count;
 		for (basic_element<V, M> const& e : set)
 		{
@@ -134,7 +134,7 @@ namespace fuzzy
 			assert(itr_lower->value() <= e.value());
 			assert(itr_upper != variable.end() && e.value() <= itr_upper->value());
 
-			key_type const offset = static_cast<key_type>(e.value()) - itr_lower->value();
+			key_type const offset = static_cast<key_type>(e.value() - itr_lower->value());
 			key_type const segment_range = static_cast<key_type>(itr_upper->value() - itr_lower->value());
 			key_type const offset_ratio = offset / segment_range;
 			assert(static_cast<key_type>(0) <= offset_ratio && offset_ratio <= static_cast<key_type>(1));
