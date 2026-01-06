@@ -1,4 +1,14 @@
 # **fuzzy_cpp**
+[![GCC](https://github.com/benmccart/fuzzy_cpp/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main&job=GCC)](
+  https://github.com/benmccart/fuzzy_cpp/actions/workflows/cmake-multi-platform.yml
+)
+[![Clang](https://github.com/benmccart/fuzzy_cpp/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main&job=Clang)](
+  https://github.com/benmccart/fuzzy_cpp/actions/workflows/cmake-multi-platform.yml
+)
+[![MSVC](https://github.com/benmccart/fuzzy_cpp/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main&job=MSVC)](
+  https://github.com/benmccart/fuzzy_cpp/actions/workflows/cmake-multi-platform.yml
+)
+
 A header only C++ library for use in a number of problem domains. Applications include control systems, simulations, or any other problem domain where a solution can be modeled with linguistic rules by a domain expert. The library is modeled after fundamental concepts presented in _FUZZY LOGIC : Intelligence, Control, and Information_ by John Yen and Reza Langari.
 ## Dependencies
 1. A C++ compiler that conforms to the ISO C++20 standard specification.

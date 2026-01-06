@@ -32,5 +32,3 @@ enable_testing()
 
 add_subdirectory(fuzzy)
 add_subdirectory(test)
-
-# TODO: Add tests and install targets if needed.
