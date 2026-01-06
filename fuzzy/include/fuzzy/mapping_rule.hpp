@@ -26,6 +26,8 @@
 #ifndef FUZZY_MAPPING_HPP
 #define FUZZY_MAPPING_HPP
 
+#if ENABLE_DEPRECATED_TESTS
+
 #include <numeric>
 
 #include <fuzzy/algorithm.hpp>
@@ -89,7 +91,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm, template<typename> class Tconorm>
 	requires fuzzy::numeric<V> && std::floating_point<M> && tnorm_type<Tnorm<M>> && tconorm_type<Tconorm<M>>
-	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel, Tconorm<M> tconorm)
+	constexpr mapping_rule<V, M, Container, Tnorm, Tconorm>::mapping_rule(relation_type rel, [[maybe_unused]] Tconorm<M> tconorm)
 		: rel_(rel)
 	{
 	}
@@ -166,5 +168,7 @@ namespace fuzzy
 		return result;
 	}
 }
+
+#endif // ENABLE_DEPRECATED_TESTS
 
 #endif // FUZZY_MAPPING_HPP

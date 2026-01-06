@@ -26,6 +26,8 @@
 #ifndef FUZZY_SCALING_INFERENCE_HPP
 #define FUZZY_SCALING_INFERENCE_HPP
 
+#if ENABLE_DEPRECATED_TESTS
+
 namespace fuzzy
 {
 	/**
@@ -115,5 +117,6 @@ namespace fuzzy
 	}
 
 }
+#endif // ENABLE_DEPRECATED_TESTS
 
 #endif

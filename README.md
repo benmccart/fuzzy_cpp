@@ -4,7 +4,7 @@ A header only C++ library for use in a number of problem domains. Applications i
 1. A C++ compiler that conforms to the ISO C++20 standard specification.
 1. An implementation of the C++ standard library that conforms to the ISO C++20 standard specification.
 ## Usage
-Using the fuzzy_cpp library is straightforward and (mostly) idiomatic.  The premise of the library is to make linguistic rules that map an input (antecedent) to an output (consequent). The result of multiple mapping rules must be aggregated (combined) into a single output.  The (fuzzy) output can then be defuzzified into a single (crisp) value.
+Using the fuzzy_cpp library is straightforward and (mostly) idiomatic.  The premise of the library is to make linguistic rules that map an input (antecedent) to an output (consequent). The result of multiple mapping rules must be combined (aggregated) into a single output.  The fuzzy output can then be defuzzified into a single (crisp) value.
 
 For example we might model an automatic bathroom fan controller with a single linguistic rule:
 1. If humidity is high (antecedent) then fan speed is fast (consequent).

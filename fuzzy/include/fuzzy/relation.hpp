@@ -28,6 +28,8 @@
 #ifndef FUZZY_RELATION_HPP
 #define FUZZY_RELATION_HPP
 
+#if ENABLE_DEPRECATED_TESTS
+
 #include <fuzzy/set.hpp>
 #include <fuzzy/traits.hpp>
 
@@ -85,7 +87,7 @@ namespace fuzzy
 	*/
 	template <class V, class M, template <typename T, typename Alloc = std::allocator<T>> class Container, template<typename> class Tnorm>
 	requires tnorm_type<Tnorm<M>> && fuzzy::numeric<V> && std::floating_point<M>
-	constexpr relation<V, M, Container, Tnorm>::relation(set_type const& domain, set_type const& range, Tnorm<M> tnorm) noexcept
+	constexpr relation<V, M, Container, Tnorm>::relation(set_type const& domain, set_type const& range, [[maybe_unused]] Tnorm<M> tnorm) noexcept
 		: domain_(&domain)
 		, range_(&range)
 	{
@@ -106,6 +108,6 @@ namespace fuzzy
 		return Tnorm<M>::apply(domain_->membership(dv), range_->membership(rv));
 	}
 }
-
+#endif // ENABLE_DEPRECATED_TESTS
 
 #endif // FUZZY_RELATION_HPP

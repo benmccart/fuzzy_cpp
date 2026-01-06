@@ -25,28 +25,47 @@
 
 cmake_minimum_required (VERSION 3.12)
 
-project ("test")
+project ("tests")
 
 find_package(Catch2 CONFIG REQUIRED)
 
 option(ENABLE_DEPRECATED_TESTS "Enables tests for deprecated features" OFF)
 
 # Add source to this project's executable.
-add_executable (test "test.cpp" "static_test.cpp" )
+add_executable (tests "test.cpp" "static_test.cpp" )
 
 if(ENABLE_DEPRECATED_TESTS)
-    target_compile_definitions(test PRIVATE ENABLE_DEPRECATED_TESTS=1)
+    target_compile_definitions(tests PRIVATE ENABLE_DEPRECATED_TESTS=1)
 else()
-    target_compile_definitions(test PRIVATE ENABLE_DEPRECATED_TESTS=0)
+    target_compile_definitions(tests PRIVATE ENABLE_DEPRECATED_TESTS=0)
 endif()
 
-set_property(TARGET test PROPERTY CXX_STANDARD 20)
-target_link_libraries(test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
-target_link_libraries(test PRIVATE fuzzy_cpp)
+set_property(TARGET tests PROPERTY CXX_STANDARD 20)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+    CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
+  message("Building for clang-cl")
+  set_property(TARGET tests PROPERTY MSVC_WARNING_LEVEL 4)
+  set_property(TARGET tests PROPERTY MSVC_WARNINGS_AS_ERRORS ON)
+  target_compile_options(tests PRIVATE -Wno-c++98-compat -Wno-c++98-compat-pedantic)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  message("Building for Clang")
+  target_compile_options(tests PRIVATE -Werror -Wall -Wextra -Wconversion)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  message("Building for GCC")
+  target_compile_options(tests PRIVATE -Werror -Wall -Wextra -Wconversion)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  message("Building for MSVC")
+  set_property(TARGET tests PROPERTY MSVC_WARNING_LEVEL 4)
+  set_property(TARGET tests PROPERTY MSVC_WARNINGS_AS_ERRORS ON)
+endif()
+
+target_link_libraries(tests PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE fuzzy_cpp)
 
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
 include(Catch)
-catch_discover_tests(test)
+catch_discover_tests(tests)
 
 

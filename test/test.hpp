@@ -32,7 +32,7 @@ namespace fuzzy
 {
 	constexpr bool all_ranges_valid(int_set const& s)
 	{
-		size_t size = s.size();
+		std::ptrdiff_t size = static_cast<std::ptrdiff_t>(s.size());
 		if (s.end() - s.begin() != size)
 			return false;
 

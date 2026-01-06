@@ -122,7 +122,7 @@ namespace fuzzy
 			return itr;
 		};
 
-		std::size_t const segment_count = static_cast<key_type>(variable.size() - 1u);
+		std::size_t const segment_count = static_cast<std::size_t>(variable.size() - 1u);
 		key_type const segment_ratio = static_cast<key_type>(1) / segment_count;
 		for (basic_element<V, M> const& e : set)
 		{

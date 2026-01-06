@@ -132,9 +132,9 @@ namespace fuzzy { namespace math
 		constexpr float round_off() noexcept
 		{
 			if constexpr (sizeof(M) == 4)
-				return 0.0000077f; // Loss of 7 bits ulp
-
-			return 0.00000000000015; // Loss of 7 bits ulp
+				return static_cast<M>(0.0000077f); // Loss of 7 bits ulp
+			else
+				return static_cast<M>(0.00000000000015); // Loss of 7 bits ulp
 		}
 	}
 
@@ -256,7 +256,7 @@ namespace fuzzy { namespace math
 				if constexpr (std::integral<V>)
 				{
 					M const v_inv_denom = static_cast<M>(1) / s0_deltax;
-					M const delta_v = v - s0.v0.value();
+					M const delta_v = static_cast<M>(v - s0.v0.value());
 					return delta_v * v_inv_denom;
 				}
 				else
