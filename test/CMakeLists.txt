@@ -27,7 +27,15 @@ cmake_minimum_required (VERSION 3.12)
 
 project ("tests")
 
-find_package(Catch2 CONFIG REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.12.0
+)
+
+FetchContent_MakeAvailable(Catch2)
 
 option(ENABLE_DEPRECATED_TESTS "Enables tests for deprecated features" OFF)
 
