@@ -28,6 +28,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 project ("fuzzy_cpp_all")
 
+enable_testing()
+
 add_subdirectory(fuzzy)
 add_subdirectory(test)
 

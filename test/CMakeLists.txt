@@ -65,7 +65,9 @@ target_link_libraries(tests PRIVATE fuzzy_cpp)
 
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
+include(CTest)
 include(Catch)
+
 catch_discover_tests(tests)
 
 
