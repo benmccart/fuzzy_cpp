@@ -1,0 +1,52 @@
+name: Reusable CMake Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      c_compiler:
+        required: true
+        type: string
+      cxx_compiler:
+        required: true
+        type: string
+      build_dir_name:
+        required: true
+        type: string
+
+jobs:
+  build-and-test:
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/${{ inputs.build_dir_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake
+        run: >
+          cmake
+          -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_C_COMPILER=${{ inputs.c_compiler }}
+          -DCMAKE_CXX_COMPILER=${{ inputs.cxx_compiler }}
+          -DCMAKE_BUILD_TYPE=Release
+          -S ${{ github.workspace }}
+
+      - name: Build
+        run: >
+          cmake
+          --build ${{ steps.strings.outputs.build-output-dir }}
+          --config Release
+
+      - name: Test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: >
+          ctest
+          --build-config Release
+          --output-on-failure

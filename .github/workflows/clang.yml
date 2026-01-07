@@ -1,0 +1,16 @@
+name: Clang Build/Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  clang:
+    uses: ./.github/workflows/cmake-reusable.yml
+    with:
+      os: ubuntu-latest
+      c_compiler: clang
+      cxx_compiler: clang++
+      build_dir_name: build-clang

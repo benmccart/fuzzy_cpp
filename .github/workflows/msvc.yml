@@ -1,0 +1,16 @@
+name: MSVC Build/Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  msvc:
+    uses: ./.github/workflows/cmake-reusable.yml
+    with:
+      os: windows-latest
+      c_compiler: cl
+      cxx_compiler: cl
+      build_dir_name: build-msvc
